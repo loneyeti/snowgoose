@@ -267,3 +267,33 @@ export async function fetchHistory() {
     throw error;
   }
 }
+
+export async function deleteHistory(id: string) {
+  const userSession = await getUserSession();
+  const body = JSON.stringify(userSession);
+
+  try {
+    const result = await fetch(
+      `http://localhost:5001/api/history/delete/${id}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: body,
+      }
+    );
+    if (result.ok) {
+      console.log("History Deleted");
+    } else {
+      console.log(result.status);
+    }
+  } catch (error) {
+    console.log("Error deleting history");
+    console.log(error);
+    throw new Error("Error deleting history");
+  }
+
+  revalidateTag("history");
+}

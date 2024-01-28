@@ -9,7 +9,7 @@ export default function SelectBox({
   children: React.ReactNode;
   name: string;
   disableSelection: boolean;
-  defaultValue: string;
+  defaultValue: string | number;
 }) {
   return (
     <select

@@ -14,6 +14,15 @@ export default function Conversation({
   chats,
   showSpinner,
 }: ConversationProps) {
+  if (chats.length === 0) {
+    return (
+      <div className="grid w-full h-full place-items-center">
+        <h1 className="text-3xl text-slate-500 font-thin">
+          Welcome to Snowgoose
+        </h1>
+      </div>
+    );
+  }
   return (
     <div>
       <div className="prose lg:w-[65ch]">

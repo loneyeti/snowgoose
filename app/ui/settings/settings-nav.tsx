@@ -27,6 +27,14 @@ export default function SettingsNav() {
           />
           Output Formats
         </MenuListItem>
+        <MenuListItem url="/settings/history">
+          <MaterialSymbol
+            icon="history"
+            size={18}
+            className="mr-2 align-middle"
+          />
+          History
+        </MenuListItem>
       </ul>
     </Sidebar>
   );
