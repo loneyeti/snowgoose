@@ -4,10 +4,12 @@ export default function SelectBox({
   children,
   name,
   disableSelection,
+  defaultValue,
 }: {
   children: React.ReactNode;
   name: string;
   disableSelection: boolean;
+  defaultValue: string;
 }) {
   return (
     <select
@@ -20,6 +22,8 @@ export default function SelectBox({
       )}
       id={name}
       name={name}
+      defaultValue={defaultValue}
+      key={defaultValue}
     >
       {children}
     </select>

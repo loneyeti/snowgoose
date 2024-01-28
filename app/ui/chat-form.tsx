@@ -21,6 +21,7 @@ export default function ChatForm({
   updateShowSpinner,
   responseHistory,
   resetChat,
+  currentChat,
 }: FormProps) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const [promptVal, setPromptVal] = useState("");
@@ -32,6 +33,7 @@ export default function ChatForm({
   //const [responseHistory, setResponseHistory] = useState<ChatResponse[]>([]);
   const router = useRouter();
   const disableSelection = responseHistory.length > 0;
+  const [defaultModel, setDefaultModel] = useState("gpt-4");
 
   const handleReset = (e: React.MouseEvent) => {
     resetPage();
@@ -62,6 +64,13 @@ export default function ChatForm({
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (currentChat) {
+      console.log("The chat has changed so I should update the select fields");
+      setDefaultModel(currentChat.model);
+    }
+  }, [currentChat]);
 
   useEffect(() => {
     console.log("Using effect");
@@ -132,7 +141,11 @@ export default function ChatForm({
         <label className="text-gray-700 text-xs" htmlFor="model">
           Model
         </label>
-        <SelectBox name="model" disableSelection={disableSelection}>
+        <SelectBox
+          name="model"
+          disableSelection={disableSelection}
+          defaultValue={currentChat?.model ?? ""}
+        >
           {models.map((model: Model) => {
             return (
               <option value={model.name} key={model.name}>
@@ -146,7 +159,11 @@ export default function ChatForm({
         <label className="text-gray-700 text-xs" htmlFor="persona">
           Persona
         </label>
-        <SelectBox name="persona" disableSelection={disableSelection}>
+        <SelectBox
+          name="persona"
+          disableSelection={disableSelection}
+          defaultValue={currentChat?.persona ?? 0}
+        >
           {personas.map((persona: Persona) => {
             return (
               <option value={persona.id} key={persona.id}>
@@ -160,7 +177,11 @@ export default function ChatForm({
         <label className="text-gray-700 text-xs" htmlFor="outputFormat">
           Output Format
         </label>
-        <SelectBox name="outputFormat" disableSelection={disableSelection}>
+        <SelectBox
+          name="outputFormat"
+          disableSelection={disableSelection}
+          defaultValue={currentChat?.outputFormat ?? 0}
+        >
           {outputFormats.map((outputFormat: OutputFormat) => {
             return (
               <option value={outputFormat.id} key={outputFormat.id}>

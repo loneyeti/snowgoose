@@ -3,7 +3,7 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { Chat, ChatResponse, PersonaPost } from "./model";
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { METHODS } from "http";
 import { getUserSession } from "./auth";
@@ -234,6 +234,7 @@ export async function saveChat(chat: Chat) {
     if (!result.ok) {
       throw new Error("Error saving conversation");
     }
+    revalidateTag("history");
     const data = await result.json();
     return data;
   } catch (error) {
@@ -243,7 +244,6 @@ export async function saveChat(chat: Chat) {
 }
 
 export async function fetchHistory() {
-  noStore();
   const userSession = await getUserSession();
   const body = JSON.stringify(userSession);
 
@@ -255,6 +255,7 @@ export async function fetchHistory() {
         "Content-Type": "application/json",
       },
       body: body,
+      next: { tags: ["history"] },
     });
     if (!result.ok) {
       throw new Error("Error fetching conversation");

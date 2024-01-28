@@ -41,6 +41,7 @@ export type FormProps = {
   updateShowSpinner: (showSpinner: boolean) => void;
   responseHistory: ChatResponse[];
   resetChat: () => void;
+  currentChat: Chat | undefined;
 };
 
 export interface APIResonse {
@@ -66,5 +67,5 @@ export interface ChatUserSession extends Chat, UserSession {}
 export interface History {
   id: number;
   title: string;
-  chat: string;
+  conversation: string;
 }
