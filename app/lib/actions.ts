@@ -40,9 +40,10 @@ export async function createChat(
   try {
     const result = await sendChat(chat);
     responseHistory.push(result as ChatResponse);
+    chat.responseHistory = responseHistory;
   } catch (error) {
     console.error("Failed to sent Chat");
     throw error;
   }
-  return responseHistory;
+  return chat;
 }

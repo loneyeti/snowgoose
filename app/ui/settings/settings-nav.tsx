@@ -7,11 +7,11 @@ export default function SettingsNav() {
   return (
     <Sidebar>
       <ul className="mt-6">
-        <MenuListItem>
+        <MenuListItem url="/settings/profile">
           <MaterialSymbol icon="face" size={18} className="mr-2 align-middle" />
           Profile
         </MenuListItem>
-        <MenuListItem>
+        <MenuListItem url="/settings/personas">
           <MaterialSymbol
             icon="smart_toy"
             size={18}
@@ -19,7 +19,7 @@ export default function SettingsNav() {
           />
           Personas
         </MenuListItem>
-        <MenuListItem>
+        <MenuListItem url="/settings/output-formats">
           <MaterialSymbol
             icon="speaker_notes"
             size={18}

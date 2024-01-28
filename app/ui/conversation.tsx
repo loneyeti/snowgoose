@@ -7,15 +7,26 @@ import { SpinnerSize, Spinner } from "./spinner";
 
 interface ConversationProps {
   chats: ChatResponse[];
+  showSpinner: boolean;
 }
 
-export default function Conversation({ chats }: ConversationProps) {
+export default function Conversation({
+  chats,
+  showSpinner,
+}: ConversationProps) {
   return (
     <div>
-      <div className="prose">
+      <div className="prose lg:w-[65ch]">
         {chats && chats.length > 0 ? (
           chats.map((chat: ChatResponse, index) => (
-            <div key={index}>
+            <div
+              key={index}
+              className={
+                chat.role === "user"
+                  ? "px-6 py-2 text-sm text-slate-600 italic bg-slate-100 rounded-md border-b-2"
+                  : "p-2"
+              }
+            >
               <Markdown rehypePlugins={[rehypeRaw]}>
                 {DOMPurify.sanitize(chat.content)}
               </Markdown>
@@ -26,7 +37,7 @@ export default function Conversation({ chats }: ConversationProps) {
           <p>&nbsp;</p>
         )}
       </div>
-      <Spinner spinnerSize={SpinnerSize.sm} />
+      {showSpinner === true && <Spinner spinnerSize={SpinnerSize.md} />}
     </div>
   );
 }

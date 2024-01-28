@@ -1,17 +1,16 @@
 import { SettingsHeading } from "@/app/ui/typography";
-import { fetchPersonas } from "@/app/lib/api";
 import PersonaSkeleton from "@/app/ui/settings/persona-skeleton";
 import PersonaList from "@/app/ui/settings/persona-list";
 import { Suspense } from "react";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
+import OutputFormatList from "@/app/ui/settings/output-format-list";
 import Link from "next/link";
 
-export default async function Personas() {
-  const personas = await fetchPersonas();
+export default async function OutputFormats() {
   return (
     <main>
-      <SettingsHeading>Personas</SettingsHeading>
+      <SettingsHeading>Output Formats</SettingsHeading>
       <div className="flex flex-col justify-center mt-6">
         <Suspense
           fallback={
@@ -22,9 +21,9 @@ export default async function Personas() {
             </>
           }
         >
-          <PersonaList />
+          <OutputFormatList />
         </Suspense>
-        <Link href="/settings/personas/new">
+        <Link href="/settings/output-formats/new">
           <div className="w-3/4 mx-auto p-6 my-3 rounded-md bg-slate-200 hover:bg-slate-300">
             <div>
               <p className="text-lg font-semibold">
