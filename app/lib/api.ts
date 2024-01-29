@@ -119,6 +119,21 @@ export async function fetchModels() {
   }
 }
 
+export async function fetchModelByAPIName(api_name: string) {
+  noStore();
+
+  try {
+    const result = await fetch(
+      `http://localhost:5001/api/models/api_name/${api_name}`
+    );
+    const data = await result.json();
+    return data;
+  } catch (error) {
+    console.log("ERROR!!!");
+    console.log(error);
+  }
+}
+
 export async function fetchOutputFormats() {
   noStore();
 

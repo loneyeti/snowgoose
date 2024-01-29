@@ -1,6 +1,11 @@
 "use client";
 
-import { fetchPersonas, fetchModels, fetchOutputFormats } from "../lib/api";
+import {
+  fetchPersonas,
+  fetchModels,
+  fetchOutputFormats,
+  fetchModelByAPIName,
+} from "../lib/api";
 import {
   Persona,
   Model,
@@ -11,10 +16,11 @@ import {
 } from "../lib/model";
 import SelectBox from "./select-box";
 import { createChat } from "../lib/actions";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, ChangeEvent } from "react";
 import { Spinner, SpinnerSize } from "./spinner";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
+import { convertFileToBase64 } from "../lib/utils";
 
 export default function ChatForm({
   updateMessage,
@@ -33,8 +39,11 @@ export default function ChatForm({
   //const [responseHistory, setResponseHistory] = useState<ChatResponse[]>([]);
   const router = useRouter();
   const disableSelection = responseHistory.length > 0;
-  const [defaultModel, setDefaultModel] = useState("gpt-4");
-
+  //const [defaultModel, setDefaultModel] = useState("gpt-4");
+  const [selectedModel, setSelectedModel] = useState("");
+  const [showFileUpload, setShowFileUpload] = useState(false);
+  const [hidePersonas, setHidePersonas] = useState(false);
+  const [hideOutputFormats, setHideOutputFormats] = useState(false);
   const handleReset = (e: React.MouseEvent) => {
     resetPage();
   };
@@ -48,6 +57,12 @@ export default function ChatForm({
     router.refresh();
   };
 
+  const modelChange = (event: ChangeEvent) => {
+    console.log("Model changed...");
+    const selectedValue = (event.target as HTMLSelectElement).value;
+    setSelectedModel(selectedValue);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -55,6 +70,7 @@ export default function ChatForm({
         setPersonas(personasData);
         const modelsData = await fetchModels();
         setModels(modelsData);
+        setSelectedModel(modelsData[0].api_name);
         const outputFormatsData = await fetchOutputFormats();
         setOutputFormats(outputFormatsData);
       } catch (error) {
@@ -66,11 +82,31 @@ export default function ChatForm({
   }, []);
 
   useEffect(() => {
-    if (currentChat) {
-      console.log("The chat has changed so I should update the select fields");
-      setDefaultModel(currentChat.model);
+    if (selectedModel !== "") {
+      console.log(
+        "The model has changed so I check for any additional fields to make visible"
+      );
+      const fetchModel = async () => {
+        try {
+          const model: Model = await fetchModelByAPIName(selectedModel);
+          if (model.is_vision) {
+            setShowFileUpload(true);
+            setHideOutputFormats(true);
+            setHidePersonas(true);
+          } else if (model.is_image_generation) {
+            setShowFileUpload(false);
+            setHideOutputFormats(true);
+            setHidePersonas(true);
+          } else {
+            setShowFileUpload(false);
+            setHideOutputFormats(false);
+            setHidePersonas(false);
+          }
+        } catch (error) {}
+      };
+      fetchModel();
     }
-  }, [currentChat]);
+  }, [selectedModel]);
 
   useEffect(() => {
     console.log("Using effect");
@@ -79,6 +115,13 @@ export default function ChatForm({
         try {
           console.log("message received. Updating.");
           updateShowSpinner(true);
+          const imageFile = data.get("image") as File | null;
+
+          if (imageFile) {
+            const imageBase64 = await convertFileToBase64(imageFile);
+            data.append("imageBase64", imageBase64);
+          }
+
           const chat = await createChat(data, responseHistory);
           updateMessage(chat);
           console.log("Done updating");
@@ -145,24 +188,32 @@ export default function ChatForm({
           name="model"
           disableSelection={disableSelection}
           defaultValue={currentChat?.model ?? ""}
+          hide={false}
+          onChangeFunction={modelChange}
         >
           {models.map((model: Model) => {
             return (
-              <option value={model.name} key={model.name}>
-                {model.title}
+              <option value={model.api_name} key={model.api_name}>
+                {model.name}
               </option>
             );
           })}
         </SelectBox>
       </div>
       <div className="m-3">
-        <label className="text-gray-700 text-xs" htmlFor="persona">
+        <label
+          className={clsx(`text-gray-700 text-xs`, {
+            hidden: hidePersonas === true,
+          })}
+          htmlFor="persona"
+        >
           Persona
         </label>
         <SelectBox
           name="persona"
           disableSelection={disableSelection}
           defaultValue={currentChat?.persona ?? 0}
+          hide={hidePersonas}
         >
           {personas.map((persona: Persona) => {
             return (
@@ -174,13 +225,19 @@ export default function ChatForm({
         </SelectBox>
       </div>
       <div className="m-3">
-        <label className="text-gray-700 text-xs" htmlFor="outputFormat">
+        <label
+          className={clsx(`text-gray-700 text-xs`, {
+            hidden: hidePersonas === true,
+          })}
+          htmlFor="outputFormat"
+        >
           Output Format
         </label>
         <SelectBox
           name="outputFormat"
           disableSelection={disableSelection}
           defaultValue={currentChat?.outputFormat ?? 0}
+          hide={hideOutputFormats}
         >
           {outputFormats.map((outputFormat: OutputFormat) => {
             return (
@@ -191,6 +248,18 @@ export default function ChatForm({
           })}
         </SelectBox>
       </div>
+      {showFileUpload && (
+        <div className="m-3">
+          <label className="text-gray-700 text-xs" htmlFor="image">
+            Image
+          </label>
+          <input
+            className="w-full text-sm text-slate-500  border border-slate-300 cursor-pointer rounded-md bg-slate-50 file:text-xs file:border-0 file:bg-slate-300 file:rounded-md file:h-full file:pt-1"
+            name="image"
+            type="file"
+          />
+        </div>
+      )}
       <div className="m-3">
         <label className="text-gray-700 text-xs" htmlFor="prompt">
           Enter your prompt:

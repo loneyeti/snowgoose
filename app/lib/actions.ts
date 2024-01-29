@@ -3,6 +3,7 @@
 import { ChatResponse, Chat } from "./model";
 import { z } from "zod";
 import { sendChat } from "./api";
+import { convertFileToBase64 } from "./utils";
 
 const FormSchema = z.object({
   model: z.string(),
@@ -36,6 +37,12 @@ export async function createChat(
     prompt: prompt,
     imageData: null,
   };
+
+  const imageBase64 = formData.get("imageBase64") as string | null;
+  if (imageBase64) {
+    chat.imageData = imageBase64;
+  }
+
   console.log("createChat called. Sending Chat now...");
   try {
     const result = await sendChat(chat);

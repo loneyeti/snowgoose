@@ -18,8 +18,11 @@ export interface OutputFormat {
 }
 
 export interface Model {
+  id: number;
+  api_name: string;
   name: string;
-  title: string;
+  is_vision: boolean;
+  is_image_generation: boolean;
 }
 
 export interface ChatResponse {
@@ -31,7 +34,7 @@ export interface Chat {
   responseHistory: ChatResponse[];
   persona: number;
   outputFormat: number;
-  imageData: ArrayBuffer | null;
+  imageData: string | null;
   model: string;
   prompt: string;
 }

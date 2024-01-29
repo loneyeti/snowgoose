@@ -5,11 +5,15 @@ export default function SelectBox({
   name,
   disableSelection,
   defaultValue,
+  hide,
+  onChangeFunction,
 }: {
   children: React.ReactNode;
   name: string;
   disableSelection: boolean;
   defaultValue: string | number;
+  hide: boolean;
+  onChangeFunction?: (event: React.ChangeEvent) => void | undefined;
 }) {
   return (
     <select
@@ -18,12 +22,17 @@ export default function SelectBox({
         {
           "touch-none pointer-events-none bg-slate-200 text-slate-500":
             disableSelection === true,
+        },
+        {
+          hidden: hide === true,
         }
       )}
       id={name}
       name={name}
       defaultValue={defaultValue}
       key={defaultValue}
+      disabled={hide}
+      onChange={onChangeFunction}
     >
       {children}
     </select>
