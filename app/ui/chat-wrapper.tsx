@@ -21,6 +21,7 @@ export default function ChatWrapper() {
   const [showConversationSpinner, setShowConversationSpinner] =
     useState<boolean>(false);
   const [history, setHistroy] = useState<History[]>([]);
+  const [imageURL, setImageURL] = useState("");
 
   function populateHistory(history: History) {
     //console.log(history.conversation);
@@ -49,7 +50,11 @@ export default function ChatWrapper() {
 
   const updateMessage = (chat: Chat | undefined) => {
     if (chat) {
-      setResponse(chat.responseHistory);
+      if (!chat.imageURL) {
+        setResponse(chat.responseHistory);
+      } else {
+        setImageURL(chat.imageURL);
+      }
       setCurrentChat(chat);
     } else {
       setResponse([]);
@@ -83,7 +88,11 @@ export default function ChatWrapper() {
         </div>
       </Sidebar>
       <Detail>
-        <Conversation chats={response} showSpinner={showConversationSpinner} />
+        <Conversation
+          chats={response}
+          showSpinner={showConversationSpinner}
+          imageURL={imageURL}
+        />
       </Detail>
       <Transition
         as={Fragment}

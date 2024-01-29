@@ -37,6 +37,7 @@ export interface Chat {
   imageData: string | null;
   model: string;
   prompt: string;
+  imageURL: string | null;
 }
 
 export type FormProps = {

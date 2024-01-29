@@ -36,6 +36,7 @@ export async function createChat(
     outputFormat: outputFormat,
     prompt: prompt,
     imageData: null,
+    imageURL: null,
   };
 
   const imageBase64 = formData.get("imageBase64") as string | null;
@@ -46,8 +47,12 @@ export async function createChat(
   console.log("createChat called. Sending Chat now...");
   try {
     const result = await sendChat(chat);
-    responseHistory.push(result as ChatResponse);
-    chat.responseHistory = responseHistory;
+    if (chat.model !== "dall-e-3") {
+      responseHistory.push(result as ChatResponse);
+      chat.responseHistory = responseHistory;
+    } else {
+      chat.imageURL = result as string;
+    }
   } catch (error) {
     console.error("Failed to sent Chat");
     throw error;

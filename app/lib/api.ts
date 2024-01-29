@@ -9,6 +9,7 @@ import { METHODS } from "http";
 import { getUserSession } from "./auth";
 
 const accessToken = process.env.GPTFLASK_API;
+const apiURL = process.env.GPTFLASK_URL;
 
 export async function fetchGreeting() {
   noStore();
@@ -209,8 +210,9 @@ export async function deleteOutputFormat(id: string) {
 export async function sendChat(chat: Chat) {
   noStore();
   console.log("Sending chat");
+  const endpointURL = chat.model === "dall-e-3" ? "/api/dalle" : "/api/chat";
   try {
-    const result = await fetch(`http://localhost:5001/api/chat`, {
+    const result = await fetch(`${apiURL}${endpointURL}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -222,8 +224,11 @@ export async function sendChat(chat: Chat) {
       throw new Error("Unauthorized request: Please login again.");
     }
     const data = await result.json();
-    console.log(data.choices[0].message);
-    return data.choices[0].message as ChatResponse;
+    if (chat.model !== "dall-e-3") {
+      return data.choices[0].message as ChatResponse;
+    } else {
+      return data.data[0].url as string;
+    }
   } catch (error) {
     console.log("ERROR!!!");
     console.log(error);
