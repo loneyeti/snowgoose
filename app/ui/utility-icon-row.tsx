@@ -20,7 +20,7 @@ export default function UtilityIconRow({
         `Would save this chat. Model: ${chat.model} Persona: ${chat.persona}`
       );
       const saveMessage = await saveChat(chat);
-      alert(saveMessage);
+      alert(saveMessage.message);
     }
   }
   return (

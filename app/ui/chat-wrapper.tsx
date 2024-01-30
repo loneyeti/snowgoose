@@ -22,6 +22,7 @@ export default function ChatWrapper() {
     useState<boolean>(false);
   const [history, setHistroy] = useState<History[]>([]);
   const [imageURL, setImageURL] = useState("");
+  const [outputFormatValue, setOutputFormatValue] = useState("");
 
   function populateHistory(history: History) {
     //console.log(history.conversation);
@@ -56,6 +57,7 @@ export default function ChatWrapper() {
         setImageURL(chat.imageURL);
       }
       setCurrentChat(chat);
+      setOutputFormatValue(`${chat.outputFormat}`);
     } else {
       setResponse([]);
     }
@@ -92,6 +94,7 @@ export default function ChatWrapper() {
           chats={response}
           showSpinner={showConversationSpinner}
           imageURL={imageURL}
+          outputFormatValue={outputFormatValue}
         />
       </Detail>
       <Transition

@@ -4,20 +4,23 @@ import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import DOMPurify from "dompurify";
 import { SpinnerSize, Spinner } from "./spinner";
+import MarkdownComponent from "./markdown-parser";
 import Image from "next/image";
 
 interface ConversationProps {
   chats: ChatResponse[];
   showSpinner: boolean;
   imageURL: string;
+  outputFormatValue: string;
 }
 
 export default function Conversation({
   chats,
   showSpinner,
   imageURL,
+  outputFormatValue,
 }: ConversationProps) {
-  if (chats.length === 0 && imageURL === "") {
+  if (chats.length === 0 && imageURL === "" && !showSpinner) {
     return (
       <div className="grid w-full h-full place-items-center">
         <h1 className="text-3xl text-slate-500 font-thin">
@@ -28,6 +31,7 @@ export default function Conversation({
   } else if (imageURL !== "") {
     return (
       <div>
+        {/* eslint-disable @next/next/no-img-element */}
         <img src={imageURL} width={1028} height={1028} alt="Dall-e-3 image" />
       </div>
     );
@@ -45,9 +49,11 @@ export default function Conversation({
                     : "p-2"
                 }
               >
-                <Markdown rehypePlugins={[rehypeRaw]}>
-                  {DOMPurify.sanitize(chat.content)}
-                </Markdown>
+                {outputFormatValue === "2" && (
+                  <MarkdownComponent markdown={chat.content} />
+                )}
+                {outputFormatValue !== "2" &&
+                  parse(DOMPurify.sanitize(chat.content))}
               </div>
               //<div className="prose prose-slate">{parse(chat.content)}</div>
             ))

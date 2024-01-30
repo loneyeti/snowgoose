@@ -274,15 +274,15 @@ export default function ChatForm({
           ></textarea>
         </div>
       </div>
-      <div className="m-3">
+      <div className="m-3 flex">
         <button
           className="rounded-md text-sm bg-slate-300 p-2 hover:bg-slate-400 mr-3"
           disabled={isSubmitting}
           type="submit"
         >
           {isSubmitting ? (
-            <div className="flex flex-row">
-              <div className="align-baseline self-baseline justify-end">
+            <div className="flex flex-row items-center">
+              <div className="pr-2">
                 <Spinner spinnerSize={SpinnerSize.sm} />
               </div>
               <div>Processing</div>
@@ -296,7 +296,7 @@ export default function ChatForm({
           type="reset"
           onClick={handleReset}
         >
-          Reset
+          {"Reset"}
         </button>
       </div>
     </form>
