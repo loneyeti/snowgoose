@@ -22,7 +22,7 @@ export default function ChatWrapper() {
     useState<boolean>(false);
   const [history, setHistroy] = useState<History[]>([]);
   const [imageURL, setImageURL] = useState("");
-  const [outputFormatValue, setOutputFormatValue] = useState("");
+  const [renderTypeName, setRenderTypeName] = useState("");
 
   function populateHistory(history: History) {
     //console.log(history.conversation);
@@ -57,7 +57,7 @@ export default function ChatWrapper() {
         setImageURL(chat.imageURL);
       }
       setCurrentChat(chat);
-      setOutputFormatValue(`${chat.outputFormat}`);
+      setRenderTypeName(`${chat.renderTypeName}`);
     } else {
       setResponse([]);
     }
@@ -94,7 +94,7 @@ export default function ChatWrapper() {
           chats={response}
           showSpinner={showConversationSpinner}
           imageURL={imageURL}
-          outputFormatValue={outputFormatValue}
+          renderTypeName={renderTypeName}
         />
       </Detail>
       <Transition

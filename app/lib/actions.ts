@@ -2,7 +2,7 @@
 
 import { ChatResponse, Chat } from "./model";
 import { z } from "zod";
-import { sendChat } from "./api";
+import { fetchRenderTypeName, sendChat } from "./api";
 import { convertFileToBase64 } from "./utils";
 
 const FormSchema = z.object({
@@ -29,11 +29,19 @@ export async function createChat(
 
   responseHistory.push(userChatResponse);
 
+  let renderTypeName = "";
+  try {
+    renderTypeName = await fetchRenderTypeName(outputFormat);
+  } catch (error) {
+    console.log("Error fetching output format render type name");
+  }
+
   const chat: Chat = {
     responseHistory: responseHistory,
     model: model,
     persona: persona,
     outputFormat: outputFormat,
+    renderTypeName: renderTypeName,
     prompt: prompt,
     imageData: null,
     imageURL: null,

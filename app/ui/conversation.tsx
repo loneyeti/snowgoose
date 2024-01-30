@@ -11,14 +11,14 @@ interface ConversationProps {
   chats: ChatResponse[];
   showSpinner: boolean;
   imageURL: string;
-  outputFormatValue: string;
+  renderTypeName: string;
 }
 
 export default function Conversation({
   chats,
   showSpinner,
   imageURL,
-  outputFormatValue,
+  renderTypeName,
 }: ConversationProps) {
   if (chats.length === 0 && imageURL === "" && !showSpinner) {
     return (
@@ -49,10 +49,10 @@ export default function Conversation({
                     : "p-2"
                 }
               >
-                {outputFormatValue === "2" && (
+                {renderTypeName === "markdown" && (
                   <MarkdownComponent markdown={chat.content} />
                 )}
-                {outputFormatValue !== "2" &&
+                {renderTypeName !== "markdown" &&
                   parse(DOMPurify.sanitize(chat.content))}
               </div>
               //<div className="prose prose-slate">{parse(chat.content)}</div>

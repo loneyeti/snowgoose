@@ -15,6 +15,7 @@ export interface OutputFormat {
   name: string;
   prompt: string;
   owner_id: number;
+  render_type_name: string;
 }
 
 export interface Model {

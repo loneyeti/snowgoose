@@ -15,7 +15,7 @@ export async function fetchGreeting() {
   noStore();
 
   try {
-    const result = await fetch(`http://localhost:5001/api/test`, {
+    const result = await fetch(`${apiURL}/api/test`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -36,7 +36,7 @@ export async function fetchPersonas() {
   noStore();
   //await new Promise((resolve) => setTimeout(resolve, 3000));
   try {
-    const result = await fetch(`http://localhost:5001/api/personas`, {
+    const result = await fetch(`${apiURL}/api/personas`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
@@ -64,7 +64,7 @@ export async function createPersona(formData: FormData) {
   });
 
   try {
-    const result = await fetch(`http://localhost:5001/api/personas`, {
+    const result = await fetch(`${apiURL}/api/personas`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -86,7 +86,7 @@ export async function createPersona(formData: FormData) {
 export async function deletePersona(id: string) {
   console.log("Delete invoice");
   try {
-    const result = await fetch(`http://localhost:5001/api/personas/${id}`, {
+    const result = await fetch(`${apiURL}/api/personas/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -111,7 +111,7 @@ export async function fetchModels() {
   noStore();
 
   try {
-    const result = await fetch(`http://localhost:5001/api/models`);
+    const result = await fetch(`${apiURL}/api/models`);
     const data = await result.json();
     return data;
   } catch (error) {
@@ -124,9 +124,7 @@ export async function fetchModelByAPIName(api_name: string) {
   noStore();
 
   try {
-    const result = await fetch(
-      `http://localhost:5001/api/models/api_name/${api_name}`
-    );
+    const result = await fetch(`${apiURL}/api/models/api_name/${api_name}`);
     const data = await result.json();
     return data;
   } catch (error) {
@@ -139,7 +137,7 @@ export async function fetchOutputFormats() {
   noStore();
 
   try {
-    const result = await fetch(`http://localhost:5001/api/output-formats`, {
+    const result = await fetch(`${apiURL}/api/output-formats`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
@@ -153,6 +151,33 @@ export async function fetchOutputFormats() {
   }
 }
 
+export async function fetchOutputFormat(id: number) {
+  noStore();
+
+  try {
+    const result = await fetch(`${apiURL}/api/output-formats/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await result.json();
+    return data;
+  } catch (error) {
+    console.log("ERROR!!!");
+    console.log(error);
+  }
+}
+
+export async function fetchRenderTypeName(outputFormatId: number) {
+  try {
+    const output_format = await fetchOutputFormat(outputFormatId);
+    return output_format.render_type_name;
+  } catch (error) {
+    console.log("Can't fetch output format render type");
+  }
+}
+
 export async function createOutputFormat(formData: FormData) {
   noStore();
 
@@ -162,7 +187,7 @@ export async function createOutputFormat(formData: FormData) {
   });
 
   try {
-    const result = await fetch(`http://localhost:5001/api/output-formats`, {
+    const result = await fetch(`${apiURL}/api/output-formats`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -183,16 +208,13 @@ export async function createOutputFormat(formData: FormData) {
 
 export async function deleteOutputFormat(id: string) {
   try {
-    const result = await fetch(
-      `http://localhost:5001/api/output-formats/${id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const result = await fetch(`${apiURL}/api/output-formats/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
     if (result.ok) {
       console.log("Output Format Deleted");
     } else {
@@ -243,7 +265,7 @@ export async function saveChat(chat: Chat) {
   //console.log(userSession);
   //console.log(`The combined objects are ${body}`);
   try {
-    const result = await fetch(`http://localhost:5001/api/save_chat`, {
+    const result = await fetch(`${apiURL}/api/save_chat`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -268,7 +290,7 @@ export async function fetchHistory() {
   const body = JSON.stringify(userSession);
 
   try {
-    const result = await fetch(`http://localhost:5001/api/history`, {
+    const result = await fetch(`${apiURL}/api/history`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -293,17 +315,14 @@ export async function deleteHistory(id: string) {
   const body = JSON.stringify(userSession);
 
   try {
-    const result = await fetch(
-      `http://localhost:5001/api/history/delete/${id}`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: body,
-      }
-    );
+    const result = await fetch(`${apiURL}/api/history/delete/${id}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: body,
+    });
     if (result.ok) {
       console.log("History Deleted");
     } else {
