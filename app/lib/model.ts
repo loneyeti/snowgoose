@@ -35,6 +35,7 @@ export interface Chat {
   responseHistory: ChatResponse[];
   persona: number;
   outputFormat: number;
+  renderTypeName: string;
   imageData: string | null;
   model: string;
   prompt: string;
