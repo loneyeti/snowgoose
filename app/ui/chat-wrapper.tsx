@@ -40,8 +40,10 @@ export default function ChatWrapper() {
     const fetchData = async () => {
       try {
         console.log("Fetching history");
-        const history = await fetchHistory();
-        setHistroy(history);
+        const historyData = await fetchHistory();
+        if (historyData) {
+          setHistroy(history);
+        }
       } catch (error) {
         console.log("Error fetching history");
       }
