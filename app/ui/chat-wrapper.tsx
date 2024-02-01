@@ -42,7 +42,7 @@ export default function ChatWrapper() {
         console.log("Fetching history");
         const historyData = await fetchHistory();
         if (historyData) {
-          setHistroy(history);
+          setHistroy(historyData);
         }
       } catch (error) {
         console.log("Error fetching history");
