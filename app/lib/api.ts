@@ -11,29 +11,7 @@ import { getUserSession } from "./auth";
 const accessToken = process.env.GPTFLASK_API;
 const apiURL = process.env.GPTFLASK_URL;
 
-export async function fetchGreeting() {
-  noStore();
-
-  try {
-    const result = await fetch(`${apiURL}/api/test`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ greeting: "hi" }),
-    });
-    console.log("ALL GOOD!");
-    const data = await result.json();
-    console.log(data);
-    return data;
-  } catch (error) {
-    console.log("ERROR!!!");
-    console.log(error);
-  }
-}
-
 export async function fetchPersonas() {
-  noStore();
   //await new Promise((resolve) => setTimeout(resolve, 3000));
   try {
     const result = await fetch(`${apiURL}/api/personas`, {
@@ -41,6 +19,7 @@ export async function fetchPersonas() {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
+      next: { tags: ["personas"] },
     });
     const data = await result.json();
     return data;
@@ -80,6 +59,7 @@ export async function createPersona(formData: FormData) {
     throw new Error("Unable to create Persona.");
   }
   revalidatePath("/settings/personas");
+  revalidateTag("personas");
   redirect("/settings/personas");
 }
 
@@ -108,10 +88,10 @@ export async function deletePersona(id: string) {
 }
 
 export async function fetchModels() {
-  noStore();
-
   try {
-    const result = await fetch(`${apiURL}/api/models`);
+    const result = await fetch(`${apiURL}/api/models`, {
+      next: { tags: ["models"] },
+    });
     const data = await result.json();
     return data;
   } catch (error) {
@@ -134,14 +114,13 @@ export async function fetchModelByAPIName(api_name: string) {
 }
 
 export async function fetchOutputFormats() {
-  noStore();
-
   try {
     const result = await fetch(`${apiURL}/api/output-formats`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
+      next: { tags: ["outputFormats"] },
     });
     const data = await result.json();
     return data;
@@ -152,8 +131,6 @@ export async function fetchOutputFormats() {
 }
 
 export async function fetchOutputFormat(id: number) {
-  noStore();
-
   try {
     const result = await fetch(`${apiURL}/api/output-formats/${id}`, {
       headers: {
@@ -203,6 +180,7 @@ export async function createOutputFormat(formData: FormData) {
     throw new Error("Unable to create Output Format.");
   }
   revalidatePath("/settings/output-formats");
+  revalidateTag("outputFormats");
   redirect("/settings/output-formats");
 }
 
