@@ -4,6 +4,7 @@ import { auth, currentUser } from "@clerk/nextjs";
 import { UserSession, APIUser } from "./model";
 
 const accessToken = process.env.GPTFLASK_API;
+const apiURL = process.env.GPTFLASK_URL;
 
 export async function getUserSession() {
   const user = await currentUser();
@@ -21,7 +22,7 @@ export async function getUserSession() {
 export async function getCurrentAPIUser() {
   const userSession = await getUserSession();
   try {
-    const response = await fetch(`http://localhost:5001/api/current_user`, {
+    const response = await fetch(`${apiURL}/api/current_user`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,

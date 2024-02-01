@@ -1,6 +1,4 @@
 import { getCurrentAPIUser } from "@/app/lib/auth";
-import { SettingsHeading } from "@/app/ui/typography";
-import { History } from "@/app/lib/model";
 import { fetchHistory } from "@/app/lib/api";
 import { UserProfile } from "@clerk/nextjs";
 
