@@ -67,12 +67,18 @@ export default function ChatForm({
     const fetchData = async () => {
       try {
         const personasData = await fetchPersonas();
-        setPersonas(personasData);
+        if (personasData) {
+          setPersonas(personasData);
+        }
         const modelsData = await fetchModels();
-        setModels(modelsData);
-        setSelectedModel(modelsData[0].api_name);
+        if (modelsData) {
+          setModels(modelsData);
+          setSelectedModel(modelsData[0].api_name);
+        }
         const outputFormatsData = await fetchOutputFormats();
-        setOutputFormats(outputFormatsData);
+        if (outputFormatsData) {
+          setOutputFormats(outputFormatsData);
+        }
       } catch (error) {
         console.error("Error fetching initialization data:", error);
       }

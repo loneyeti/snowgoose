@@ -288,6 +288,7 @@ export async function saveChat(chat: Chat) {
 export async function fetchHistory() {
   const userSession = await getUserSession();
   const body = JSON.stringify(userSession);
+  console.log(body);
 
   try {
     const result = await fetch(`${apiURL}/api/history`, {
