@@ -5,7 +5,7 @@ import {
   fetchModels,
   fetchOutputFormats,
   fetchModelByAPIName,
-} from "../lib/api";
+} from "../_lib/api";
 import {
   Persona,
   Model,
@@ -13,14 +13,14 @@ import {
   FormProps,
   ChatResponse,
   Chat,
-} from "../lib/model";
+} from "../_lib/model";
 import SelectBox from "./select-box";
-import { createChat } from "../lib/actions";
+import { createChat } from "../_lib/actions";
 import React, { useState, useEffect, useRef, ChangeEvent } from "react";
 import { Spinner, SpinnerSize } from "./spinner";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
-import { convertFileToBase64 } from "../lib/utils";
+import { convertFileToBase64 } from "../_lib/utils";
 
 export default function ChatForm({
   updateMessage,

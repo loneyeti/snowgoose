@@ -1,4 +1,4 @@
-import { getCurrentAPIUser } from "@/app/lib/auth";
+import { getCurrentAPIUser } from "@/app/_lib/auth";
 import { UserProfile } from "@clerk/nextjs";
 
 export default async function Profile() {

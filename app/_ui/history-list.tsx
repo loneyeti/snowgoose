@@ -1,5 +1,5 @@
-import { History } from "@/app/lib/model";
-import { fetchHistory } from "@/app/lib/api";
+import { History } from "@/app/_lib/model";
+import { fetchHistory } from "@/app/_lib/api";
 import { DeleteHistoryButton } from "./settings/buttons";
 
 export default async function HistoryList() {

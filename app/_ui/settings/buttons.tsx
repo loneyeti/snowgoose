@@ -2,7 +2,7 @@ import {
   deletePersona,
   deleteOutputFormat,
   deleteHistory,
-} from "@/app/lib/api";
+} from "@/app/_lib/api";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
 

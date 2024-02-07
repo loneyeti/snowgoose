@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
-import { Chat } from "../lib/model";
-import { saveChat } from "../lib/api";
+import { Chat } from "../_lib/model";
+import { saveChat } from "../_lib/api";
 import { UserButton } from "@clerk/nextjs";
 
 export default function UtilityIconRow({

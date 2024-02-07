@@ -1,4 +1,4 @@
-import { ChatResponse } from "../lib/model";
+import { ChatResponse } from "../_lib/model";
 import parse from "html-react-parser";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
