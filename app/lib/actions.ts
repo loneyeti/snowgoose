@@ -3,7 +3,6 @@
 import { ChatResponse, Chat } from "./model";
 import { z } from "zod";
 import { fetchRenderTypeName, sendChat } from "./api";
-import { convertFileToBase64 } from "./utils";
 
 const FormSchema = z.object({
   model: z.string(),
@@ -30,10 +29,12 @@ export async function createChat(
   responseHistory.push(userChatResponse);
 
   let renderTypeName = "";
-  try {
-    renderTypeName = await fetchRenderTypeName(outputFormat);
-  } catch (error) {
-    console.log("Error fetching output format render type name");
+  if (outputFormat) {
+    try {
+      renderTypeName = await fetchRenderTypeName(outputFormat);
+    } catch (error) {
+      console.log("Error fetching output format render type name");
+    }
   }
 
   const chat: Chat = {
@@ -52,7 +53,6 @@ export async function createChat(
     chat.imageData = imageBase64;
   }
 
-  console.log("createChat called. Sending Chat now...");
   try {
     const result = await sendChat(chat);
     if (chat.model !== "dall-e-3") {

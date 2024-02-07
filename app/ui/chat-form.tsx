@@ -63,21 +63,20 @@ export default function ChatForm({
     setSelectedModel(selectedValue);
   };
 
+  // Populate select boxes on initial load and set selected model.
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const personasData = await fetchPersonas();
-        if (personasData) {
-          setPersonas(personasData);
-        }
-        const modelsData = await fetchModels();
-        if (modelsData) {
-          setModels(modelsData);
+        const [personasData, modelsData, outputFormatsData] = await Promise.all(
+          [fetchPersonas(), fetchModels(), fetchOutputFormats()]
+        );
+
+        personasData && setPersonas(personasData);
+        modelsData && setModels(modelsData);
+        outputFormatsData && setOutputFormats(outputFormatsData);
+
+        if (modelsData.length > 0) {
           setSelectedModel(modelsData[0].api_name);
-        }
-        const outputFormatsData = await fetchOutputFormats();
-        if (outputFormatsData) {
-          setOutputFormats(outputFormatsData);
         }
       } catch (error) {
         console.error("Error fetching initialization data:", error);
@@ -87,28 +86,25 @@ export default function ChatForm({
     fetchData();
   }, []);
 
+  // When the selected model changes, determine which form elements to show.
   useEffect(() => {
     if (selectedModel !== "") {
-      console.log(
-        "The model has changed so I check for any additional fields to make visible"
-      );
       const fetchModel = async () => {
+        if (!selectedModel) return;
+
         try {
-          const model: Model = await fetchModelByAPIName(selectedModel);
-          if (model.is_vision) {
-            setShowFileUpload(true);
-            setHideOutputFormats(true);
-            setHidePersonas(true);
-          } else if (model.is_image_generation) {
-            setShowFileUpload(false);
-            setHideOutputFormats(true);
-            setHidePersonas(true);
-          } else {
-            setShowFileUpload(false);
-            setHideOutputFormats(false);
-            setHidePersonas(false);
-          }
-        } catch (error) {}
+          const model = await fetchModelByAPIName(selectedModel);
+          setShowFileUpload(!!model.is_vision);
+          setHideOutputFormats(
+            !!(model.is_vision || model.is_image_generation)
+          );
+          setHidePersonas(!!(model.is_vision || model.is_image_generation));
+        } catch (error) {
+          console.error(
+            `Error fetching model by API Name: ${selectedModel}`,
+            error
+          );
+        }
       };
       fetchModel();
     }
@@ -117,32 +113,32 @@ export default function ChatForm({
   useEffect(() => {
     console.log("Using effect");
     const fetchData = async () => {
-      if (data) {
-        try {
-          console.log("message received. Updating.");
-          updateShowSpinner(true);
-          const imageFile = data.get("image") as File | null;
+      if (!isSubmitting || !data) return;
+      try {
+        updateShowSpinner(true);
 
-          if (imageFile) {
-            const imageBase64 = await convertFileToBase64(imageFile);
-            data.append("imageBase64", imageBase64);
-          }
+        const imageFile = data.get("image") as File | null;
 
-          const chat = await createChat(data, responseHistory);
-          updateMessage(chat);
-          console.log("Done updating");
-          updateShowSpinner(false);
-          if (textAreaRef.current) {
-            textAreaRef.current.value = "";
-          }
-          setIsSubmitting(false);
-        } catch (error) {
-          console.error("Error fetching data:", error);
-          updateShowSpinner(false);
-          setIsSubmitting(false);
-          alert("Error retrieving data");
-          throw error;
+        if (imageFile) {
+          const imageBase64 = await convertFileToBase64(imageFile);
+          data.append("imageBase64", imageBase64);
         }
+
+        const chat = await createChat(data, responseHistory);
+        updateMessage(chat);
+
+        // Set up form for followup
+        updateShowSpinner(false);
+        if (textAreaRef.current) {
+          textAreaRef.current.value = "";
+        }
+        setPromptVal("");
+        setIsSubmitting(false);
+      } catch (error) {
+        updateShowSpinner(false);
+        setIsSubmitting(false);
+        alert("Error retrieving data");
+        throw error;
       }
     };
     if (isSubmitting === true) {

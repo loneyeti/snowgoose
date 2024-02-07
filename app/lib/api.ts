@@ -5,7 +5,6 @@ import { Chat, ChatResponse, PersonaPost } from "./model";
 import { z } from "zod";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import { METHODS } from "http";
 import { getUserSession } from "./auth";
 
 const accessToken = process.env.GPTFLASK_API;
@@ -221,7 +220,7 @@ export async function sendChat(chat: Chat) {
       body: JSON.stringify(chat),
     });
     if (!result.ok) {
-      throw new Error("Unauthorized request: Please login again.");
+      throw new Error("There was an issue generating a response");
     }
     const data = await result.json();
     if (chat.model !== "dall-e-3") {
