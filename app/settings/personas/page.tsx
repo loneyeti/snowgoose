@@ -1,7 +1,7 @@
-import { SettingsHeading } from "@/app/ui/typography";
-import { fetchPersonas } from "@/app/lib/api";
-import PersonaSkeleton from "@/app/ui/settings/persona-skeleton";
-import PersonaList from "@/app/ui/settings/persona-list";
+import { SettingsHeading } from "@/app/_ui/typography";
+import { fetchPersonas } from "@/app/_lib/api";
+import PersonaSkeleton from "@/app/_ui/settings/persona-skeleton";
+import PersonaList from "@/app/_ui/settings/persona-list";
 import { Suspense } from "react";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";

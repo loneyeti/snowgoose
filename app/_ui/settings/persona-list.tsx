@@ -1,5 +1,5 @@
-import { fetchPersonas } from "@/app/lib/api";
-import { Persona } from "@/app/lib/model";
+import { fetchPersonas } from "@/app/_lib/api";
+import { Persona } from "@/app/_lib/model";
 import { DeletePersonaButton } from "./buttons";
 
 export default async function PersonaList() {

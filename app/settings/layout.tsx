@@ -1,5 +1,5 @@
-import SettingsNav from "../ui/settings/settings-nav";
-import Detail from "../ui/detail";
+import SettingsNav from "../_ui/settings/settings-nav";
+import Detail from "../_ui/detail";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (

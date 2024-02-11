@@ -1,5 +1,5 @@
-import { SettingsHeading } from "@/app/ui/typography";
-import { createOutputFormat } from "@/app/lib/api";
+import { SettingsHeading } from "@/app/_ui/typography";
+import { createOutputFormat } from "@/app/_lib/api";
 
 export default function NewOutputFormat() {
   return (

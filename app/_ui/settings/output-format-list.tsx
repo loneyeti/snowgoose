@@ -1,5 +1,5 @@
-import { fetchOutputFormats } from "@/app/lib/api";
-import { OutputFormat } from "@/app/lib/model";
+import { fetchOutputFormats } from "@/app/_lib/api";
+import { OutputFormat } from "@/app/_lib/model";
 import { DeleteOutputFormatButton } from "./buttons";
 
 export default async function OutputFormatList() {

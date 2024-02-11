@@ -1,10 +1,10 @@
-import { SettingsHeading } from "@/app/ui/typography";
-import PersonaSkeleton from "@/app/ui/settings/persona-skeleton";
-import PersonaList from "@/app/ui/settings/persona-list";
+import { SettingsHeading } from "@/app/_ui/typography";
+import PersonaSkeleton from "@/app/_ui/settings/persona-skeleton";
+import PersonaList from "@/app/_ui/settings/persona-list";
 import { Suspense } from "react";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
-import OutputFormatList from "@/app/ui/settings/output-format-list";
+import OutputFormatList from "@/app/_ui/settings/output-format-list";
 import Link from "next/link";
 
 export default async function OutputFormats() {
