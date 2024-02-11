@@ -1,10 +1,8 @@
-export function convertFileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      resolve(reader.result as string);
-    };
-    reader.onerror = (error) => reject(error);
-    reader.readAsDataURL(file); // Converts the file to a base64 URL
-  });
+import { nanoid } from "nanoid";
+
+export function generateUniqueFilename(filename: string) {
+  // Extract the file extension from the input filename
+  const extension = filename.split(".").pop();
+
+  return `${nanoid()}.${extension}`;
 }

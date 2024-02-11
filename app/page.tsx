@@ -1,4 +1,4 @@
-import ChatWrapper from "@/app/_ui/chat-wrapper";
+import ChatWrapper from "./_ui/chat-wrapper";
 export default function Home() {
   return (
     <main>

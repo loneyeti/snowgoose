@@ -20,7 +20,6 @@ import React, { useState, useEffect, useRef, ChangeEvent } from "react";
 import { Spinner, SpinnerSize } from "./spinner";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
-import { convertFileToBase64 } from "../_lib/utils";
 
 export default function ChatForm({
   updateMessage,
@@ -116,13 +115,6 @@ export default function ChatForm({
       if (!isSubmitting || !data) return;
       try {
         updateShowSpinner(true);
-
-        const imageFile = data.get("image") as File | null;
-
-        if (imageFile) {
-          const imageBase64 = await convertFileToBase64(imageFile);
-          data.append("imageBase64", imageBase64);
-        }
 
         const chat = await createChat(data, responseHistory);
         updateMessage(chat);

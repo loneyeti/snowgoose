@@ -3,6 +3,8 @@
 import { ChatResponse, Chat } from "./model";
 import { z } from "zod";
 import { fetchRenderTypeName, sendChat } from "./api";
+import { gcsUploadFile } from "./gcs";
+import { generateUniqueFilename } from "./utils";
 
 const FormSchema = z.object({
   model: z.string(),
@@ -47,10 +49,24 @@ export async function createChat(
     imageData: null,
     imageURL: null,
   };
-
+  /*
   const imageBase64 = formData.get("imageBase64") as string | null;
   if (imageBase64) {
     chat.imageData = imageBase64;
+  }
+  */
+
+  const file = formData.get("image") as File | null;
+  if (file) {
+    try {
+      const uploadURL = await gcsUploadFile(
+        generateUniqueFilename(file.name),
+        file
+      );
+      chat.imageData = uploadURL ?? "";
+    } catch (error) {
+      console.log("Problem uploading file");
+    }
   }
 
   try {
