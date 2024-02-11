@@ -4,7 +4,6 @@ import {
   Storage,
   GenerateSignedPostPolicyV4Response,
 } from "@google-cloud/storage";
-import { url } from "inspector";
 
 export async function gcsUploadURL(filename: string) {
   const storage = new Storage({

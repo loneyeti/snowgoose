@@ -8,7 +8,6 @@ import Sidebar from "./sidebar";
 import Detail from "./detail";
 import UtilityIconRow from "./utility-icon-row";
 import { Transition } from "@headlessui/react";
-import { SettingsHeading } from "./typography";
 import { fetchHistory } from "../_lib/api";
 import { History } from "../_lib/model";
 import { MaterialSymbol } from "react-material-symbols";

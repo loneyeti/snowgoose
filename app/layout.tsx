@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
-import { Inter, Poppins, Montserrat } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-
-const inter = Inter({ subsets: ["latin"] });
-const poppins = Poppins({
-  weight: "400",
-  subsets: ["latin"],
-});
 
 const montserrat = Montserrat({
   weight: "variable",
