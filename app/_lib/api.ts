@@ -208,8 +208,10 @@ export async function deleteOutputFormat(id: string) {
 
 export async function sendChat(chat: Chat) {
   noStore();
-  console.log("Sending chat");
+
+  // Set endpoint URL based on model
   const endpointURL = chat.model === "dall-e-3" ? "/api/dalle" : "/api/chat";
+
   try {
     const result = await fetch(`${apiURL}${endpointURL}`, {
       method: "POST",
@@ -223,14 +225,11 @@ export async function sendChat(chat: Chat) {
       throw new Error("There was an issue generating a response");
     }
     const data = await result.json();
-    if (chat.model !== "dall-e-3") {
-      return data.choices[0].message as ChatResponse;
-    } else {
-      return data.data[0].url as string;
-    }
+    return chat.model !== "dall-e-3"
+      ? (data.choices[0].message as ChatResponse)
+      : (data.data[0].url as string);
   } catch (error) {
-    console.log("ERROR!!!");
-    console.log(error);
+    console.error("Error submitting request", error);
     throw error;
   }
 }

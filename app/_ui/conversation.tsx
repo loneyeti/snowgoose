@@ -1,11 +1,8 @@
 import { ChatResponse } from "../_lib/model";
 import parse from "html-react-parser";
-import Markdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
 import DOMPurify from "dompurify";
 import { SpinnerSize, Spinner } from "./spinner";
 import MarkdownComponent from "./markdown-parser";
-import Image from "next/image";
 
 interface ConversationProps {
   chats: ChatResponse[];

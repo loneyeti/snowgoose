@@ -30,32 +30,29 @@ export async function createChat(
 
   responseHistory.push(userChatResponse);
 
+  // Get Render Type (eg: markdown, html, etc)
   let renderTypeName = "";
   if (outputFormat) {
     try {
       renderTypeName = await fetchRenderTypeName(outputFormat);
     } catch (error) {
-      console.log("Error fetching output format render type name");
+      console.error("Error fetching output format render type name", error);
+      throw error;
     }
   }
 
   const chat: Chat = {
     responseHistory: responseHistory,
-    model: model,
-    persona: persona,
-    outputFormat: outputFormat,
-    renderTypeName: renderTypeName,
-    prompt: prompt,
+    persona,
+    outputFormat,
+    renderTypeName,
     imageData: null,
+    model,
+    prompt,
     imageURL: null,
   };
-  /*
-  const imageBase64 = formData.get("imageBase64") as string | null;
-  if (imageBase64) {
-    chat.imageData = imageBase64;
-  }
-  */
 
+  // If there is a file, we upload to Google Cloud storage and get the URL
   const file = formData.get("image") as File | null;
   if (file) {
     try {
@@ -65,10 +62,12 @@ export async function createChat(
       );
       chat.imageData = uploadURL ?? "";
     } catch (error) {
-      console.log("Problem uploading file");
+      console.error("Problem uploading file", error);
+      throw error;
     }
   }
 
+  // Send to OpenAI. If Dall-E, then display an image, otherwise update the conversation
   try {
     const result = await sendChat(chat);
     if (chat.model !== "dall-e-3") {
@@ -78,7 +77,7 @@ export async function createChat(
       chat.imageURL = result as string;
     }
   } catch (error) {
-    console.error("Failed to sent Chat");
+    console.error("Failed to sent Chat", error);
     throw error;
   }
   return chat;
