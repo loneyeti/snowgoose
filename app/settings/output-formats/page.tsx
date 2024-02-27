@@ -1,5 +1,5 @@
 import { SettingsHeading } from "@/app/_ui/typography";
-import PersonaSkeleton from "@/app/_ui/settings/persona-skeleton";
+import PersonaSkeleton from "@/app/_ui/settings/list-skeleton";
 import PersonaList from "@/app/_ui/settings/persona-list";
 import { Suspense } from "react";
 import { MaterialSymbol } from "react-material-symbols";
