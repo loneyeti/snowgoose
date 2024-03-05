@@ -2,7 +2,7 @@ export interface Persona {
   id: number;
   name: string;
   prompt: string;
-  owner_id: number;
+  //owner_id: number | null;
 }
 
 export interface PersonaPost {
@@ -10,12 +10,19 @@ export interface PersonaPost {
   prompt: string;
 }
 
+export interface OutputFormatPost {
+  name: string;
+  prompt: string;
+  render_type_id: number;
+}
+
 export interface OutputFormat {
   id: number;
   name: string;
   prompt: string;
-  owner_id: number;
-  render_type_name: string;
+  //owner_id: number;
+  render_type_name?: string;
+  render_type_id?: number;
 }
 
 export interface Model {
@@ -24,6 +31,11 @@ export interface Model {
   name: string;
   is_vision: boolean;
   is_image_generation: boolean;
+}
+
+export interface RenderType {
+  id: number;
+  name: string;
 }
 
 export interface ChatResponse {

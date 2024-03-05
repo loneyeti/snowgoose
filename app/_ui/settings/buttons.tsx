@@ -3,8 +3,10 @@ import {
   deleteOutputFormat,
   deleteHistory,
 } from "@/app/_lib/api";
+import { Persona } from "@/app/_lib/model";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
+import Link from "next/link";
 
 export function DeletePersonaButton({ id }: { id: string }) {
   const deletePersonaWithId = deletePersona.bind(null, id);
@@ -17,6 +19,32 @@ export function DeletePersonaButton({ id }: { id: string }) {
           <MaterialSymbol icon="delete" size={18} className="" />
         </button>
       </form>
+    </div>
+  );
+}
+
+export function EditPersonaButton({ id }: { id: string }) {
+  return (
+    <div className="w-full flex justify-end">
+      <Link href={`/settings/personas/${id}/edit`}>
+        <button className="mt-3">
+          {" "}
+          <MaterialSymbol icon="edit" size={18} className="" />
+        </button>
+      </Link>
+    </div>
+  );
+}
+
+export function EditOutputFormatButton({ id }: { id: string }) {
+  return (
+    <div className="w-full flex justify-end">
+      <Link href={`/settings/output-formats/${id}/edit`}>
+        <button className="mt-3">
+          {" "}
+          <MaterialSymbol icon="edit" size={18} className="" />
+        </button>
+      </Link>
     </div>
   );
 }

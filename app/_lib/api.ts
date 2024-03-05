@@ -1,17 +1,30 @@
 "use server";
 
 import { unstable_noStore as noStore } from "next/cache";
-import { Chat, ChatResponse, PersonaPost } from "./model";
+import {
+  Chat,
+  ChatResponse,
+  OutputFormat,
+  OutputFormatPost,
+  Persona,
+  PersonaPost,
+  RenderType,
+} from "./model";
 import { z } from "zod";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { getUserSession } from "./auth";
+import {
+  CreatePersonaFormSchema,
+  CreateOutputFormatFormSchema,
+  UpdateOutputFormatFormSchema,
+  UpdatePersonaFormSchema,
+} from "./form-schemas";
 
 const accessToken = process.env.GPTFLASK_API;
 const apiURL = process.env.GPTFLASK_URL;
 
 export async function fetchPersonas() {
-  //await new Promise((resolve) => setTimeout(resolve, 3000));
   try {
     const result = await fetch(`${apiURL}/api/personas`, {
       headers: {
@@ -28,15 +41,27 @@ export async function fetchPersonas() {
   }
 }
 
-const FormSchema = z.object({
-  name: z.string(),
-  prompt: z.string(),
-});
+export async function fetchPersona(id: string) {
+  try {
+    const result = await fetch(`${apiURL}/api/personas/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      next: { tags: ["personas"] },
+    });
+    const data = await result.json();
+    return data as Persona;
+  } catch (error) {
+    console.log("ERROR!!!");
+    console.log(error);
+  }
+}
 
 export async function createPersona(formData: FormData) {
   noStore();
 
-  const persona: PersonaPost = FormSchema.parse({
+  const persona: PersonaPost = CreatePersonaFormSchema.parse({
     name: formData.get("name"),
     prompt: formData.get("prompt"),
   });
@@ -44,6 +69,34 @@ export async function createPersona(formData: FormData) {
   try {
     const result = await fetch(`${apiURL}/api/personas`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(persona),
+    });
+    //const data = await result.json()
+    //return data
+  } catch (error) {
+    console.log("ERROR!!!");
+    console.log(error);
+    throw new Error("Unable to create Persona.");
+  }
+  revalidatePath("/settings/personas");
+  revalidateTag("personas");
+  redirect("/settings/personas");
+}
+
+export async function updatePersona(formData: FormData) {
+  const persona: Persona = UpdatePersonaFormSchema.parse({
+    id: formData.get("id"),
+    name: formData.get("name"),
+    prompt: formData.get("prompt"),
+  });
+
+  try {
+    const result = await fetch(`${apiURL}/api/personas/${persona.id}`, {
+      method: "PUT",
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
@@ -129,7 +182,8 @@ export async function fetchOutputFormats() {
   }
 }
 
-export async function fetchOutputFormat(id: number) {
+export async function fetchOutputFormat(id: string) {
+  noStore();
   try {
     const result = await fetch(`${apiURL}/api/output-formats/${id}`, {
       headers: {
@@ -138,6 +192,7 @@ export async function fetchOutputFormat(id: number) {
       },
     });
     const data = await result.json();
+    console.log(data);
     return data;
   } catch (error) {
     console.log("ERROR!!!");
@@ -145,7 +200,23 @@ export async function fetchOutputFormat(id: number) {
   }
 }
 
-export async function fetchRenderTypeName(outputFormatId: number) {
+export async function fetchRenderTypes() {
+  try {
+    const render_types = await fetch(`${apiURL}/api/render-types`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const render_types_json = await render_types.json();
+    console.log(render_types_json);
+    return render_types_json;
+  } catch (error) {
+    console.log("Can't fetch render types");
+  }
+}
+
+export async function fetchRenderTypeName(outputFormatId: string) {
   try {
     const output_format = await fetchOutputFormat(outputFormatId);
     return output_format.render_type_name;
@@ -157,9 +228,10 @@ export async function fetchRenderTypeName(outputFormatId: number) {
 export async function createOutputFormat(formData: FormData) {
   noStore();
 
-  const persona: PersonaPost = FormSchema.parse({
+  const output_format: OutputFormatPost = CreateOutputFormatFormSchema.parse({
     name: formData.get("name"),
     prompt: formData.get("prompt"),
+    render_type_id: formData.get("render_type_id"),
   });
 
   try {
@@ -169,14 +241,42 @@ export async function createOutputFormat(formData: FormData) {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(persona),
+      body: JSON.stringify(output_format),
     });
+  } catch (error) {
+    console.log(error);
+    throw new Error("Unable to create Output Format.");
+  }
+  revalidatePath("/settings/output-formats");
+  revalidateTag("outputFormats");
+  redirect("/settings/output-formats");
+}
+
+export async function updateOutputFormat(formData: FormData) {
+  const outputFormat: OutputFormat = UpdateOutputFormatFormSchema.parse({
+    id: formData.get("id"),
+    name: formData.get("name"),
+    prompt: formData.get("prompt"),
+    render_type_id: formData.get("render_type_id"),
+  });
+
+  try {
+    const result = await fetch(
+      `${apiURL}/api/output-formats/${outputFormat.id}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(outputFormat),
+      }
+    );
     //const data = await result.json()
     //return data
   } catch (error) {
-    console.log("ERROR!!!");
     console.log(error);
-    throw new Error("Unable to create Output Format.");
+    throw new Error("Unable to update Output Format.");
   }
   revalidatePath("/settings/output-formats");
   revalidateTag("outputFormats");

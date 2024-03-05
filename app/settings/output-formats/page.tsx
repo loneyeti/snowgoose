@@ -3,7 +3,7 @@ import PersonaSkeleton from "@/app/_ui/settings/list-skeleton";
 import { Suspense } from "react";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
-import OutputFormatList from "@/app/_ui/settings/output-format-list";
+import OutputFormatList from "@/app/_ui/settings/output_formats/output-format-list";
 import Link from "next/link";
 
 export default async function OutputFormats() {
