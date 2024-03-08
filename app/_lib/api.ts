@@ -192,7 +192,6 @@ export async function fetchOutputFormat(id: string) {
       },
     });
     const data = await result.json();
-    console.log(data);
     return data;
   } catch (error) {
     console.log("ERROR!!!");
@@ -209,7 +208,6 @@ export async function fetchRenderTypes() {
       },
     });
     const render_types_json = await render_types.json();
-    console.log(render_types_json);
     return render_types_json;
   } catch (error) {
     console.log("Can't fetch render types");
@@ -338,8 +336,6 @@ export async function saveChat(chat: Chat) {
   noStore();
   const userSession = await getUserSession();
   const body = JSON.stringify({ ...chat, ...userSession });
-  //console.log(userSession);
-  //console.log(`The combined objects are ${body}`);
   try {
     const result = await fetch(`${apiURL}/api/save_chat`, {
       method: "POST",
