@@ -34,7 +34,7 @@ export async function createChat(
   let renderTypeName = "";
   if (outputFormat) {
     try {
-      renderTypeName = await fetchRenderTypeName(outputFormat);
+      renderTypeName = await fetchRenderTypeName(`${outputFormat}`);
     } catch (error) {
       console.error("Error fetching output format render type name", error);
       throw error;

@@ -1,20 +1,27 @@
 import { SettingsHeading } from "@/app/_ui/typography";
-import { createOutputFormat } from "@/app/_lib/api";
-import RenderTypeSelect from "@/app/_ui/settings/output_formats/render-type-select";
+import { updateOutputFormat } from "@/app/_lib/api";
+import { OutputFormat } from "@/app/_lib/model";
+import RenderTypeSelect from "./render-type-select";
 import { Suspense } from "react";
 
-export default async function NewOutputFormat() {
+export default function EditOutputFormatForm({
+  outputFormat,
+}: {
+  outputFormat: OutputFormat;
+}) {
+  console.log(outputFormat);
   return (
     <main>
-      <SettingsHeading>New Output Format</SettingsHeading>
-      <form action={createOutputFormat}>
+      <SettingsHeading>New Persona</SettingsHeading>
+      <form action={updateOutputFormat}>
+        <input type="hidden" name="id" value={outputFormat.id} />
         <div className="w-2/3 flex justify-center flex-col">
           <div className="py-2">
             <label className="text-gray-700 text-xs" htmlFor="render_type_id">
               Render Type
             </label>
             <Suspense>
-              <RenderTypeSelect />
+              <RenderTypeSelect defaultValue={outputFormat.render_type_id} />
             </Suspense>
             <label className="text-gray-700 text-xs" htmlFor="name">
               Name
@@ -22,6 +29,7 @@ export default async function NewOutputFormat() {
             <input
               type="text"
               name="name"
+              defaultValue={outputFormat.name}
               className="block w-full mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
             ></input>
           </div>
@@ -31,6 +39,7 @@ export default async function NewOutputFormat() {
             </label>
             <textarea
               name="prompt"
+              defaultValue={outputFormat.prompt}
               className="block w-full mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
             ></textarea>
           </div>
@@ -39,7 +48,7 @@ export default async function NewOutputFormat() {
               className="rounded-md bg-slate-200 p-2 hover:bg-slate-300"
               type="submit"
             >
-              Add Output Format
+              Update Output Format
             </button>
           </div>
         </div>

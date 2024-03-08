@@ -1,6 +1,6 @@
 import { fetchPersonas } from "@/app/_lib/api";
 import { Persona } from "@/app/_lib/model";
-import { DeletePersonaButton } from "./buttons";
+import { DeletePersonaButton, EditPersonaButton } from "../buttons";
 
 export default async function PersonaList() {
   const personas = await fetchPersonas();
@@ -16,6 +16,7 @@ export default async function PersonaList() {
             <h2 className="text-lg font-semibold mb-3">{persona.name}</h2>
             <p className="text-xs ml-6 text-slate-600">{persona.prompt}</p>
             <DeletePersonaButton id={`${persona.id}`} />
+            <EditPersonaButton id={`${persona.id}`} />
           </div>
         );
       })}
