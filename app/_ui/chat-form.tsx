@@ -206,7 +206,7 @@ export default function ChatForm({
         <SelectBox
           name="persona"
           disableSelection={disableSelection}
-          defaultValue={currentChat?.persona ?? 0}
+          defaultValue={currentChat?.personaId ?? 0}
           hide={hidePersonas}
         >
           {personas.map((persona: Persona) => {
@@ -230,7 +230,7 @@ export default function ChatForm({
         <SelectBox
           name="outputFormat"
           disableSelection={disableSelection}
-          defaultValue={currentChat?.outputFormat ?? 0}
+          defaultValue={currentChat?.outputFormatId ?? 0}
           hide={hideOutputFormats}
         >
           {outputFormats.map((outputFormat: OutputFormat) => {
