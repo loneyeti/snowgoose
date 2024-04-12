@@ -17,7 +17,7 @@ export default function UtilityIconRow({
   async function saveChatAction() {
     if (chat) {
       console.log(
-        `Would save this chat. Model: ${chat.model} Persona: ${chat.persona}`
+        `Would save this chat. Model: ${chat.model} Persona: ${chat.personaId}`
       );
       const saveMessage = await saveChat(chat);
       alert(saveMessage.message);
