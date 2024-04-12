@@ -108,7 +108,7 @@ export default function ChatWrapper() {
         leaveFrom="translate-x-0"
         leaveTo="translate-x-full"
       >
-        <div className="fixed right-0 top-0 w-1/2 h-full border-l-2 bg-slate-100 p-6">
+        <div className="sticky focus:scroll-auto right-0 top-0 w-1/2 border-l-2 bg-slate-100 p-6">
           <div className="p-2 border-b-2">
             <button onClick={toggleHistory}>
               <MaterialSymbol
