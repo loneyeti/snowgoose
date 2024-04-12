@@ -8,8 +8,8 @@ import { generateUniqueFilename } from "./utils";
 
 const FormSchema = z.object({
   model: z.string(),
-  persona: z.coerce.number(),
-  outputFormat: z.coerce.number(),
+  personaId: z.coerce.number(),
+  outputFormatId: z.coerce.number(),
   prompt: z.string(),
 });
 
@@ -17,10 +17,10 @@ export async function createChat(
   formData: FormData,
   responseHistory: ChatResponse[]
 ) {
-  const { model, persona, outputFormat, prompt } = FormSchema.parse({
+  const { model, personaId, outputFormatId, prompt } = FormSchema.parse({
     model: formData.get("model"),
-    persona: formData.get("persona"),
-    outputFormat: formData.get("outputFormat"),
+    personaId: formData.get("persona"),
+    outputFormatId: formData.get("outputFormat"),
     prompt: formData.get("prompt"),
   });
   const userChatResponse: ChatResponse = {
@@ -32,9 +32,9 @@ export async function createChat(
 
   // Get Render Type (eg: markdown, html, etc)
   let renderTypeName = "";
-  if (outputFormat) {
+  if (outputFormatId) {
     try {
-      renderTypeName = await fetchRenderTypeName(`${outputFormat}`);
+      renderTypeName = await fetchRenderTypeName(`${outputFormatId}`);
     } catch (error) {
       console.error("Error fetching output format render type name", error);
       throw error;
@@ -43,8 +43,8 @@ export async function createChat(
 
   const chat: Chat = {
     responseHistory: responseHistory,
-    persona,
-    outputFormat,
+    personaId,
+    outputFormatId,
     renderTypeName,
     imageData: null,
     model,

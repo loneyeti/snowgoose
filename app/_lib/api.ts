@@ -142,6 +142,10 @@ export async function deletePersona(id: string) {
 export async function fetchModels() {
   try {
     const result = await fetch(`${apiURL}/api/models`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
       next: { tags: ["models"] },
     });
     const data = await result.json();
@@ -156,7 +160,12 @@ export async function fetchModelByAPIName(api_name: string) {
   noStore();
 
   try {
-    const result = await fetch(`${apiURL}/api/models/api_name/${api_name}`);
+    const result = await fetch(`${apiURL}/api/models/api_name/${api_name}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
     const data = await result.json();
     return data;
   } catch (error) {
@@ -324,7 +333,7 @@ export async function sendChat(chat: Chat) {
     }
     const data = await result.json();
     return chat.model !== "dall-e-3"
-      ? (data.choices[0].message as ChatResponse)
+      ? (data as ChatResponse)
       : (data.data[0].url as string);
   } catch (error) {
     console.error("Error submitting request", error);

@@ -45,8 +45,8 @@ export interface ChatResponse {
 
 export interface Chat {
   responseHistory: ChatResponse[];
-  persona: number;
-  outputFormat: number;
+  personaId: number;
+  outputFormatId: number;
   renderTypeName: string;
   imageData: string | null;
   model: string;
