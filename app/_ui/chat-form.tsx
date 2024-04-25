@@ -4,6 +4,7 @@ import {
   fetchPersonas,
   fetchModels,
   fetchOutputFormats,
+  fetchModel,
   fetchModelByAPIName,
 } from "../_lib/api";
 import {
@@ -57,7 +58,6 @@ export default function ChatForm({
   };
 
   const modelChange = (event: ChangeEvent) => {
-    console.log("Model changed...");
     const selectedValue = (event.target as HTMLSelectElement).value;
     setSelectedModel(selectedValue);
   };
@@ -88,11 +88,11 @@ export default function ChatForm({
   // When the selected model changes, determine which form elements to show.
   useEffect(() => {
     if (selectedModel !== "") {
-      const fetchModel = async () => {
+      const fetchNewModel = async () => {
         if (!selectedModel) return;
 
         try {
-          const model = await fetchModelByAPIName(selectedModel);
+          const model = await fetchModel(selectedModel);
           setShowFileUpload(!!model.is_vision);
           setHideOutputFormats(
             !!(model.is_vision || model.is_image_generation)
@@ -105,12 +105,11 @@ export default function ChatForm({
           );
         }
       };
-      fetchModel();
+      fetchNewModel();
     }
   }, [selectedModel]);
 
   useEffect(() => {
-    console.log("Using effect");
     const fetchData = async () => {
       if (!isSubmitting || !data) return;
       try {
@@ -134,7 +133,6 @@ export default function ChatForm({
       }
     };
     if (isSubmitting === true) {
-      console.log("submitting form data");
       fetchData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -187,7 +185,7 @@ export default function ChatForm({
         >
           {models.map((model: Model) => {
             return (
-              <option value={model.api_name} key={model.api_name}>
+              <option value={model.id} key={model.id}>
                 {model.name}
               </option>
             );

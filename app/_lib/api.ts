@@ -174,6 +174,24 @@ export async function fetchModelByAPIName(api_name: string) {
   }
 }
 
+export async function fetchModel(id: string) {
+  noStore();
+
+  try {
+    const result = await fetch(`${apiURL}/api/models/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await result.json();
+    return data;
+  } catch (error) {
+    console.log("ERROR!!!");
+    console.log(error);
+  }
+}
+
 export async function fetchOutputFormats() {
   try {
     const result = await fetch(`${apiURL}/api/output-formats`, {

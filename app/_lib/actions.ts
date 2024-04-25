@@ -2,7 +2,7 @@
 
 import { ChatResponse, Chat } from "./model";
 import { z } from "zod";
-import { fetchRenderTypeName, sendChat } from "./api";
+import { fetchRenderTypeName, sendChat, fetchModel } from "./api";
 import { gcsUploadFile } from "./gcs";
 import { generateUniqueFilename } from "./utils";
 
@@ -41,13 +41,15 @@ export async function createChat(
     }
   }
 
+  let modelObj = await fetchModel(model);
+
   const chat: Chat = {
     responseHistory: responseHistory,
     personaId,
     outputFormatId,
     renderTypeName,
     imageData: null,
-    model,
+    model: modelObj.api_name,
     prompt,
     imageURL: null,
   };
