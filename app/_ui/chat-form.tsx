@@ -75,7 +75,7 @@ export default function ChatForm({
         outputFormatsData && setOutputFormats(outputFormatsData);
 
         if (modelsData.length > 0) {
-          setSelectedModel(modelsData[0].api_name);
+          setSelectedModel(modelsData[0].id);
         }
       } catch (error) {
         console.error("Error fetching initialization data:", error);
@@ -179,7 +179,7 @@ export default function ChatForm({
         <SelectBox
           name="model"
           disableSelection={disableSelection}
-          defaultValue={currentChat?.model ?? ""}
+          defaultValue={currentChat?.modelId ?? 0}
           hide={false}
           onChangeFunction={modelChange}
         >

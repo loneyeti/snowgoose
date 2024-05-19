@@ -50,6 +50,7 @@ export async function createChat(
     renderTypeName,
     imageData: null,
     model: modelObj.api_name,
+    modelId: modelObj.id,
     prompt,
     imageURL: null,
   };

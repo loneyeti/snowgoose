@@ -50,6 +50,7 @@ export interface Chat {
   renderTypeName: string;
   imageData: string | null;
   model: string;
+  modelId: number;
   prompt: string;
   imageURL: string | null;
 }
