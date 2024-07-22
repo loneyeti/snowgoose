@@ -11,6 +11,14 @@ export default function SettingsNav() {
           <MaterialSymbol icon="face" size={18} className="mr-2 align-middle" />
           Profile
         </MenuListItem>
+        <MenuListItem url="/settings/models">
+          <MaterialSymbol
+            icon="database"
+            size={18}
+            className="mr-2 align-middle"
+          />
+          Models
+        </MenuListItem>
         <MenuListItem url="/settings/personas">
           <MaterialSymbol
             icon="smart_toy"

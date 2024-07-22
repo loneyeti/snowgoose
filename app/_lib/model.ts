@@ -25,12 +25,21 @@ export interface OutputFormat {
   render_type_id?: number;
 }
 
+export interface ModelPost {
+  api_name: string;
+  name: string;
+  is_vision: boolean;
+  is_image_generation: boolean;
+  api_vendor_id: number;
+}
+
 export interface Model {
   id: number;
   api_name: string;
   name: string;
   is_vision: boolean;
   is_image_generation: boolean;
+  api_vendor_id: number;
 }
 
 export interface RenderType {
@@ -63,9 +72,11 @@ export type FormProps = {
   currentChat: Chat | undefined;
 };
 
+/*
 export interface APIResonse {
   message: string;
 }
+*/
 
 export interface UserSession {
   userId: string;
@@ -73,6 +84,7 @@ export interface UserSession {
   email: string;
 }
 
+/*
 export interface APIUser {
   id: number;
   username: string;
@@ -80,6 +92,7 @@ export interface APIUser {
   email: string;
   isAdmin: number;
 }
+*/
 
 export interface ChatUserSession extends Chat, UserSession {}
 

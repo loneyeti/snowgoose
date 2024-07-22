@@ -5,7 +5,7 @@ import { Persona } from "@/app/_lib/model";
 export default function EditPersonaForm({ persona }: { persona: Persona }) {
   return (
     <main>
-      <SettingsHeading>New Persona</SettingsHeading>
+      <SettingsHeading>Edit Persona</SettingsHeading>
       <form action={updatePersona}>
         <input type="hidden" name="id" value={persona.id} />
         <div className="w-2/3 flex justify-center flex-col">

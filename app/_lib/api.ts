@@ -9,6 +9,8 @@ import {
   Persona,
   PersonaPost,
   RenderType,
+  Model,
+  ModelPost,
 } from "./model";
 import { z } from "zod";
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -19,6 +21,7 @@ import {
   CreateOutputFormatFormSchema,
   UpdateOutputFormatFormSchema,
   UpdatePersonaFormSchema,
+  CreateModelFormSchema,
 } from "./form-schemas";
 
 const accessToken = process.env.GPTFLASK_API;
@@ -189,6 +192,61 @@ export async function fetchModel(id: string) {
   } catch (error) {
     console.log("ERROR!!!");
     console.log(error);
+  }
+}
+
+export async function createModel(formData: FormData) {
+  noStore();
+
+  const model: ModelPost = CreateModelFormSchema.parse({
+    api_name: formData.get("api_name"),
+    name: formData.get("name"),
+    is_vision: formData.get("is_vision"),
+    is_image_generation: formData.get("is_image_generation"),
+    api_vendor_id: formData.get("api_vendor_id"),
+  });
+
+  try {
+    const response = await fetch(`${apiURL}/api/models`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(model),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to add new model");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.log("ERROR!!!");
+    console.log(error);
+  }
+}
+
+export async function deleteModel(id: string) {
+  try {
+    const response = await fetch(`${apiURL}/api/models/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to delete model");
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.log("ERROR!!!");
+    console.log(error as Error);
+    return { success: false, error: (error as Error).message };
   }
 }
 
