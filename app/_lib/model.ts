@@ -89,7 +89,6 @@ export interface UserSession {
   email: string;
 }
 
-/*
 export interface APIUser {
   id: number;
   username: string;
@@ -97,7 +96,6 @@ export interface APIUser {
   email: string;
   isAdmin: number;
 }
-*/
 
 export interface ChatUserSession extends Chat, UserSession {}
 

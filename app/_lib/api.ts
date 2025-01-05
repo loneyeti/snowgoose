@@ -252,8 +252,6 @@ export async function createModel(formData: FormData) {
 }
 
 export async function updateModel(formData: FormData) {
-  console.log("Is Vision?");
-  console.log(formData.get("is_vision"));
   const model: Model = UpdateModelFormSchema.parse({
     id: formData.get("id"),
     api_name: formData.get("api_name"),
@@ -263,8 +261,6 @@ export async function updateModel(formData: FormData) {
       formData.get("is_image_generation") === "on" ? true : false,
     api_vendor_id: formData.get("api_vendor_id"),
   });
-
-  console.log(model);
 
   try {
     const result = await fetch(`${apiURL}/api/models/${model.id}`, {

@@ -8,7 +8,7 @@ import "react-material-symbols/outlined";
 import Link from "next/link";
 
 export default async function Models() {
-  const models = await fetchModels();
+  //const models = await fetchModels();
   return (
     <main>
       <SettingsHeading>Models</SettingsHeading>
@@ -22,7 +22,7 @@ export default async function Models() {
             </>
           }
         >
-          <ModelList models={models} />
+          <ModelList />
         </Suspense>
         <Link href="/settings/models/new">
           <div className="w-3/4 mx-auto p-6 my-3 rounded-md bg-slate-200 hover:bg-slate-300">
