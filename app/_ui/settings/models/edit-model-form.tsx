@@ -1,13 +1,16 @@
 import { SettingsHeading } from "@/app/_ui/typography";
-import { createModel } from "@/app/_lib/api";
+import { updateModel } from "@/app/_lib/api";
+import { Model } from "@/app/_lib/model";
+import { APIVendorSelect } from "./api-vendor-select";
 import { Suspense } from "react";
-import { APIVendorSelect } from "@/app/_ui/settings/models/api-vendor-select";
 
-export default async function NewModel() {
+export default function EditModelForm({ model }: { model: Model }) {
+  console.log(model);
   return (
     <main>
-      <SettingsHeading>New Model</SettingsHeading>
-      <form action={createModel}>
+      <SettingsHeading>Edit Model</SettingsHeading>
+      <form action={updateModel}>
+        <input type="hidden" name="id" value={model.id} />
         <div className="w-2/3 flex justify-center flex-col">
           <div className="py-2">
             <label className="text-gray-700 text-xs" htmlFor="api_name">
@@ -16,6 +19,7 @@ export default async function NewModel() {
             <input
               type="text"
               name="api_name"
+              defaultValue={model.api_name}
               className="block w-full mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
             ></input>
           </div>
@@ -26,6 +30,7 @@ export default async function NewModel() {
             <input
               type="text"
               name="name"
+              defaultValue={model.name}
               className="block w-full mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
             ></input>
           </div>
@@ -36,6 +41,7 @@ export default async function NewModel() {
             <input
               type="checkbox"
               name="is_vision"
+              defaultChecked={model.is_vision}
               className="block mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
             ></input>
           </div>
@@ -49,6 +55,7 @@ export default async function NewModel() {
             <input
               type="checkbox"
               name="is_image_generation"
+              defaultChecked={model.is_image_generation}
               className="block mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
             ></input>
           </div>
@@ -57,7 +64,7 @@ export default async function NewModel() {
               API Vendor
             </label>
             <Suspense>
-              <APIVendorSelect />
+              <APIVendorSelect defaultValue={model.api_vendor_id} />
             </Suspense>
           </div>
           <div className="py-2">
@@ -65,7 +72,7 @@ export default async function NewModel() {
               className="rounded-md bg-slate-200 p-2 hover:bg-slate-300"
               type="submit"
             >
-              Add Model
+              Update Model
             </button>
           </div>
         </div>

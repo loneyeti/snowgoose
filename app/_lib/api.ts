@@ -22,6 +22,7 @@ import {
   UpdateOutputFormatFormSchema,
   UpdatePersonaFormSchema,
   CreateModelFormSchema,
+  UpdateModelFormSchema,
 } from "./form-schemas";
 
 const accessToken = process.env.GPTFLASK_API;
@@ -195,14 +196,33 @@ export async function fetchModel(id: string) {
   }
 }
 
+export async function fetchAPIVendors() {
+  noStore();
+
+  try {
+    const result = await fetch(`${apiURL}/api/api-vendors`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await result.json();
+    return data;
+  } catch (error) {
+    console.log("ERROR!!!");
+    console.log(error);
+  }
+}
+
 export async function createModel(formData: FormData) {
   noStore();
 
   const model: ModelPost = CreateModelFormSchema.parse({
     api_name: formData.get("api_name"),
     name: formData.get("name"),
-    is_vision: formData.get("is_vision"),
-    is_image_generation: formData.get("is_image_generation"),
+    is_vision: formData.get("is_vision") === "on" ? true : false,
+    is_image_generation:
+      formData.get("is_image_generation") === "on" ? true : false,
     api_vendor_id: formData.get("api_vendor_id"),
   });
 
@@ -220,12 +240,50 @@ export async function createModel(formData: FormData) {
       throw new Error("Failed to add new model");
     }
 
-    const data = await response.json();
-    return data;
+    //const data = await response.json();
+    //return data;
   } catch (error) {
     console.log("ERROR!!!");
     console.log(error);
   }
+  revalidatePath("/settings/models");
+  revalidateTag("models");
+  redirect("/settings/models");
+}
+
+export async function updateModel(formData: FormData) {
+  console.log("Is Vision?");
+  console.log(formData.get("is_vision"));
+  const model: Model = UpdateModelFormSchema.parse({
+    id: formData.get("id"),
+    api_name: formData.get("api_name"),
+    name: formData.get("name"),
+    is_vision: formData.get("is_vision") === "on" ? true : false,
+    is_image_generation:
+      formData.get("is_image_generation") === "on" ? true : false,
+    api_vendor_id: formData.get("api_vendor_id"),
+  });
+
+  console.log(model);
+
+  try {
+    const result = await fetch(`${apiURL}/api/models/${model.id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(model),
+    });
+    //const data = await result.json()
+    //return data
+  } catch (error) {
+    console.log(error);
+    throw new Error("Unable to update model.");
+  }
+  revalidatePath("/settings/models");
+  revalidateTag("models");
+  redirect("/settings/models");
 }
 
 export async function deleteModel(id: string) {
@@ -242,12 +300,15 @@ export async function deleteModel(id: string) {
       throw new Error("Failed to delete model");
     }
 
-    return { success: true };
+    //return { success: true };
   } catch (error) {
     console.log("ERROR!!!");
     console.log(error as Error);
     return { success: false, error: (error as Error).message };
   }
+  revalidatePath("/settings/models");
+  revalidateTag("models");
+  redirect("/settings/models");
 }
 
 export async function fetchOutputFormats() {

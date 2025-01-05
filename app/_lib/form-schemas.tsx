@@ -27,16 +27,16 @@ export const UpdateOutputFormatFormSchema = z.object({
 export const CreateModelFormSchema = z.object({
   api_name: z.string(),
   name: z.string(),
-  is_vision: z.boolean().optional(),
-  is_image_generation: z.boolean().optional(),
+  is_vision: z.boolean().default(false),
+  is_image_generation: z.boolean().default(false),
   api_vendor_id: z.coerce.number(),
 });
 
 export const UpdateModelFormSchema = z.object({
   id: z.coerce.number(),
-  api_name: z.string().optional(),
-  name: z.string().optional(),
-  is_vision: z.boolean().optional(),
-  is_image_generation: z.boolean().optional(),
-  api_vendor_id: z.coerce.number().optional(),
+  api_name: z.string(),
+  name: z.string(),
+  is_vision: z.boolean(),
+  is_image_generation: z.boolean(),
+  api_vendor_id: z.coerce.number(),
 });

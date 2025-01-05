@@ -47,6 +47,11 @@ export interface RenderType {
   name: string;
 }
 
+export interface APIVendor {
+  id: number;
+  name: string;
+}
+
 export interface ChatResponse {
   role: string;
   content: string;
