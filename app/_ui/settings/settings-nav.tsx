@@ -43,6 +43,14 @@ export default function SettingsNav() {
           />
           History
         </MenuListItem>
+        <MenuListItem url="/settings/user-preferences">
+          <MaterialSymbol
+            icon="settings_account_box"
+            size={18}
+            className="mr-2 align-middle"
+          />
+          User Preferences
+        </MenuListItem>
       </ul>
     </Sidebar>
   );

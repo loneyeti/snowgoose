@@ -97,6 +97,14 @@ export interface APIUser {
   isAdmin: number;
 }
 
+export interface UserSettings {
+  id: number;
+  user_id: number;
+  appearance_mode: string;
+  summary_model_preference_id: number;
+  summary_model_preference: string;
+};
+
 export interface ChatUserSession extends Chat, UserSession {}
 
 export interface History {

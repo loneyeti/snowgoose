@@ -11,6 +11,7 @@ import {
   RenderType,
   Model,
   ModelPost,
+  UserSettings
 } from "./model";
 import { z } from "zod";
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -23,6 +24,7 @@ import {
   UpdatePersonaFormSchema,
   CreateModelFormSchema,
   UpdateModelFormSchema,
+  UpdateUserSettingsSchema
 } from "./form-schemas";
 
 const accessToken = process.env.GPTFLASK_API;
@@ -550,4 +552,73 @@ export async function deleteHistory(id: string) {
   }
 
   revalidateTag("history");
+}
+
+// Fetch user settings
+export async function fetchUserSettings() {
+  noStore();
+  const userSession = await getUserSession();
+  const body = JSON.stringify(userSession);
+
+  try {
+    const response = await fetch(`${apiURL}/api/user-settings`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: body,
+      next: { tags: ["userSettings"] },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch user settings");
+    }
+
+    const data = await response.json();
+    console.log(data)
+    return data as UserSettings;
+  } catch (error) {
+    console.error("Error fetching user settings:", error);
+    throw error;
+  }
+}
+
+// Update user settings
+export async function updateUserSettings(formData: FormData) {
+  noStore();
+  //const userSession = await getUserSession();
+
+  const settings = UpdateUserSettingsSchema.parse({
+    id: formData.get("id"),
+    appearance_mode: formData.get("appearance_mode"),
+    summary_model_preference_id: formData.get("summary_model_preference_id")
+      ? parseInt(formData.get("summary_model_preference_id") as string, 10)
+      : undefined,
+  });
+
+  try {
+    const response = await fetch(`${apiURL}/api/user-settings/${settings.id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(settings),
+    });
+
+    if (!response.ok) {
+      const responseError = await response.json()
+      console.log(responseError)
+      throw new Error("Failed to update user settings");
+    }
+
+    const data = await response.json();
+    revalidatePath("/settings");
+    revalidateTag("userSettings");
+    return data;
+  } catch (error) {
+    console.error("Error updating user settings:", error);
+    throw error;
+  }
 }

@@ -40,3 +40,9 @@ export const UpdateModelFormSchema = z.object({
   is_image_generation: z.boolean(),
   api_vendor_id: z.coerce.number(),
 });
+
+export const UpdateUserSettingsSchema = z.object({
+  id: z.coerce.number(),
+  appearance_mode: z.string().optional(),
+  summary_model_preference_id: z.number().optional(),
+});
