@@ -29,6 +29,7 @@ export const CreateModelFormSchema = z.object({
   name: z.string(),
   is_vision: z.boolean().default(false),
   is_image_generation: z.boolean().default(false),
+  is_thinking: z.boolean().default(false),
   api_vendor_id: z.coerce.number(),
 });
 
@@ -38,6 +39,7 @@ export const UpdateModelFormSchema = z.object({
   name: z.string(),
   is_vision: z.boolean(),
   is_image_generation: z.boolean(),
+  is_thinking: z.boolean().default(false),
   api_vendor_id: z.coerce.number(),
 });
 

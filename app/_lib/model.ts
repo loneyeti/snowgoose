@@ -39,6 +39,7 @@ export interface Model {
   name: string;
   is_vision: boolean;
   is_image_generation: boolean;
+  is_thinking: boolean;
   api_vendor_id: number;
 }
 

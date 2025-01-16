@@ -225,6 +225,7 @@ export async function createModel(formData: FormData) {
     is_vision: formData.get("is_vision") === "on" ? true : false,
     is_image_generation:
       formData.get("is_image_generation") === "on" ? true : false,
+    is_thinking: formData.get("is_thinking") === "on" ? true : false,
     api_vendor_id: formData.get("api_vendor_id"),
   });
 
@@ -261,6 +262,7 @@ export async function updateModel(formData: FormData) {
     is_vision: formData.get("is_vision") === "on" ? true : false,
     is_image_generation:
       formData.get("is_image_generation") === "on" ? true : false,
+    is_thinking: formData.get("is_thinking") === "on" ? true : false,
     api_vendor_id: formData.get("api_vendor_id"),
   });
 

@@ -60,6 +60,20 @@ export default function EditModelForm({ model }: { model: Model }) {
             ></input>
           </div>
           <div className="py-2">
+            <label
+              className="text-gray-700 text-xs"
+              htmlFor="is_thinkingn"
+            >
+              Is Thinking
+            </label>
+            <input
+              type="checkbox"
+              name="is_thinking"
+              defaultChecked={model.is_thinking}
+              className="block mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
+            ></input>
+          </div>
+          <div className="py-2">
             <label className="text-gray-700 text-xs" htmlFor="api_vendor_id">
               API Vendor
             </label>
