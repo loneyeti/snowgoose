@@ -17,10 +17,28 @@ import {
 } from "../_lib/model";
 import SelectBox from "./select-box";
 import { createChat } from "../_lib/actions";
-import React, { useState, useEffect, useRef, ChangeEvent } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  ChangeEvent,
+  useMemo,
+} from "react";
 import { Spinner, SpinnerSize } from "./spinner";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
+
+interface ThinkingPreset {
+  name: string;
+  maxTokens: number;
+  budgetTokens: number | null;
+}
+
+const THINKING_PRESETS: ThinkingPreset[] = [
+  { name: "Thinking Off", maxTokens: 8192, budgetTokens: null },
+  { name: "Quick Thinking", maxTokens: 8192, budgetTokens: 4096 },
+  { name: "Long Thinking", maxTokens: 16384, budgetTokens: 8192 },
+];
 
 export default function ChatForm({
   updateMessage,
@@ -44,6 +62,10 @@ export default function ChatForm({
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [hidePersonas, setHidePersonas] = useState(false);
   const [hideOutputFormats, setHideOutputFormats] = useState(false);
+  const [showTokenSliders, setShowTokenSliders] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<string>("Thinking Off");
+  const [maxTokens, setMaxTokens] = useState<number | null>(null);
+  const [budgetTokens, setBudgetTokens] = useState<number | null>(null);
   const handleReset = (e: React.MouseEvent) => {
     resetPage();
   };
@@ -98,6 +120,17 @@ export default function ChatForm({
             !!(model.is_vision || model.is_image_generation)
           );
           setHidePersonas(!!(model.is_vision || model.is_image_generation));
+          setShowTokenSliders(!!model.is_thinking);
+          if (model.is_thinking) {
+            // Set default preset values
+            const defaultPreset = THINKING_PRESETS[0]; // Thinking Off
+            setSelectedPreset(defaultPreset.name);
+            setMaxTokens(defaultPreset.maxTokens);
+            setBudgetTokens(defaultPreset.budgetTokens);
+          } else {
+            setMaxTokens(null);
+            setBudgetTokens(null);
+          }
         } catch (error) {
           console.error(
             `Error fetching model by API Name: ${selectedModel}`,
@@ -251,6 +284,36 @@ export default function ChatForm({
             type="file"
           />
         </div>
+      )}
+      {showTokenSliders && (
+        <>
+          <div className="m-3">
+            <div className="flex justify-between">
+              <label className="text-gray-700 text-xs" htmlFor="thinkingPreset">
+                Thinking Level
+              </label>
+              <span className="text-gray-700 text-xs">{selectedPreset}</span>
+            </div>
+            <input
+              type="range"
+              name="thinkingPreset"
+              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-500"
+              min="0"
+              max={THINKING_PRESETS.length - 1}
+              value={THINKING_PRESETS.findIndex(
+                (p) => p.name === selectedPreset
+              )}
+              onChange={(e) => {
+                const preset = THINKING_PRESETS[parseInt(e.target.value)];
+                setSelectedPreset(preset.name);
+                setMaxTokens(preset.maxTokens);
+                setBudgetTokens(preset.budgetTokens);
+              }}
+            />
+          </div>
+          <input type="hidden" name="maxTokens" value={maxTokens || ""} />
+          <input type="hidden" name="budgetTokens" value={budgetTokens || ""} />
+        </>
       )}
       <div className="m-3">
         <label className="text-gray-700 text-xs" htmlFor="prompt">

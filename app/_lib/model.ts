@@ -53,9 +53,29 @@ export interface APIVendor {
   name: string;
 }
 
+// Interface for Anthropic thinking blocks
+export interface ThinkingBlock {
+  type: "thinking";
+  thinking: string;
+  signature: string;
+}
+
+export interface RedactedThinkingBlock {
+  type: "redacted_thinking";
+  data: string;
+}
+
+export interface TextBlock {
+  type: "text";
+  text: string;
+}
+
+export type ContentBlock = ThinkingBlock | RedactedThinkingBlock | TextBlock;
+
+// Content of a chat response can either be plain text or an Anthropic ContentBlock
 export interface ChatResponse {
   role: string;
-  content: string;
+  content: string | ContentBlock[];
 }
 
 export interface Chat {
@@ -68,6 +88,8 @@ export interface Chat {
   modelId: number;
   prompt: string;
   imageURL: string | null;
+  maxTokens: number | null;
+  budgetTokens: number | null;
 }
 
 export type FormProps = {
@@ -104,7 +126,7 @@ export interface UserSettings {
   appearance_mode: string;
   summary_model_preference_id: number;
   summary_model_preference: string;
-};
+}
 
 export interface ChatUserSession extends Chat, UserSession {}
 

@@ -1,8 +1,7 @@
-import { ChatResponse } from "../_lib/model";
-import parse from "html-react-parser";
-import DOMPurify from "dompurify";
+import { ChatResponse, ContentBlock } from "../_lib/model";
 import { SpinnerSize, Spinner } from "./spinner";
 import MarkdownComponent from "./markdown-parser";
+import { isContentBlockArray } from "../_lib/utils";
 
 interface ConversationProps {
   chats: ChatResponse[];
@@ -46,13 +45,39 @@ export default function Conversation({
                     : "p-2"
                 }
               >
-                {renderTypeName === "markdown" && (
+                {isContentBlockArray(chat.content) ? (
+                  // Render blocks individually with markdown
+                  chat.content.map((block, blockIndex) => {
+                    switch (block.type) {
+                      case "thinking":
+                        return (
+                          <div
+                            key={blockIndex}
+                            className="relative mt-4 mb-4 p-4 bg-slate-50 rounded-md border border-slate-200"
+                          >
+                            <span className="absolute -top-3 left-2 px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded-md border border-slate-200">
+                              Thinking
+                            </span>
+                            <MarkdownComponent markdown={block.thinking} />
+                          </div>
+                        );
+                      case "redacted_thinking":
+                        return null; // Don't render redacted thinking
+                      case "text":
+                        return (
+                          <MarkdownComponent
+                            key={blockIndex}
+                            markdown={block.text}
+                          />
+                        );
+                      default:
+                        return null;
+                    }
+                  })
+                ) : (
                   <MarkdownComponent markdown={chat.content} />
                 )}
-                {renderTypeName !== "markdown" &&
-                  parse(DOMPurify.sanitize(chat.content))}
               </div>
-              //<div className="prose prose-slate">{parse(chat.content)}</div>
             ))
           ) : (
             <p>&nbsp;</p>

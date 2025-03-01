@@ -11,18 +11,23 @@ const FormSchema = z.object({
   personaId: z.coerce.number(),
   outputFormatId: z.coerce.number(),
   prompt: z.string(),
+  maxTokens: z.coerce.number().nullable(),
+  budgetTokens: z.coerce.number().nullable(),
 });
 
 export async function createChat(
   formData: FormData,
   responseHistory: ChatResponse[]
 ) {
-  const { model, personaId, outputFormatId, prompt } = FormSchema.parse({
-    model: formData.get("model"),
-    personaId: formData.get("persona"),
-    outputFormatId: formData.get("outputFormat"),
-    prompt: formData.get("prompt"),
-  });
+  const { model, personaId, outputFormatId, prompt, maxTokens, budgetTokens } =
+    FormSchema.parse({
+      model: formData.get("model"),
+      personaId: formData.get("persona"),
+      outputFormatId: formData.get("outputFormat"),
+      prompt: formData.get("prompt"),
+      maxTokens: formData.get("maxTokens") || null,
+      budgetTokens: formData.get("budgetTokens") || null,
+    });
   const userChatResponse: ChatResponse = {
     role: "user",
     content: prompt,
@@ -53,6 +58,8 @@ export async function createChat(
     modelId: modelObj.id,
     prompt,
     imageURL: null,
+    maxTokens,
+    budgetTokens,
   };
 
   // If there is a file, we upload to Google Cloud storage and get the URL
