@@ -6,6 +6,8 @@ import {
   fetchOutputFormats,
   fetchModel,
   fetchModelByAPIName,
+  fetchMCPTools,
+  fetchAPIVendors,
 } from "../_lib/api";
 import {
   Persona,
@@ -14,6 +16,8 @@ import {
   FormProps,
   ChatResponse,
   Chat,
+  MCPTool,
+  APIVendor,
 } from "../_lib/model";
 import SelectBox from "./select-box";
 import { createChat } from "../_lib/actions";
@@ -59,10 +63,13 @@ export default function ChatForm({
   const disableSelection = responseHistory.length > 0;
   //const [defaultModel, setDefaultModel] = useState("gpt-4");
   const [selectedModel, setSelectedModel] = useState("");
+  const [selectedModelVendor, setSelectedModelVendor] = useState("");
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [hidePersonas, setHidePersonas] = useState(false);
   const [hideOutputFormats, setHideOutputFormats] = useState(false);
   const [showTokenSliders, setShowTokenSliders] = useState(false);
+  const [showMCPTools, setShowMCPTools] = useState(false);
+  const [mcpTools, setMCPTools] = useState<MCPTool[]>([]);
   const [selectedPreset, setSelectedPreset] = useState<string>("Thinking Off");
   const [maxTokens, setMaxTokens] = useState<number | null>(null);
   const [budgetTokens, setBudgetTokens] = useState<number | null>(null);
@@ -88,16 +95,33 @@ export default function ChatForm({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [personasData, modelsData, outputFormatsData] = await Promise.all(
-          [fetchPersonas(), fetchModels(), fetchOutputFormats()]
-        );
+        const [
+          personasData,
+          modelsData,
+          outputFormatsData,
+          mcpToolsData,
+          apiVendorsData,
+        ] = await Promise.all([
+          fetchPersonas(),
+          fetchModels(),
+          fetchOutputFormats(),
+          fetchMCPTools(),
+          fetchAPIVendors(),
+        ]);
 
         personasData && setPersonas(personasData);
         modelsData && setModels(modelsData);
         outputFormatsData && setOutputFormats(outputFormatsData);
+        mcpToolsData && setMCPTools(mcpToolsData);
 
         if (modelsData.length > 0) {
           setSelectedModel(modelsData[0].id);
+          const selectedModelData = modelsData[0];
+          const vendor = apiVendorsData.find(
+            (v: APIVendor) => v.id === selectedModelData.api_vendor_id
+          );
+          setSelectedModelVendor(vendor?.name || "");
+          setShowMCPTools(vendor?.name === "anthropic");
         }
       } catch (error) {
         console.error("Error fetching initialization data:", error);
@@ -115,12 +139,20 @@ export default function ChatForm({
 
         try {
           const model = await fetchModel(selectedModel);
+          const apiVendors = await fetchAPIVendors();
+          const vendor = apiVendors.find(
+            (v: APIVendor) => v.id === model.api_vendor_id
+          );
+
+          setSelectedModelVendor(vendor?.name || "");
+          setShowMCPTools(vendor?.name === "anthropic");
           setShowFileUpload(!!model.is_vision);
           setHideOutputFormats(
             !!(model.is_vision || model.is_image_generation)
           );
           setHidePersonas(!!(model.is_vision || model.is_image_generation));
           setShowTokenSliders(!!model.is_thinking);
+
           if (model.is_thinking) {
             // Set default preset values
             const defaultPreset = THINKING_PRESETS[0]; // Thinking Off
@@ -273,6 +305,26 @@ export default function ChatForm({
           })}
         </SelectBox>
       </div>
+      {showMCPTools && (
+        <div className="m-3">
+          <label className="text-gray-700 text-xs" htmlFor="mcpTool">
+            MCP Tool
+          </label>
+          <SelectBox
+            name="mcpTool"
+            disableSelection={disableSelection}
+            defaultValue={0}
+            hide={false}
+          >
+            <option value={0}>No Tool</option>
+            {mcpTools.map((tool: MCPTool) => (
+              <option value={tool.id} key={tool.id}>
+                {tool.name}
+              </option>
+            ))}
+          </SelectBox>
+        </div>
+      )}
       {showFileUpload && (
         <div className="m-3">
           <label className="text-gray-700 text-xs" htmlFor="image">

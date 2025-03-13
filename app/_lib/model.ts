@@ -41,6 +41,14 @@ export interface Model {
   is_image_generation: boolean;
   is_thinking: boolean;
   api_vendor_id: number;
+  api_vendor_name?: string;
+}
+
+export interface MCPTool {
+  id: number;
+  name: string;
+  path: string;
+  env_vars?: Record<string, string>;
 }
 
 export interface RenderType {
@@ -134,4 +142,15 @@ export interface History {
   id: number;
   title: string;
   conversation: string;
+}
+
+export interface MCPToolPost {
+  name: string;
+  path: string;
+}
+
+export interface MCPTool {
+  id: number;
+  name: string;
+  path: string;
 }

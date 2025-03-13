@@ -3,6 +3,7 @@ import {
   deleteOutputFormat,
   deleteHistory,
   deleteModel,
+  deleteMCPTool,
 } from "@/app/_lib/api";
 import { Persona } from "@/app/_lib/model";
 import { MaterialSymbol } from "react-material-symbols";
@@ -99,6 +100,34 @@ export function DeleteHistoryButton({ id }: { id: string }) {
   return (
     <div className="w-full flex justify-end">
       <form action={deleteHistoryWithId}>
+        <button className="mt-3">
+          {" "}
+          <MaterialSymbol icon="delete" size={18} className="" />
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export function EditMCPToolButton({ id }: { id: string }) {
+  return (
+    <div className="w-full flex justify-end">
+      <Link href={`/settings/mcp-tools/${id}/edit`}>
+        <button className="mt-3">
+          {" "}
+          <MaterialSymbol icon="edit" size={18} className="" />
+        </button>
+      </Link>
+    </div>
+  );
+}
+
+export function DeleteMCPToolButton({ id }: { id: string }) {
+  const deleteMCPToolWithId = deleteMCPTool.bind(null, id);
+
+  return (
+    <div className="w-full flex justify-end">
+      <form action={deleteMCPToolWithId}>
         <button className="mt-3">
           {" "}
           <MaterialSymbol icon="delete" size={18} className="" />

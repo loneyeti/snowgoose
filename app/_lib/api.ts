@@ -11,7 +11,8 @@ import {
   RenderType,
   Model,
   ModelPost,
-  UserSettings
+  UserSettings,
+  MCPTool,
 } from "./model";
 import { z } from "zod";
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -24,7 +25,9 @@ import {
   UpdatePersonaFormSchema,
   CreateModelFormSchema,
   UpdateModelFormSchema,
-  UpdateUserSettingsSchema
+  UpdateUserSettingsSchema,
+  CreateMCPToolFormSchema,
+  UpdateMCPToolFormSchema,
 } from "./form-schemas";
 
 const accessToken = process.env.GPTFLASK_API;
@@ -184,14 +187,32 @@ export async function fetchModel(id: string) {
   noStore();
 
   try {
+    // Fetch model data
     const result = await fetch(`${apiURL}/api/models/${id}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
     });
-    const data = await result.json();
-    return data;
+    const modelData = await result.json();
+
+    // Fetch API vendors to get the vendor name
+    const apiVendorsResult = await fetch(`${apiURL}/api/api-vendors`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const apiVendors = await apiVendorsResult.json();
+
+    // Find the matching vendor and add its name to the model data
+    const vendor = apiVendors.find(
+      (v: any) => v.id === modelData.api_vendor_id
+    );
+    return {
+      ...modelData,
+      api_vendor_name: vendor ? vendor.name : null,
+    };
   } catch (error) {
     console.log("ERROR!!!");
     console.log(error);
@@ -450,20 +471,34 @@ export async function deleteOutputFormat(id: string) {
   revalidatePath("/settings/output-formats");
 }
 
-export async function sendChat(chat: Chat) {
+export async function sendChat(chat: Chat, mcpToolData?: MCPTool) {
   noStore();
 
-  // Set endpoint URL based on model
-  const endpointURL = chat.model === "dall-e-3" ? "/api/dalle" : "/api/chat";
+  // Set endpoint URL based on model and MCP tool
+  let endpointURL = "/api/chat";
+  if (chat.model === "dall-e-3") {
+    endpointURL = "/api/dalle";
+  } else if (mcpToolData) {
+    endpointURL = "/api/mcp_chat";
+    console.log("MCP Tool Called.");
+  }
 
   try {
+    const body = mcpToolData
+      ? {
+          ...chat,
+          mcp_server_path: mcpToolData.path,
+          mcp_env_vars: mcpToolData.env_vars || {},
+        }
+      : chat;
+    console.log(endpointURL);
     const result = await fetch(`${apiURL}${endpointURL}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(chat),
+      body: JSON.stringify(body),
     });
     if (!result.ok) {
       throw new Error("There was an issue generating a response");
@@ -578,7 +613,7 @@ export async function fetchUserSettings() {
     }
 
     const data = await response.json();
-    console.log(data)
+    console.log(data);
     return data as UserSettings;
   } catch (error) {
     console.error("Error fetching user settings:", error);
@@ -610,8 +645,8 @@ export async function updateUserSettings(formData: FormData) {
     });
 
     if (!response.ok) {
-      const responseError = await response.json()
-      console.log(responseError)
+      const responseError = await response.json();
+      console.log(responseError);
       throw new Error("Failed to update user settings");
     }
 
@@ -623,4 +658,117 @@ export async function updateUserSettings(formData: FormData) {
     console.error("Error updating user settings:", error);
     throw error;
   }
+}
+
+export async function fetchMCPTools() {
+  try {
+    const result = await fetch(`${apiURL}/api/mcp-tools`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      next: { tags: ["mcpTools"] },
+    });
+    const data = await result.json();
+    return data;
+  } catch (error) {
+    console.log("ERROR!!!");
+    console.log(error);
+  }
+}
+
+export async function fetchMCPTool(id: string) {
+  noStore();
+  try {
+    const result = await fetch(`${apiURL}/api/mcp-tools/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await result.json();
+    return data;
+  } catch (error) {
+    console.log("ERROR!!!");
+    console.log(error);
+  }
+}
+
+export async function createMCPTool(formData: FormData) {
+  noStore();
+
+  const mcpTool = CreateMCPToolFormSchema.parse({
+    name: formData.get("name"),
+    path: formData.get("path"),
+  });
+
+  try {
+    const result = await fetch(`${apiURL}/api/mcp-tools`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(mcpTool),
+    });
+    if (!result.ok) {
+      throw new Error("Failed to create MCP Tool");
+    }
+  } catch (error) {
+    console.log(error);
+    throw new Error("Unable to create MCP Tool.");
+  }
+  revalidatePath("/settings/mcp-tools");
+  revalidateTag("mcpTools");
+  redirect("/settings/mcp-tools");
+}
+
+export async function updateMCPTool(formData: FormData) {
+  const mcpTool = UpdateMCPToolFormSchema.parse({
+    id: formData.get("id"),
+    name: formData.get("name"),
+    path: formData.get("path"),
+  });
+
+  try {
+    const result = await fetch(`${apiURL}/api/mcp-tools/${mcpTool.id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(mcpTool),
+    });
+    if (!result.ok) {
+      throw new Error("Failed to update MCP Tool");
+    }
+  } catch (error) {
+    console.log(error);
+    throw new Error("Unable to update MCP Tool.");
+  }
+  revalidatePath("/settings/mcp-tools");
+  revalidateTag("mcpTools");
+  redirect("/settings/mcp-tools");
+}
+
+export async function deleteMCPTool(id: string) {
+  try {
+    const result = await fetch(`${apiURL}/api/mcp-tools/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    if (!result.ok) {
+      throw new Error("Failed to delete MCP Tool");
+    }
+  } catch (error) {
+    console.log("Error deleting MCP Tool");
+    console.log(error);
+    throw new Error("Error deleting MCP Tool");
+  }
+
+  revalidatePath("/settings/mcp-tools");
+  revalidateTag("mcpTools");
 }

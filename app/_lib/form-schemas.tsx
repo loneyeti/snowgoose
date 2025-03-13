@@ -48,3 +48,14 @@ export const UpdateUserSettingsSchema = z.object({
   appearance_mode: z.string().optional(),
   summary_model_preference_id: z.number().optional(),
 });
+
+export const CreateMCPToolFormSchema = z.object({
+  name: z.string(),
+  path: z.string(),
+});
+
+export const UpdateMCPToolFormSchema = z.object({
+  id: z.coerce.number(),
+  name: z.string(),
+  path: z.string(),
+});
