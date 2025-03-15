@@ -1,5 +1,5 @@
 import { SettingsHeading } from "@/app/_ui/typography";
-import { createOutputFormat } from "@/app/_lib/api";
+import { createOutputFormat } from "@/app/_lib/server_actions/output-format.actions";
 import RenderTypeSelect from "@/app/_ui/settings/output_formats/render-type-select";
 import { Suspense } from "react";
 

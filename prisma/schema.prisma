@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AlembicVersion {
+  version_num String @id(map: "alembic_version_pkc") @db.VarChar(32)
+}
+
+model APIKey {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(255)
+  key  String @db.VarChar(255)
+
+  @@map("api_key")
+}
+
+model APIVendor {
+  id     Int     @id @default(autoincrement())
+  name   String  @db.VarChar(255)
+  models Model[]
+
+  @@map("api_vendor")
+}
+
+model ConversationHistory {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  title        String?
+  conversation String
+  timestamp    DateTime @db.Timestamp(6)
+  user         User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("conversation_history")
+}
+
+model MCPTool {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(255)
+  path String @db.VarChar(255)
+
+  @@map("mcp_tool")
+}
+
+model Model {
+  id                Int            @id @default(autoincrement())
+  apiName           String         @map("api_name") @db.VarChar(255)
+  name              String         @db.VarChar(255)
+  isVision          Boolean        @map("is_vision")
+  isImageGeneration Boolean        @map("is_image_generation")
+  apiVendorId       Int?           @map("api_vendor_id")
+  isThinking        Boolean        @default(false) @map("is_thinking")
+  apiVendor         APIVendor?     @relation(fields: [apiVendorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  userSettings      UserSettings[]
+
+  @@map("model")
+}
+
+model OutputFormat {
+  id           Int         @id @default(autoincrement())
+  name         String      @db.VarChar(255)
+  prompt       String
+  ownerId      Int?        @map("owner_id")
+  renderTypeId Int?        @map("render_type_id")
+  owner        User?       @relation(fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  renderType   RenderType? @relation(fields: [renderTypeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("output_format")
+}
+
+model Persona {
+  id      Int    @id @default(autoincrement())
+  name    String @db.VarChar(255)
+  prompt  String
+  ownerId Int?   @map("owner_id")
+  owner   User?  @relation(fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("persona")
+}
+
+model RenderType {
+  id            Int            @id @default(autoincrement())
+  name          String         @db.VarChar(255)
+  outputFormats OutputFormat[]
+
+  @@map("render_type")
+}
+
+model UserSettings {
+  id                       Int    @id @default(autoincrement())
+  userId                   Int    @map("user_id")
+  appearanceMode           String @map("appearance_mode") @db.VarChar(10)
+  summaryModelPreferenceId Int?   @map("summary_model_preference_id")
+  summaryModel             Model? @relation(fields: [summaryModelPreferenceId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user                     User   @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("user_settings")
+}
+
+model User {
+  id            Int                   @id @default(autoincrement())
+  username      String                @unique @db.VarChar(250)
+  password      String                @db.VarChar(250)
+  email         String?               @db.VarChar(250)
+  isAdmin       Boolean?              @map("is_admin")
+  conversations ConversationHistory[]
+  outputFormats OutputFormat[]
+  personas      Persona[]
+  settings      UserSettings[]
+
+  @@map("users")
+}

@@ -1,33 +1,21 @@
 "use client";
 
-import {
-  fetchPersonas,
-  fetchModels,
-  fetchOutputFormats,
-  fetchModel,
-  fetchModelByAPIName,
-  fetchMCPTools,
-  fetchAPIVendors,
-} from "../_lib/api";
+import { getPersonas } from "../_lib/server_actions/persona.actions";
+import { getModel, getModels } from "../_lib/server_actions/model.actions";
+import { getOutputFormats } from "../_lib/server_actions/output-format.actions";
+import { getMcpTools } from "../_lib/server_actions/mcp-tool.actions";
+import { getApiVendors } from "../_lib/server_actions/api_vendor.actions";
 import {
   Persona,
-  Model,
   OutputFormat,
   FormProps,
-  ChatResponse,
-  Chat,
   MCPTool,
   APIVendor,
 } from "../_lib/model";
+import { Model } from "@prisma/client";
 import SelectBox from "./select-box";
 import { createChat } from "../_lib/actions";
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  ChangeEvent,
-  useMemo,
-} from "react";
+import React, { useState, useEffect, useRef, ChangeEvent } from "react";
 import { Spinner, SpinnerSize } from "./spinner";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
@@ -94,6 +82,7 @@ export default function ChatForm({
   // Populate select boxes on initial load and set selected model.
   useEffect(() => {
     const fetchData = async () => {
+      console.log("fetching data");
       try {
         const [
           personasData,
@@ -102,23 +91,23 @@ export default function ChatForm({
           mcpToolsData,
           apiVendorsData,
         ] = await Promise.all([
-          fetchPersonas(),
-          fetchModels(),
-          fetchOutputFormats(),
-          fetchMCPTools(),
-          fetchAPIVendors(),
+          getPersonas(),
+          getModels(),
+          getOutputFormats(),
+          getMcpTools(),
+          getApiVendors(),
         ]);
-
+        console.log("Setting data");
         personasData && setPersonas(personasData);
         modelsData && setModels(modelsData);
         outputFormatsData && setOutputFormats(outputFormatsData);
         mcpToolsData && setMCPTools(mcpToolsData);
 
         if (modelsData.length > 0) {
-          setSelectedModel(modelsData[0].id);
+          setSelectedModel(modelsData[0].id.toString());
           const selectedModelData = modelsData[0];
           const vendor = apiVendorsData.find(
-            (v: APIVendor) => v.id === selectedModelData.api_vendor_id
+            (v: APIVendor) => v.id === selectedModelData.apiVendorId
           );
           setSelectedModelVendor(vendor?.name || "");
           setShowMCPTools(vendor?.name === "anthropic");
@@ -138,30 +127,31 @@ export default function ChatForm({
         if (!selectedModel) return;
 
         try {
-          const model = await fetchModel(selectedModel);
-          const apiVendors = await fetchAPIVendors();
-          const vendor = apiVendors.find(
-            (v: APIVendor) => v.id === model.api_vendor_id
-          );
+          // const model = await fetchModel(selectedModel);
+          const model = await getModel(Number(selectedModel));
+          if (model) {
+            const apiVendors = await getApiVendors();
+            const vendor = apiVendors.find(
+              (v: APIVendor) => v.id === model?.apiVendorId
+            );
 
-          setSelectedModelVendor(vendor?.name || "");
-          setShowMCPTools(vendor?.name === "anthropic");
-          setShowFileUpload(!!model.is_vision);
-          setHideOutputFormats(
-            !!(model.is_vision || model.is_image_generation)
-          );
-          setHidePersonas(!!(model.is_vision || model.is_image_generation));
-          setShowTokenSliders(!!model.is_thinking);
+            setSelectedModelVendor(vendor?.name || "");
+            setShowMCPTools(vendor?.name === "anthropic");
+            setShowFileUpload(!!model.isVision);
+            setHideOutputFormats(!!model.isImageGeneration);
+            setHidePersonas(!!model.isImageGeneration);
+            setShowTokenSliders(!!model.isThinking);
 
-          if (model.is_thinking) {
-            // Set default preset values
-            const defaultPreset = THINKING_PRESETS[0]; // Thinking Off
-            setSelectedPreset(defaultPreset.name);
-            setMaxTokens(defaultPreset.maxTokens);
-            setBudgetTokens(defaultPreset.budgetTokens);
-          } else {
-            setMaxTokens(null);
-            setBudgetTokens(null);
+            if (model.isThinking) {
+              // Set default preset values
+              const defaultPreset = THINKING_PRESETS[0]; // Thinking Off
+              setSelectedPreset(defaultPreset.name);
+              setMaxTokens(defaultPreset.maxTokens);
+              setBudgetTokens(defaultPreset.budgetTokens);
+            } else {
+              setMaxTokens(null);
+              setBudgetTokens(null);
+            }
           }
         } catch (error) {
           console.error(
@@ -334,6 +324,17 @@ export default function ChatForm({
             className="w-full text-sm text-slate-500  border border-slate-300 cursor-pointer rounded-md bg-slate-50 file:text-xs file:border-0 file:bg-slate-300 file:rounded-md file:h-full file:pt-1"
             name="image"
             type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file && file.type.startsWith("image/")) {
+                // Valid image file selected
+              } else if (file) {
+                // Invalid file type selected
+                e.target.value = "";
+                alert("Please select a valid image file");
+              }
+            }}
           />
         </div>
       )}

@@ -8,10 +8,11 @@ import Sidebar from "./sidebar";
 import Detail from "./detail";
 import UtilityIconRow from "./utility-icon-row";
 import { Transition } from "@headlessui/react";
-import { fetchHistory } from "../_lib/api";
-import { History } from "../_lib/model";
+import { getHistory } from "../_lib/server_actions/history.actions";
+import { ConversationHistory } from "@prisma/client";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
+import { getUserID } from "@/app/_lib/auth";
 
 export default function ChatWrapper() {
   const [response, setResponse] = useState<ChatResponse[]>([]);
@@ -19,11 +20,11 @@ export default function ChatWrapper() {
   const [isHistoryShowing, setIsHistoryShowing] = useState(false);
   const [showConversationSpinner, setShowConversationSpinner] =
     useState<boolean>(false);
-  const [history, setHistroy] = useState<History[]>([]);
+  const [history, setHistroy] = useState<ConversationHistory[]>([]);
   const [imageURL, setImageURL] = useState("");
   const [renderTypeName, setRenderTypeName] = useState("");
 
-  function populateHistory(history: History) {
+  function populateHistory(history: ConversationHistory) {
     //console.log(history.conversation);
     const chat: ChatUserSession = JSON.parse(history.conversation);
     updateMessage(chat);
@@ -39,7 +40,9 @@ export default function ChatWrapper() {
     const fetchData = async () => {
       try {
         console.log("Fetching history");
-        const historyData = await fetchHistory();
+        const userId = await getUserID();
+        console.log(`UserID: ${userId}`);
+        const historyData = await getHistory(userId ?? 0);
         if (historyData) {
           setHistroy(historyData);
         }
@@ -119,7 +122,7 @@ export default function ChatWrapper() {
             </button>
             <h1 className="text-xl">History</h1>
           </div>
-          {history.map((h: History) => {
+          {history.map((h: ConversationHistory) => {
             return (
               <div
                 key={h.id}

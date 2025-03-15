@@ -1,17 +1,16 @@
 import {
-  deletePersona,
   deleteOutputFormat,
   deleteHistory,
-  deleteModel,
   deleteMCPTool,
 } from "@/app/_lib/api";
-import { Persona } from "@/app/_lib/model";
+import { deletePersona } from "@/app/_lib/server_actions/persona.actions";
+import { deleteModel } from "@/app/_lib/server_actions/model.actions";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
 import Link from "next/link";
 
 export function DeletePersonaButton({ id }: { id: string }) {
-  const deletePersonaWithId = deletePersona.bind(null, id);
+  const deletePersonaWithId = deletePersona.bind(null, Number(id));
 
   return (
     <div className="w-full flex justify-end">
@@ -80,7 +79,7 @@ export function EditModelButton({ id }: { id: string }) {
 }
 
 export function DeleteModelButton({ id }: { id: string }) {
-  const deleteModelWithId = deleteModel.bind(null, id);
+  const deleteModelWithId = deleteModel.bind(null, Number(id));
 
   return (
     <div className="w-full flex justify-end">

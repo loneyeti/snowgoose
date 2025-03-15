@@ -1,4 +1,4 @@
-import { fetchRenderTypes } from "@/app/_lib/api";
+import { getRenderTypes } from "@/app/_lib/server_actions/render-type.actions";
 import { RenderType } from "@/app/_lib/model";
 
 export default async function RenderTypeSelect({
@@ -6,7 +6,7 @@ export default async function RenderTypeSelect({
 }: {
   defaultValue?: string | number;
 }) {
-  const renderTypes = await fetchRenderTypes();
+  const renderTypes = await getRenderTypes();
   console.log(renderTypes);
   let selectDefault = "";
   if (!defaultValue) {

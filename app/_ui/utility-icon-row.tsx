@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
 import { Chat } from "../_lib/model";
-import { saveChat } from "../_lib/api";
+import { saveChat } from "../_lib/server_actions/history.actions";
 import { UserButton } from "@clerk/nextjs";
 
 export default function UtilityIconRow({
@@ -20,7 +20,7 @@ export default function UtilityIconRow({
         `Would save this chat. Model: ${chat.model} Persona: ${chat.personaId}`
       );
       const saveMessage = await saveChat(chat);
-      alert(saveMessage.message);
+      alert(`Saved conversation: ${saveMessage}`);
     }
   }
   return (

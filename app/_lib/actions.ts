@@ -2,12 +2,14 @@
 
 import { ChatResponse, Chat } from "./model";
 import { z } from "zod";
-import { fetchRenderTypeName, sendChat, fetchModel, fetchMCPTool } from "./api";
+import { chatRepository } from "./db/repositories/chat.repository";
+import { getModel } from "./server_actions/model.actions";
+import { getRenderTypeName } from "./server_actions/render-type.actions";
+import { getMCPTool } from "./server_actions/mcp-tool.actions";
+import { getApiVendor } from "./server_actions/api_vendor.actions";
+import { getPersona } from "./server_actions/persona.actions";
 import { gcsUploadFile } from "./gcs";
 import { generateUniqueFilename } from "./utils";
-
-const accessToken = process.env.GPTFLASK_API;
-const apiURL = process.env.GPTFLASK_URL;
 
 const FormSchema = z.object({
   model: z.string(),
@@ -52,14 +54,28 @@ export async function createChat(
   let renderTypeName = "";
   if (outputFormatId) {
     try {
-      renderTypeName = await fetchRenderTypeName(`${outputFormatId}`);
+      renderTypeName = await getRenderTypeName(outputFormatId);
     } catch (error) {
       console.error("Error fetching output format render type name", error);
       throw error;
     }
   }
 
-  let modelObj = await fetchModel(model);
+  let modelObj = await getModel(Number(model));
+  if (!modelObj) {
+    throw new Error(`Model with ID ${model} not found`);
+  }
+
+  // Get persona prompt if personaId exists
+  let personaPrompt;
+  if (personaId) {
+    try {
+      const persona = await getPersona(personaId);
+      personaPrompt = persona?.prompt;
+    } catch (error) {
+      console.error("Error fetching persona:", error);
+    }
+  }
 
   const chat: Chat = {
     responseHistory: responseHistory,
@@ -67,23 +83,28 @@ export async function createChat(
     outputFormatId,
     renderTypeName,
     imageData: null,
-    model: modelObj.api_name,
+    model: modelObj.apiName,
     modelId: modelObj.id,
     prompt,
     imageURL: null,
     maxTokens,
     budgetTokens,
+    personaPrompt,
   };
 
   // If there is a file, we upload to Google Cloud storage and get the URL
   const file = formData.get("image") as File | null;
-  if (file) {
+  if (file && file.name !== "undefined") {
     try {
+      console.log("FILE IS:");
+      console.log(file);
       const uploadURL = await gcsUploadFile(
         generateUniqueFilename(file.name),
         file
       );
-      chat.imageData = uploadURL ?? "";
+      if (uploadURL) {
+        chat.imageData = uploadURL;
+      }
     } catch (error) {
       console.error("Problem uploading file", error);
       throw error;
@@ -93,18 +114,25 @@ export async function createChat(
   // Send chat request with MCP tool if selected
   try {
     let mcpToolData;
-    console.log(modelObj.api_vendor_name);
+    let apiVendor = await getApiVendor(modelObj?.apiVendorId ?? 0);
     console.log(mcpTool);
-    if (mcpTool > 0 && modelObj.api_vendor_name === "anthropic") {
+    if (mcpTool > 0 && apiVendor?.name === "anthropic") {
       console.log("MCP Tool data set");
-      mcpToolData = await fetchMCPTool(mcpTool.toString());
+      mcpToolData = await getMCPTool(mcpTool);
       console.log(mcpToolData);
+      if (!mcpToolData) {
+        throw new Error(`MCP Tool not found`);
+      }
     }
-    const result = await sendChat(chat, mcpToolData);
+    const result = await chatRepository.sendChat(chat, mcpToolData);
 
     if (chat.model !== "dall-e-3") {
       responseHistory.push(result as ChatResponse);
       chat.responseHistory = responseHistory;
+      // Clear image data after sending while keeping the URL in response history
+      if (chat.imageData) {
+        chat.imageData = null;
+      }
     } else {
       chat.imageURL = result as string;
     }

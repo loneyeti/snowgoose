@@ -33,13 +33,21 @@ import {
 const accessToken = process.env.GPTFLASK_API;
 const apiURL = process.env.GPTFLASK_URL;
 
+// Helper function to get the base URL for API requests
+function getBaseUrl() {
+  if (typeof window !== "undefined") {
+    // Browser should use relative path
+    return "";
+  }
+  // Server should use the absolute URL
+  return process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : `http://localhost:${process.env.PORT || 3000}`;
+}
+
 export async function fetchPersonas() {
   try {
-    const result = await fetch(`${apiURL}/api/personas`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
+    const result = await fetch(`${getBaseUrl()}/api/personas`, {
       next: { tags: ["personas"] },
     });
     const data = await result.json();
@@ -52,11 +60,7 @@ export async function fetchPersonas() {
 
 export async function fetchPersona(id: string) {
   try {
-    const result = await fetch(`${apiURL}/api/personas/${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
+    const result = await fetch(`${getBaseUrl()}/api/personas/${id}`, {
       next: { tags: ["personas"] },
     });
     const data = await result.json();
@@ -76,16 +80,16 @@ export async function createPersona(formData: FormData) {
   });
 
   try {
-    const result = await fetch(`${apiURL}/api/personas`, {
+    const result = await fetch(`${getBaseUrl()}/api/personas`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(persona),
     });
-    //const data = await result.json()
-    //return data
+    if (!result.ok) {
+      throw new Error("Failed to create persona");
+    }
   } catch (error) {
     console.log("ERROR!!!");
     console.log(error);
@@ -104,20 +108,20 @@ export async function updatePersona(formData: FormData) {
   });
 
   try {
-    const result = await fetch(`${apiURL}/api/personas/${persona.id}`, {
+    const result = await fetch(`${getBaseUrl()}/api/personas/${persona.id}`, {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(persona),
     });
-    //const data = await result.json()
-    //return data
+    if (!result.ok) {
+      throw new Error("Failed to update persona");
+    }
   } catch (error) {
     console.log("ERROR!!!");
     console.log(error);
-    throw new Error("Unable to create Persona.");
+    throw new Error("Unable to update Persona.");
   }
   revalidatePath("/settings/personas");
   revalidateTag("personas");
@@ -125,19 +129,12 @@ export async function updatePersona(formData: FormData) {
 }
 
 export async function deletePersona(id: string) {
-  console.log("Delete invoice");
   try {
-    const result = await fetch(`${apiURL}/api/personas/${id}`, {
+    const result = await fetch(`${getBaseUrl()}/api/personas/${id}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
     });
-    if (result.ok) {
-      console.log("Persona Deleted");
-    } else {
-      console.log(result.status);
+    if (!result.ok) {
+      throw new Error("Failed to delete persona");
     }
   } catch (error) {
     console.log("Error deleting persona");
@@ -150,11 +147,7 @@ export async function deletePersona(id: string) {
 
 export async function fetchModels() {
   try {
-    const result = await fetch(`${apiURL}/api/models`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
+    const result = await fetch(`${getBaseUrl()}/api/models`, {
       next: { tags: ["models"] },
     });
     const data = await result.json();
@@ -169,12 +162,9 @@ export async function fetchModelByAPIName(api_name: string) {
   noStore();
 
   try {
-    const result = await fetch(`${apiURL}/api/models/api_name/${api_name}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const result = await fetch(
+      `${getBaseUrl()}/api/models/api_name/${api_name}`
+    );
     const data = await result.json();
     return data;
   } catch (error) {
@@ -188,21 +178,11 @@ export async function fetchModel(id: string) {
 
   try {
     // Fetch model data
-    const result = await fetch(`${apiURL}/api/models/${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const result = await fetch(`${getBaseUrl()}/api/models/${id}`);
     const modelData = await result.json();
 
     // Fetch API vendors to get the vendor name
-    const apiVendorsResult = await fetch(`${apiURL}/api/api-vendors`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const apiVendorsResult = await fetch(`${getBaseUrl()}/api/api-vendors`);
     const apiVendors = await apiVendorsResult.json();
 
     // Find the matching vendor and add its name to the model data
@@ -223,12 +203,7 @@ export async function fetchAPIVendors() {
   noStore();
 
   try {
-    const result = await fetch(`${apiURL}/api/api-vendors`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const result = await fetch(`${getBaseUrl()}/api/api-vendors`);
     const data = await result.json();
     return data;
   } catch (error) {
@@ -251,10 +226,9 @@ export async function createModel(formData: FormData) {
   });
 
   try {
-    const response = await fetch(`${apiURL}/api/models`, {
+    const response = await fetch(`${getBaseUrl()}/api/models`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(model),
@@ -263,18 +237,16 @@ export async function createModel(formData: FormData) {
     if (!response.ok) {
       throw new Error("Failed to add new model");
     }
-
-    //const data = await response.json();
-    //return data;
   } catch (error) {
     console.log("ERROR!!!");
     console.log(error);
+    throw new Error("Unable to create model");
   }
   revalidatePath("/settings/models");
   revalidateTag("models");
   redirect("/settings/models");
 }
-
+/*
 export async function updateModel(formData: FormData) {
   const model: Model = UpdateModelFormSchema.parse({
     id: formData.get("id"),
@@ -288,44 +260,38 @@ export async function updateModel(formData: FormData) {
   });
 
   try {
-    const result = await fetch(`${apiURL}/api/models/${model.id}`, {
+    const result = await fetch(`${getBaseUrl()}/api/models/${model.id}`, {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(model),
     });
-    //const data = await result.json()
-    //return data
+    if (!result.ok) {
+      throw new Error("Failed to update model");
+    }
   } catch (error) {
     console.log(error);
-    throw new Error("Unable to update model.");
+    throw new Error("Unable to update model");
   }
   revalidatePath("/settings/models");
   revalidateTag("models");
   redirect("/settings/models");
 }
-
+*/
 export async function deleteModel(id: string) {
   try {
-    const response = await fetch(`${apiURL}/api/models/${id}`, {
+    const response = await fetch(`${getBaseUrl()}/api/models/${id}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
     });
 
     if (!response.ok) {
       throw new Error("Failed to delete model");
     }
-
-    //return { success: true };
   } catch (error) {
     console.log("ERROR!!!");
-    console.log(error as Error);
-    return { success: false, error: (error as Error).message };
+    console.log(error);
+    throw new Error("Error deleting model");
   }
   revalidatePath("/settings/models");
   revalidateTag("models");
@@ -334,11 +300,7 @@ export async function deleteModel(id: string) {
 
 export async function fetchOutputFormats() {
   try {
-    const result = await fetch(`${apiURL}/api/output-formats`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
+    const result = await fetch(`${getBaseUrl()}/api/output-formats`, {
       next: { tags: ["outputFormats"] },
     });
     const data = await result.json();
@@ -352,12 +314,7 @@ export async function fetchOutputFormats() {
 export async function fetchOutputFormat(id: string) {
   noStore();
   try {
-    const result = await fetch(`${apiURL}/api/output-formats/${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const result = await fetch(`${getBaseUrl()}/api/output-formats/${id}`);
     const data = await result.json();
     return data;
   } catch (error) {
@@ -368,12 +325,7 @@ export async function fetchOutputFormat(id: string) {
 
 export async function fetchRenderTypes() {
   try {
-    const render_types = await fetch(`${apiURL}/api/render-types`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const render_types = await fetch(`${getBaseUrl()}/api/render-types`);
     const render_types_json = await render_types.json();
     return render_types_json;
   } catch (error) {
@@ -400,14 +352,16 @@ export async function createOutputFormat(formData: FormData) {
   });
 
   try {
-    const result = await fetch(`${apiURL}/api/output-formats`, {
+    const result = await fetch(`${getBaseUrl()}/api/output-formats`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(output_format),
     });
+    if (!result.ok) {
+      throw new Error("Failed to create output format");
+    }
   } catch (error) {
     console.log(error);
     throw new Error("Unable to create Output Format.");
@@ -427,18 +381,18 @@ export async function updateOutputFormat(formData: FormData) {
 
   try {
     const result = await fetch(
-      `${apiURL}/api/output-formats/${outputFormat.id}`,
+      `${getBaseUrl()}/api/output-formats/${outputFormat.id}`,
       {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(outputFormat),
       }
     );
-    //const data = await result.json()
-    //return data
+    if (!result.ok) {
+      throw new Error("Failed to update output format");
+    }
   } catch (error) {
     console.log(error);
     throw new Error("Unable to update Output Format.");
@@ -450,17 +404,11 @@ export async function updateOutputFormat(formData: FormData) {
 
 export async function deleteOutputFormat(id: string) {
   try {
-    const result = await fetch(`${apiURL}/api/output-formats/${id}`, {
+    const result = await fetch(`${getBaseUrl()}/api/output-formats/${id}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
     });
-    if (result.ok) {
-      console.log("Output Format Deleted");
-    } else {
-      console.log(result.status);
+    if (!result.ok) {
+      throw new Error("Failed to delete output format");
     }
   } catch (error) {
     console.log("Error deleting output format");
@@ -491,11 +439,10 @@ export async function sendChat(chat: Chat, mcpToolData?: MCPTool) {
           mcp_env_vars: mcpToolData.env_vars || {},
         }
       : chat;
-    console.log(endpointURL);
-    const result = await fetch(`${apiURL}${endpointURL}`, {
+
+    const result = await fetch(endpointURL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
@@ -518,10 +465,9 @@ export async function saveChat(chat: Chat) {
   const userSession = await getUserSession();
   const body = JSON.stringify({ ...chat, ...userSession });
   try {
-    const result = await fetch(`${apiURL}/api/save_chat`, {
+    const result = await fetch("/api/history/save", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: body,
@@ -541,13 +487,11 @@ export async function saveChat(chat: Chat) {
 export async function fetchHistory() {
   const userSession = await getUserSession();
   const body = JSON.stringify(userSession);
-  console.log(body);
 
   try {
-    const result = await fetch(`${apiURL}/api/history`, {
+    const result = await fetch("/api/history", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: body,
@@ -569,18 +513,15 @@ export async function deleteHistory(id: string) {
   const body = JSON.stringify(userSession);
 
   try {
-    const result = await fetch(`${apiURL}/api/history/delete/${id}`, {
-      method: "POST",
+    const result = await fetch(`/api/history/${id}`, {
+      method: "DELETE",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: body,
     });
-    if (result.ok) {
-      console.log("History Deleted");
-    } else {
-      console.log(result.status);
+    if (!result.ok) {
+      throw new Error("Failed to delete history");
     }
   } catch (error) {
     console.log("Error deleting history");
@@ -598,10 +539,9 @@ export async function fetchUserSettings() {
   const body = JSON.stringify(userSession);
 
   try {
-    const response = await fetch(`${apiURL}/api/user-settings`, {
+    const response = await fetch("/api/user-settings", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: body,
@@ -613,7 +553,6 @@ export async function fetchUserSettings() {
     }
 
     const data = await response.json();
-    console.log(data);
     return data as UserSettings;
   } catch (error) {
     console.error("Error fetching user settings:", error);
@@ -624,7 +563,6 @@ export async function fetchUserSettings() {
 // Update user settings
 export async function updateUserSettings(formData: FormData) {
   noStore();
-  //const userSession = await getUserSession();
 
   const settings = UpdateUserSettingsSchema.parse({
     id: formData.get("id"),
@@ -635,18 +573,15 @@ export async function updateUserSettings(formData: FormData) {
   });
 
   try {
-    const response = await fetch(`${apiURL}/api/user-settings/${settings.id}`, {
+    const response = await fetch(`/api/user-settings/${settings.id}`, {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(settings),
     });
 
     if (!response.ok) {
-      const responseError = await response.json();
-      console.log(responseError);
       throw new Error("Failed to update user settings");
     }
 
@@ -662,11 +597,7 @@ export async function updateUserSettings(formData: FormData) {
 
 export async function fetchMCPTools() {
   try {
-    const result = await fetch(`${apiURL}/api/mcp-tools`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
+    const result = await fetch("/api/mcp-tools", {
       next: { tags: ["mcpTools"] },
     });
     const data = await result.json();
@@ -680,12 +611,7 @@ export async function fetchMCPTools() {
 export async function fetchMCPTool(id: string) {
   noStore();
   try {
-    const result = await fetch(`${apiURL}/api/mcp-tools/${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const result = await fetch(`/api/mcp-tools/${id}`);
     const data = await result.json();
     return data;
   } catch (error) {
@@ -703,10 +629,9 @@ export async function createMCPTool(formData: FormData) {
   });
 
   try {
-    const result = await fetch(`${apiURL}/api/mcp-tools`, {
+    const result = await fetch("/api/mcp-tools", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(mcpTool),
@@ -731,10 +656,9 @@ export async function updateMCPTool(formData: FormData) {
   });
 
   try {
-    const result = await fetch(`${apiURL}/api/mcp-tools/${mcpTool.id}`, {
+    const result = await fetch(`/api/mcp-tools/${mcpTool.id}`, {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(mcpTool),
@@ -753,12 +677,8 @@ export async function updateMCPTool(formData: FormData) {
 
 export async function deleteMCPTool(id: string) {
   try {
-    const result = await fetch(`${apiURL}/api/mcp-tools/${id}`, {
+    const result = await fetch(`/api/mcp-tools/${id}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
     });
     if (!result.ok) {
       throw new Error("Failed to delete MCP Tool");

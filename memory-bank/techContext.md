@@ -5,101 +5,220 @@
 ### Core Technologies
 
 - **Framework**: Next.js 14
+  - App Router
+  - Server Components
+  - Server Actions
+  - API Routes
 - **Language**: TypeScript
+- **Database**: PostgreSQL with Prisma ORM
 - **Styling**: Tailwind CSS
 - **Authentication**: Clerk
 - **Form Management**: React Hook Form
 - **Validation**: Zod
+- **AI Integration**:
+  - OpenAI SDK
+  - Anthropic SDK (@anthropic-ai/sdk)
+  - Google AI SDK
 
 ### Development Environment
 
-- **Node.js**: Required for Next.js development
+- **Node.js**: v18+ required
 - **Package Manager**: npm
 - **Development Mode**: `npm run dev`
 - **Build**: `npm run build`
 - **Production**: `npm start`
+- **Database Tools**:
+  - Prisma CLI
+  - Prisma Studio
+  - PostgreSQL client
 
 ## Dependencies
 
 ### Production Dependencies
 
-From package.json:
+Required in package.json:
 
-- Next.js 14
-- React & React DOM
-- TypeScript
-- Tailwind CSS
-- Clerk for authentication
-- React Hook Form
-- Zod for validation
+```json
+{
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "@clerk/nextjs": "latest",
+    "@prisma/client": "latest",
+    "next": "14.x",
+    "react": "18.x",
+    "react-dom": "18.x",
+    "react-hook-form": "latest",
+    "openai": "latest",
+    "@google/generative-ai": "latest",
+    "zod": "latest",
+    "tailwindcss": "latest",
+    "typescript": "5.x"
+  }
+}
+```
 
 ### Development Dependencies
 
-- ESLint
-- PostCSS
-- TypeScript compiler
-- Tailwind CSS processor
+```json
+{
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "autoprefixer": "latest",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
+    "postcss": "latest",
+    "prisma": "latest",
+    "typescript": "latest"
+  }
+}
+```
 
 ## Technical Constraints
 
-### Backend Integration
+### Database Integration
 
-- Connects to GPTFlask API
-- Standardized API interface
-- Provider-specific adaptations
-- Error handling requirements
+- **Schema Management**:
+  - Prisma schema as source of truth
+  - Type-safe database operations
+  - Migration handling through Prisma
+  - Repository pattern abstraction
+  - Connection pooling in production
 
 ### Authentication
 
-- Clerk-based authentication
-- Protected routes
-- User session management
-- Role-based access control
+- **Clerk Integration**:
+  - Protected routes
+  - Session management
+  - User context
+  - Role-based access
+  - API route protection
+
+### AI Integration
+
+- **Vendor Requirements**:
+  - OpenAI API key
+  - Anthropic API key
+  - Google AI API key
+  - Environment configuration
+  - Response standardization
 
 ### Performance Requirements
 
-- Fast page loads
-- Responsive UI
-- Efficient API calls
-- Optimized assets
+- **Response Times**:
+  - API responses < 500ms
+  - Page loads < 1s
+  - AI responses < 5s
+- **Database**:
+  - Query optimization
+  - Connection pooling
+  - Transaction management
+- **Caching**:
+  - Route caching
+  - Data caching
+  - Static generation
 
 ### Browser Support
 
-- Modern browsers
+- Modern browsers (last 2 versions)
+- Mobile responsiveness
 - Progressive enhancement
-- Responsive design
-- Mobile compatibility
+- Error boundaries
+- Loading states
 
 ## Development Setup
 
 ### Environment Variables
 
-Required in env.local:
+Required in .env.local:
 
-- Clerk authentication keys
-- API endpoints
-- Provider configurations
+```env
+# Database
+DATABASE_URL="postgresql://..."
+
+# Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_..."
+CLERK_SECRET_KEY="sk_..."
+
+# AI Services
+OPENAI_API_KEY="sk-..."
+ANTHROPIC_API_KEY="sk-..."
+GOOGLE_AI_API_KEY="..."
+
+# MCP Configuration
+MCP_CONFIG_PATH="..."
+```
 
 ### Local Development
 
-1. Clone repository
-2. Install dependencies: `npm install`
-3. Configure environment variables
-4. Run development server: `npm run dev`
+1. Repository Setup:
+
+```bash
+git clone <repository>
+cd <repository>
+npm install
+```
+
+2. Database Setup:
+
+```bash
+npx prisma generate
+npx prisma migrate dev
+```
+
+3. Environment Configuration:
+
+- Copy .env.local.example to .env.local
+- Fill in required environment variables
+
+4. Development Server:
+
+```bash
+npm run dev
+```
 
 ### Build Process
 
-1. TypeScript compilation
-2. Asset optimization
-3. Route generation
-4. Environment validation
+1. Pre-build checks:
+
+```bash
+npm run lint
+npm run type-check
+```
+
+2. Build steps:
+
+```bash
+npm run build
+```
+
+3. Production start:
+
+```bash
+npm start
+```
 
 ### Deployment
 
-1. Environment configuration
-2. Production build
-3. Static optimization
-4. Edge function deployment
+1. Environment Setup:
+
+- Configure production environment variables
+- Set up database connection
+- Configure AI service keys
+
+2. Database Migration:
+
+```bash
+npx prisma migrate deploy
+```
+
+3. Application Deployment:
+
+```bash
+npm run build
+npm start
+```
 
 ## Security Considerations
 
@@ -107,12 +226,14 @@ Required in env.local:
 
 - Clerk security best practices
 - Protected API routes
-- Session management
+- Session validation
 - CSRF protection
+- Rate limiting
 
-### Data Handling
+### Data Protection
 
-- Secure API communication
+- Database encryption
+- Secure environment variables
 - Input validation
 - Output sanitization
 - Error message security
@@ -121,5 +242,22 @@ Required in env.local:
 
 - Rate limiting
 - Request validation
-- Error handling
+- Response validation
 - Secure headers
+- Error handling
+
+### Database Security
+
+- Connection encryption
+- Access control
+- Query sanitization
+- Transaction isolation
+- Audit logging
+
+### MCP Security
+
+- Process isolation
+- Environment separation
+- Input validation
+- Error recovery
+- Resource limits

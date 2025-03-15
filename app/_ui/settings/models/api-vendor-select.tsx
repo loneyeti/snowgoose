@@ -1,12 +1,13 @@
-import { fetchAPIVendors } from "@/app/_lib/api";
-import { APIVendor } from "@/app/_lib/model";
+import { getApiVendors } from "@/app/_lib/server_actions/api_vendor.actions";
+//import { APIVendor } from "@/app/_lib/model";
+import { APIVendor } from "@prisma/client";
 
 export async function APIVendorSelect({
   defaultValue,
 }: {
   defaultValue?: string | number;
 }) {
-  const apiVendors = await fetchAPIVendors();
+  const apiVendors = await getApiVendors();
   console.log(apiVendors);
   let selectDefault = "";
   if (!defaultValue) {

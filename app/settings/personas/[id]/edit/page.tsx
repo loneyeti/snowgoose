@@ -1,6 +1,4 @@
-import { SettingsHeading } from "@/app/_ui/typography";
-import { createPersona, fetchPersona } from "@/app/_lib/api";
-import { Persona } from "@/app/_lib/model";
+import { getPersona } from "@/app/_lib/server_actions/persona.actions";
 import EditPersonaForm from "@/app/_ui/settings/personas/edit-persona-form";
 import { notFound } from "next/navigation";
 
@@ -9,7 +7,7 @@ export default async function EditPersona({
 }: {
   params: { id: string };
 }) {
-  const persona = await fetchPersona(params.id);
+  const persona = await getPersona(Number(params.id));
   if (!persona) {
     return notFound();
   }

@@ -2,19 +2,34 @@
 
 ## Architecture Overview
 
-### Frontend Architecture (Next.js 14)
+### System Architecture (Next.js 14)
 
 ```mermaid
 flowchart TD
     UI[UI Components] --> Actions[Server Actions]
     UI --> ClientUtils[Client Utilities]
-    Actions --> API[API Layer]
-    API --> GPTFlask[GPTFlask Backend]
+    Actions --> Repositories[Repository Layer]
+    Repositories --> Prisma[Prisma ORM]
+    Prisma --> DB[(Postgres Database)]
+    Actions --> AIFactory[AI Vendor Factory]
+    AIFactory --> AIVendors[AI Vendors]
+    Actions --> MCPManager[MCP Manager]
 
     subgraph Components
         Pages[Pages] --> UIComponents[UI Components]
         UIComponents --> Forms[Forms]
         UIComponents --> Display[Display Components]
+    end
+
+    subgraph AI Vendors
+        AIVendors --> OpenAI[OpenAI Adapter]
+        AIVendors --> Anthropic[Anthropic Adapter]
+        AIVendors --> Google[Google AI Adapter]
+    end
+
+    subgraph Database
+        Repositories --> BaseRepo[Base Repository]
+        BaseRepo --> EntityRepos[Entity Repositories]
     end
 ```
 
@@ -23,23 +38,46 @@ flowchart TD
 ### 1. Component Organization
 
 - **\_ui/**: Reusable UI components
+  - Form components with validation
+  - Display components for responses
+  - Settings management interfaces
+  - Common UI utilities
 - **\_lib/**: Shared utilities and business logic
-- **settings/**: Configuration and management interfaces
-- Layout components for consistent structure
+  - **/db**: Database models and repositories
+  - **/ai**: AI vendor implementations
+  - **/mcp**: MCP server management
+  - Form schemas and validation
+- **api/**: API route handlers
+  - Entity-specific routes
+  - Authentication middleware
+  - Error handling
+  - Request validation
 
 ### 2. Data Flow
 
+- Repository pattern for database operations
+  - Base repository with common operations
+  - Entity-specific repositories
+  - Transaction handling
+  - Error standardization
 - Server Actions for data mutations
-- API layer for external communication
-- Client-side utilities for UI state management
-- Form schemas for validation
+  - Form handling
+  - Data validation
+  - Error handling
+  - Response formatting
+- Vendor adapter pattern for AI services
+  - Common interface
+  - Vendor-specific implementations
+  - Factory pattern for instantiation
+  - Response standardization
 
 ### 3. Feature Organization
 
 - Feature-based directory structure
 - Shared components in \_ui directory
-- Provider-specific logic isolated in API layer
+- Provider-specific logic isolated in adapters
 - Settings management separated by domain
+- API routes aligned with features
 
 ### 4. State Management
 
@@ -47,62 +85,127 @@ flowchart TD
 - Server state managed through Server Actions
 - UI state managed locally in components
 - Authentication state via Clerk
+- Database state via Prisma
 
 ### 5. Error Handling
 
-- Graceful degradation
-- User-friendly error messages
-- API error standardization
+- Middleware-based error handling
+- Standardized error responses
+- Type-safe error handling
 - Recovery mechanisms
+- Transaction management
 
 ## Component Relationships
 
-### Chat Interface
+### Repository Pattern
 
 ```mermaid
 flowchart TD
-    ChatWrapper[ChatWrapper] --> ChatForm[ChatForm]
-    ChatWrapper --> Conversation[Conversation]
-    ChatForm --> Actions[Server Actions]
-    Conversation --> MarkdownParser[MarkdownParser]
+    BaseRepo[Base Repository] --> PrismaClient[Prisma Client]
+    BaseRepo --> ErrorHandler[Error Handler]
+
+    subgraph Repositories
+        PersonaRepo[Persona Repository] --> BaseRepo
+        ModelRepo[Model Repository] --> BaseRepo
+        MCPToolRepo[MCP Tool Repository] --> BaseRepo
+        OutputFormatRepo[Output Format Repository] --> BaseRepo
+        HistoryRepo[History Repository] --> BaseRepo
+    end
+
+    subgraph Database
+        PrismaClient --> Models[Database Models]
+        Models --> Relationships[Model Relationships]
+    end
 ```
 
-### Settings Management
+### AI Vendor Integration
 
 ```mermaid
 flowchart TD
-    SettingsLayout[Settings Layout] --> SettingsNav[Settings Nav]
-    SettingsLayout --> Forms[Domain Forms]
-    Forms --> Actions[Server Actions]
-    Forms --> Validation[Form Schemas]
+    VendorFactory[Vendor Factory] --> Config[Vendor Config]
+    VendorFactory --> Cache[Instance Cache]
+
+    subgraph Adapters
+        BaseAdapter[Base Adapter Interface] --> Common[Common Functionality]
+        OpenAIAdapter[OpenAI Adapter] --> BaseAdapter
+        AnthropicAdapter[Anthropic Adapter] --> BaseAdapter
+        GoogleAdapter[Google AI Adapter] --> BaseAdapter
+    end
+
+    subgraph Features
+        Common --> MessageHandling[Message Handling]
+        Common --> ErrorHandling[Error Handling]
+        Common --> ResponseFormat[Response Format]
+        Common --> ThinkingMode[Thinking Mode]
+    end
+```
+
+### MCP Integration
+
+```mermaid
+flowchart TD
+    MCPManager[MCP Manager] --> Config[Configuration]
+    MCPManager --> ProcessMgmt[Process Management]
+
+    subgraph Tools
+        ToolRepo[Tool Repository] --> CRUD[CRUD Operations]
+        CRUD --> Validation[Validation]
+        CRUD --> ErrorHandling[Error Handling]
+    end
+
+    subgraph Communication
+        Protocol[Protocol Handler] --> Requests[Request Handler]
+        Protocol --> Responses[Response Handler]
+        Protocol --> Errors[Error Recovery]
+    end
 ```
 
 ## Technical Patterns
 
 ### 1. Form Handling
 
-- React Hook Form for form state
-- Zod for schema validation
+- React Hook Form for state management
+- Zod schemas for validation
 - Server-side validation
 - Error message standardization
+- Field-level validation
 
-### 2. API Integration
+### 2. Database Operations
 
-- Typed API responses
+- Repository pattern abstraction
+- Prisma for type-safe queries
+- Transaction management
+- Error handling standardization
+- Connection pooling
+
+### 3. AI Integration
+
+- Vendor adapter pattern
+- Factory pattern for instantiation
+- Response standardization
 - Error handling middleware
-- Request/response interceptors
-- Provider-specific adapters
+- Message formatting
 
-### 3. Authentication
+### 4. Authentication
 
 - Clerk integration
 - Protected routes
-- Role-based access
 - Session management
+- Role-based access
+- User context
 
-### 4. UI Patterns
+### 5. UI Patterns
 
-- Responsive design
+- Component composition
 - Progressive enhancement
-- Accessibility standards
+- Responsive design
 - Loading states
+- Error boundaries
+
+### 6. MCP Integration
+
+- Tool management
+- Process lifecycle
+- Environment handling
+- Error recovery
+- Communication protocol
