@@ -13,7 +13,7 @@ export interface PersonaPost {
 export interface OutputFormatPost {
   name: string;
   prompt: string;
-  render_type_id: number;
+  renderTypeId: number;
 }
 
 export interface OutputFormat {
@@ -26,11 +26,12 @@ export interface OutputFormat {
 }
 
 export interface ModelPost {
-  api_name: string;
+  apiName: string;
   name: string;
-  is_vision: boolean;
-  is_image_generation: boolean;
-  api_vendor_id: number;
+  isVision: boolean;
+  isImageGeneration: boolean;
+  isThinking: boolean;
+  apiVendorId: number;
 }
 
 export interface Model {
@@ -41,6 +42,14 @@ export interface Model {
   is_image_generation: boolean;
   is_thinking: boolean;
   api_vendor_id: number;
+  api_vendor_name?: string;
+}
+
+export interface MCPTool {
+  id: number;
+  name: string;
+  path: string;
+  env_vars?: Record<string, string>;
 }
 
 export interface RenderType {
@@ -90,6 +99,7 @@ export interface Chat {
   imageURL: string | null;
   maxTokens: number | null;
   budgetTokens: number | null;
+  personaPrompt?: string;
 }
 
 export type FormProps = {
@@ -122,10 +132,10 @@ export interface APIUser {
 
 export interface UserSettings {
   id: number;
-  user_id: number;
-  appearance_mode: string;
-  summary_model_preference_id: number;
-  summary_model_preference: string;
+  userId: number;
+  appearanceMode: string;
+  summaryModelPreferenceId: number;
+  summaryModelPreference: string;
 }
 
 export interface ChatUserSession extends Chat, UserSession {}
@@ -134,4 +144,15 @@ export interface History {
   id: number;
   title: string;
   conversation: string;
+}
+
+export interface MCPToolPost {
+  name: string;
+  path: string;
+}
+
+export interface MCPTool {
+  id: number;
+  name: string;
+  path: string;
 }

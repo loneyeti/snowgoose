@@ -1,5 +1,5 @@
 import { SettingsHeading } from "@/app/_ui/typography";
-import { createPersona, updatePersona } from "@/app/_lib/api";
+import { updatePersona } from "@/app/_lib/server_actions/persona.actions";
 import { Persona } from "@/app/_lib/model";
 
 export default function EditPersonaForm({ persona }: { persona: Persona }) {

@@ -1,6 +1,6 @@
 import { SettingsHeading } from "@/app/_ui/typography";
-import { updateModel } from "@/app/_lib/api";
-import { Model } from "@/app/_lib/model";
+import { updateModel } from "@/app/_lib/server_actions/model.actions";
+import { Model } from "@prisma/client";
 import { APIVendorSelect } from "./api-vendor-select";
 import { Suspense } from "react";
 
@@ -19,7 +19,7 @@ export default function EditModelForm({ model }: { model: Model }) {
             <input
               type="text"
               name="api_name"
-              defaultValue={model.api_name}
+              defaultValue={model.apiName}
               className="block w-full mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
             ></input>
           </div>
@@ -41,7 +41,7 @@ export default function EditModelForm({ model }: { model: Model }) {
             <input
               type="checkbox"
               name="is_vision"
-              defaultChecked={model.is_vision}
+              defaultChecked={model.isVision}
               className="block mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
             ></input>
           </div>
@@ -55,21 +55,18 @@ export default function EditModelForm({ model }: { model: Model }) {
             <input
               type="checkbox"
               name="is_image_generation"
-              defaultChecked={model.is_image_generation}
+              defaultChecked={model.isImageGeneration}
               className="block mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
             ></input>
           </div>
           <div className="py-2">
-            <label
-              className="text-gray-700 text-xs"
-              htmlFor="is_thinkingn"
-            >
+            <label className="text-gray-700 text-xs" htmlFor="is_thinkingn">
               Is Thinking
             </label>
             <input
               type="checkbox"
               name="is_thinking"
-              defaultChecked={model.is_thinking}
+              defaultChecked={model.isThinking}
               className="block mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
             ></input>
           </div>
@@ -78,7 +75,7 @@ export default function EditModelForm({ model }: { model: Model }) {
               API Vendor
             </label>
             <Suspense>
-              <APIVendorSelect defaultValue={model.api_vendor_id} />
+              <APIVendorSelect defaultValue={`${model.apiVendorId}`} />
             </Suspense>
           </div>
           <div className="py-2">

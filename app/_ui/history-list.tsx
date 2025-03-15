@@ -1,13 +1,15 @@
-import { History } from "@/app/_lib/model";
-import { fetchHistory } from "@/app/_lib/api";
+import { ConversationHistory } from "@prisma/client";
+import { getHistory } from "../_lib/server_actions/history.actions";
 import { DeleteHistoryButton } from "./settings/buttons";
+import { getUserID } from "../_lib/auth";
 
 export default async function HistoryList() {
-  const histories = await fetchHistory();
+  const userId = await getUserID();
+  const histories = await getHistory(userId);
 
   return (
     <div>
-      {histories.map((history: History) => {
+      {histories.map((history: ConversationHistory) => {
         return (
           <div
             className="w-3/4 mx-auto p-6 my-3 rounded-md bg-slate-50"

@@ -1,5 +1,5 @@
 import { SettingsHeading } from "@/app/_ui/typography";
-import { createPersona } from "@/app/_lib/api";
+import { createPersona } from "@/app/_lib/server_actions/persona.actions";
 
 export default function NewPersona() {
   return (

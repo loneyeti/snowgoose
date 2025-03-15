@@ -1,5 +1,5 @@
 import { SettingsHeading } from "@/app/_ui/typography";
-import { fetchPersonas } from "@/app/_lib/api";
+import { getPersonas } from "@/app/_lib/server_actions/persona.actions";
 import PersonaSkeleton from "@/app/_ui/settings/list-skeleton";
 import PersonaList from "@/app/_ui/settings/personas/persona-list";
 import { Suspense } from "react";
@@ -8,7 +8,7 @@ import "react-material-symbols/outlined";
 import Link from "next/link";
 
 export default async function Personas() {
-  const personas = await fetchPersonas();
+  const personas = await getPersonas();
   return (
     <main>
       <SettingsHeading>Personas</SettingsHeading>

@@ -1,5 +1,5 @@
 import { SettingsHeading } from "@/app/_ui/typography";
-import { createModel } from "@/app/_lib/api";
+import { createModel } from "@/app/_lib/server_actions/model.actions";
 import { Suspense } from "react";
 import { APIVendorSelect } from "@/app/_ui/settings/models/api-vendor-select";
 
@@ -53,10 +53,7 @@ export default async function NewModel() {
             ></input>
           </div>
           <div className="py-2">
-            <label
-              className="text-gray-700 text-xs"
-              htmlFor="is_thinking"
-            >
+            <label className="text-gray-700 text-xs" htmlFor="is_thinking">
               Is Google Thinking Model
             </label>
             <input

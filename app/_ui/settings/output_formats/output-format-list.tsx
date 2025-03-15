@@ -1,9 +1,9 @@
-import { fetchOutputFormats } from "@/app/_lib/api";
+import { getOutputFormats } from "@/app/_lib/server_actions/output-format.actions";
 import { OutputFormat } from "@/app/_lib/model";
 import { DeleteOutputFormatButton, EditOutputFormatButton } from "../buttons";
 
 export default async function OutputFormatList() {
-  const outputFormats = await fetchOutputFormats();
+  const outputFormats = await getOutputFormats();
 
   return (
     <>

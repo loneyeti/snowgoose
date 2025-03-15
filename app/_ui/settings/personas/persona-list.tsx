@@ -1,9 +1,9 @@
-import { fetchPersonas } from "@/app/_lib/api";
+import { getPersonas } from "@/app/_lib/server_actions/persona.actions";
 import { Persona } from "@/app/_lib/model";
 import { DeletePersonaButton, EditPersonaButton } from "../buttons";
 
 export default async function PersonaList() {
-  const personas = await fetchPersonas();
+  const personas = await getPersonas();
 
   return (
     <>

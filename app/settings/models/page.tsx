@@ -1,5 +1,4 @@
 import { SettingsHeading } from "@/app/_ui/typography";
-import { fetchModels } from "@/app/_lib/api";
 import ModelSkeleton from "@/app/_ui/settings/list-skeleton";
 import ModelList from "@/app/_ui/settings/models/model-list";
 import { Suspense } from "react";
