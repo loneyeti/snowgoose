@@ -31,58 +31,53 @@ export class GoogleAIAdapter implements AIVendorAdapter {
       imageData,
     } = options;
 
-    // Initialize the model
-    const genAI = this.client.getGenerativeModel({ model });
+    // Prepare system instruction
+    let finalSystemInstruction = systemPrompt;
+    if (thinkingMode) {
+      const thinkingInstruction =
+        "Please think through this step-by-step within <thinking></thinking> tags before providing your response.";
+      finalSystemInstruction = systemPrompt
+        ? `${systemPrompt}\n\n${thinkingInstruction}`
+        : thinkingInstruction;
+    }
 
-    // Convert messages to Google AI format and handle images
-    const formattedMessages = messages.map((msg) => {
-      if (typeof msg.content === "string") {
-        return {
-          role: msg.role,
-          parts: [{ text: msg.content }],
-        };
-      } else {
-        // Handle content blocks
-        const parts = msg.content.map((block) => {
-          switch (block.type) {
-            case "text":
-              return { text: block.text };
-            case "thinking":
-              return { text: `<thinking>${block.thinking}</thinking>` };
-            case "redacted_thinking":
-              return {
-                text: `<redacted_thinking>${block.data}</redacted_thinking>`,
-              };
-            default:
-              return { text: "" };
-          }
-        });
-        return {
-          role: msg.role,
-          parts,
-        };
-      }
+    // Initialize the model with system instruction
+    const genAI = this.client.getGenerativeModel({
+      model,
+      systemInstruction: finalSystemInstruction,
     });
 
-    // Add system prompt if provided
-    if (systemPrompt) {
-      formattedMessages.unshift({
-        role: "system",
-        parts: [{ text: systemPrompt }],
+    // Convert messages to Google AI format and handle images (excluding system messages)
+    const formattedMessages = messages
+      .filter((msg) => msg.role !== "system")
+      .map((msg) => {
+        if (typeof msg.content === "string") {
+          return {
+            role: msg.role,
+            parts: [{ text: msg.content }],
+          };
+        } else {
+          // Handle content blocks
+          const parts = msg.content.map((block) => {
+            switch (block.type) {
+              case "text":
+                return { text: block.text };
+              case "thinking":
+                return { text: `<thinking>${block.thinking}</thinking>` };
+              case "redacted_thinking":
+                return {
+                  text: `<redacted_thinking>${block.data}</redacted_thinking>`,
+                };
+              default:
+                return { text: "" };
+            }
+          });
+          return {
+            role: msg.role,
+            parts,
+          };
+        }
       });
-    }
-
-    // If thinking mode is enabled, add a special prompt
-    if (thinkingMode) {
-      formattedMessages.push({
-        role: "system",
-        parts: [
-          {
-            text: "Please think through this step-by-step within <thinking></thinking> tags before providing your response.",
-          },
-        ],
-      });
-    }
 
     const chat = genAI.startChat({
       history: formattedMessages,

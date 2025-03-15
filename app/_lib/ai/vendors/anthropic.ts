@@ -94,14 +94,18 @@ export class AnthropicAdapter implements AIVendorAdapter {
   }
 
   async sendChat(chat: Chat): Promise<ChatResponse> {
+    console.log("CHAT:");
+    console.log(JSON.stringify(chat));
     const response = await this.generateResponse({
       model: chat.model,
       messages: chat.responseHistory,
       maxTokens: chat.maxTokens || undefined,
       budgetTokens: chat.budgetTokens || undefined,
-      systemPrompt: chat.personaId ? `You are ${chat.personaId}` : undefined,
+      systemPrompt: chat.personaPrompt || undefined,
       thinkingMode: true,
     });
+    console.log("RESPONSE:");
+    console.log(JSON.stringify(response));
 
     return {
       role: response.role,
