@@ -14,7 +14,7 @@ import {
 } from "../_lib/model";
 import { Model } from "@prisma/client";
 import SelectBox from "./select-box";
-import { createChat } from "../_lib/actions";
+import { createChat } from "../_lib/server_actions/chat-actions";
 import React, { useState, useEffect, useRef, ChangeEvent } from "react";
 import { Spinner, SpinnerSize } from "./spinner";
 import { useRouter } from "next/navigation";

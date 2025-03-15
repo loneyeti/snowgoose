@@ -1,9 +1,9 @@
-import { fetchMCPTools } from "@/app/_lib/api";
+import { getMcpTools } from "@/app/_lib/server_actions/mcp-tool.actions";
 import { MCPTool } from "@/app/_lib/model";
 import { DeleteMCPToolButton, EditMCPToolButton } from "../buttons";
 
 export default async function MCPToolList() {
-  const mcpTools = await fetchMCPTools();
+  const mcpTools = await getMcpTools();
 
   return (
     <>

@@ -1,12 +1,12 @@
 import { SettingsHeading } from "@/app/_ui/typography";
-import { updateMCPTool } from "@/app/_lib/api";
+import { updateMcpTool } from "@/app/_lib/server_actions/mcp-tool.actions";
 import { MCPTool } from "@/app/_lib/model";
 
 export default function EditMCPToolForm({ mcpTool }: { mcpTool: MCPTool }) {
   return (
     <main>
       <SettingsHeading>Edit MCP Tool</SettingsHeading>
-      <form action={updateMCPTool}>
+      <form action={updateMcpTool}>
         <input type="hidden" name="id" value={mcpTool.id} />
         <div className="w-2/3 flex justify-center flex-col">
           <div className="py-2">

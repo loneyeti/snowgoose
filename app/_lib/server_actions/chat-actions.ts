@@ -1,25 +1,15 @@
 "use server";
 
-import { ChatResponse, Chat } from "./model";
-import { z } from "zod";
-import { chatRepository } from "./db/repositories/chat.repository";
-import { getModel } from "./server_actions/model.actions";
-import { getRenderTypeName } from "./server_actions/render-type.actions";
-import { getMCPTool } from "./server_actions/mcp-tool.actions";
-import { getApiVendor } from "./server_actions/api_vendor.actions";
-import { getPersona } from "./server_actions/persona.actions";
-import { gcsUploadFile } from "./gcs";
-import { generateUniqueFilename } from "./utils";
-
-const FormSchema = z.object({
-  model: z.string(),
-  personaId: z.coerce.number(),
-  outputFormatId: z.coerce.number(),
-  prompt: z.string(),
-  maxTokens: z.coerce.number().nullable(),
-  budgetTokens: z.coerce.number().nullable(),
-  mcpTool: z.coerce.number(),
-});
+import { ChatResponse, Chat } from "../model";
+import { chatRepository } from "../db/repositories/chat.repository";
+import { getModel } from "./model.actions";
+import { getRenderTypeName } from "./render-type.actions";
+import { getMcpTool } from "./mcp-tool.actions";
+import { getApiVendor } from "./api_vendor.actions";
+import { getPersona } from "./persona.actions";
+import { gcsUploadFile } from "../gcs";
+import { generateUniqueFilename } from "../utils";
+import { FormSchema } from "../form-schemas";
 
 export async function createChat(
   formData: FormData,
@@ -118,7 +108,7 @@ export async function createChat(
     console.log(mcpTool);
     if (mcpTool > 0 && apiVendor?.name === "anthropic") {
       console.log("MCP Tool data set");
-      mcpToolData = await getMCPTool(mcpTool);
+      mcpToolData = await getMcpTool(mcpTool);
       console.log(mcpToolData);
       if (!mcpToolData) {
         throw new Error(`MCP Tool not found`);

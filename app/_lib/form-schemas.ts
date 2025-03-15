@@ -62,3 +62,13 @@ export const UpdateMCPToolFormSchema = z.object({
   name: z.string(),
   path: z.string(),
 });
+
+export const FormSchema = z.object({
+  model: z.string(),
+  personaId: z.coerce.number(),
+  outputFormatId: z.coerce.number(),
+  prompt: z.string(),
+  maxTokens: z.coerce.number().nullable(),
+  budgetTokens: z.coerce.number().nullable(),
+  mcpTool: z.coerce.number(),
+});

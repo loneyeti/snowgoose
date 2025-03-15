@@ -1,10 +1,8 @@
-import {
-  deleteOutputFormat,
-  deleteHistory,
-  deleteMCPTool,
-} from "@/app/_lib/api";
 import { deletePersona } from "@/app/_lib/server_actions/persona.actions";
 import { deleteModel } from "@/app/_lib/server_actions/model.actions";
+import { deleteMcpTool } from "@/app/_lib/server_actions/mcp-tool.actions";
+import { deleteHistory } from "@/app/_lib/server_actions/history.actions";
+import { deleteOutputFormat } from "@/app/_lib/server_actions/output-format.actions";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
 import Link from "next/link";
@@ -51,7 +49,7 @@ export function EditOutputFormatButton({ id }: { id: string }) {
 }
 
 export function DeleteOutputFormatButton({ id }: { id: string }) {
-  const deleteOutputFormatWithId = deleteOutputFormat.bind(null, id);
+  const deleteOutputFormatWithId = deleteOutputFormat.bind(null, Number(id));
 
   return (
     <div className="w-full flex justify-end">
@@ -94,7 +92,7 @@ export function DeleteModelButton({ id }: { id: string }) {
 }
 
 export function DeleteHistoryButton({ id }: { id: string }) {
-  const deleteHistoryWithId = deleteHistory.bind(null, id);
+  const deleteHistoryWithId = deleteHistory.bind(null, Number(id));
 
   return (
     <div className="w-full flex justify-end">
@@ -122,7 +120,7 @@ export function EditMCPToolButton({ id }: { id: string }) {
 }
 
 export function DeleteMCPToolButton({ id }: { id: string }) {
-  const deleteMCPToolWithId = deleteMCPTool.bind(null, id);
+  const deleteMCPToolWithId = deleteMcpTool.bind(null, Number(id));
 
   return (
     <div className="w-full flex justify-end">

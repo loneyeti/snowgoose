@@ -1,11 +1,11 @@
 import { SettingsHeading } from "@/app/_ui/typography";
-import { createMCPTool } from "@/app/_lib/api";
+import { createMcpTool } from "@/app/_lib/server_actions/mcp-tool.actions";
 
 export default async function NewMCPTool() {
   return (
     <main>
       <SettingsHeading>New MCP Tool</SettingsHeading>
-      <form action={createMCPTool}>
+      <form action={createMcpTool}>
         <div className="w-2/3 flex justify-center flex-col">
           <div className="py-2">
             <label className="text-gray-700 text-xs" htmlFor="name">
