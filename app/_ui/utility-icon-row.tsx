@@ -3,7 +3,7 @@ import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
 import { Chat } from "../_lib/model";
 import { saveChat } from "../_lib/server_actions/history.actions";
-import { UserButton } from "@clerk/nextjs";
+//import { UserButton } from "@clerk/nextjs";
 
 export default function UtilityIconRow({
   resetChat,
@@ -51,9 +51,7 @@ export default function UtilityIconRow({
         <MaterialSymbol className="align-middle" icon="settings" size={18} />
       </Link>
       <div className="basis-1/5 place-self-center">
-        <div className="pl-2">
-          <UserButton />
-        </div>
+        <div className="pl-2">U</div>
       </div>
     </div>
   );
