@@ -5,8 +5,16 @@ import { Suspense } from "react";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/app/_utils/supabase/server";
 
 export default async function Models() {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data?.user) {
+    redirect("/login");
+  }
   //const models = await fetchModels();
   return (
     <main>

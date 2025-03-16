@@ -35,11 +35,38 @@ export class UserRepository extends BaseRepository {
     }
   }
 
+  async findByEmail(email: string): Promise<User | null> {
+    try {
+      return await this.prisma.user.findFirst({
+        where: { email },
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async create(data: {
+    username: string;
+    password: string;
+    email?: string;
+    isAdmin?: boolean;
+  }): Promise<User> {
+    try {
+      return await this.prisma.user.create({
+        data,
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
   async update(
     id: number,
     data: {
-      appearance_mode?: string;
-      summary_model_preference_id?: number;
+      username?: string;
+      password?: string;
+      email?: string;
+      isAdmin?: boolean;
     }
   ): Promise<User> {
     try {

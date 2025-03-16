@@ -130,6 +130,13 @@ export interface APIUser {
   isAdmin: number;
 }
 
+export interface UserPost {
+  username: string;
+  password: string;
+  email: string;
+  isAdmin: boolean;
+}
+
 export interface UserSettings {
   id: number;
   userId: number;

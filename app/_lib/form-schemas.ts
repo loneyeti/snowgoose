@@ -63,6 +63,21 @@ export const UpdateMCPToolFormSchema = z.object({
   path: z.string(),
 });
 
+export const CreateUserFormSchema = z.object({
+  username: z.string(),
+  password: z.string(),
+  email: z.string(),
+  isAdmin: z.boolean().default(false),
+});
+
+export const UpdateUserFormSchema = z.object({
+  id: z.coerce.number(),
+  username: z.string(),
+  password: z.string(),
+  email: z.string(),
+  isAdmin: z.boolean().default(false),
+});
+
 export const FormSchema = z.object({
   model: z.string(),
   personaId: z.coerce.number(),

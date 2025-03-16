@@ -12,12 +12,12 @@ export async function getUserSession() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
   const userSession: UserSession = {
     userId: user?.id ?? "",
     sessionId: user?.id ?? "", // Using user ID as session ID since Supabase doesn't have a separate session ID
     email: user?.email ?? "",
   };
+  console.log(`User Session: ${userSession}`);
   return userSession;
 }
 
@@ -27,9 +27,9 @@ export async function getUserID() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return 0;
+  if (!user || !user.email) return 0;
 
-  const userDbId = await userRepository.findByUsername(user.id);
+  const userDbId = await userRepository.findByUsername(user.email);
   return userDbId?.id ?? 0;
 }
 
@@ -39,8 +39,8 @@ export async function getCurrentAPIUser() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return null;
+  if (!user || !user.email) return null;
 
-  const dbUser = await userRepository.findByUsername(user.id);
+  const dbUser = await userRepository.findByUsername(user.email);
   return dbUser;
 }

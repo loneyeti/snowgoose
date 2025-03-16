@@ -5,8 +5,16 @@ import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
 import OutputFormatList from "@/app/_ui/settings/output_formats/output-format-list";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/app/_utils/supabase/server";
 
 export default async function OutputFormats() {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data?.user) {
+    redirect("/login");
+  }
   return (
     <main>
       <SettingsHeading>Output Formats</SettingsHeading>
