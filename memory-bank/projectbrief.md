@@ -21,7 +21,7 @@ Snowgoose is a standalone NextJS 14 application that provides a unified interfac
    - Direct database integration through Prisma
    - Personas that set system prompt
    - Output format to request different outputs like Markdown, HTML, or plain text
-   - Clerk integration for authentication
+   - Supabase integration for authentication
    - Thinking mode support for Anthropic and Google thinking models
    - Conversation history management
    - MCP tool integration

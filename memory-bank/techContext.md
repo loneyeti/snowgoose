@@ -12,7 +12,7 @@
 - **Language**: TypeScript
 - **Database**: PostgreSQL with Prisma ORM
 - **Styling**: Tailwind CSS
-- **Authentication**: Clerk
+- **Authentication**: Supabase
 - **Form Management**: React Hook Form
 - **Validation**: Zod
 - **AI Integration**:
@@ -21,6 +21,8 @@
   - Google AI SDK
 
 ### Development Environment
+
+#### Local Setup
 
 - **Node.js**: v18+ required
 - **Package Manager**: npm
@@ -32,6 +34,18 @@
   - Prisma Studio
   - PostgreSQL client
 
+#### Docker Setup
+
+- **Docker**: Latest version
+- **Docker Compose**: v3.8+
+- **Development Mode**: `docker compose up`
+- **Production**: `docker compose -f docker-compose.yml up -d`
+- **Database**: PostgreSQL 15 (Alpine)
+- **Container Management**:
+  - Build: Docker multi-stage builds
+  - Volumes: Node modules, Next.js cache, PostgreSQL data
+  - Network: Internal container networking
+
 ## Dependencies
 
 ### Production Dependencies
@@ -39,22 +53,29 @@
 Required in package.json:
 
 ```json
-{
   "dependencies": {
-    "@anthropic-ai/sdk": "latest",
-    "@clerk/nextjs": "latest",
-    "@prisma/client": "latest",
-    "next": "14.x",
-    "react": "18.x",
-    "react-dom": "18.x",
-    "react-hook-form": "latest",
-    "openai": "latest",
-    "@google/generative-ai": "latest",
-    "zod": "latest",
-    "tailwindcss": "latest",
-    "typescript": "5.x"
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@google-cloud/storage": "^7.7.0",
+    "@google/generative-ai": "^0.24.0",
+    "@headlessui/react": "^1.7.18",
+    "@heroicons/react": "^2.1.1",
+    "@modelcontextprotocol/sdk": "^1.7.0",
+    "@prisma/client": "^6.5.0",
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.49.1",
+    "clsx": "^2.1.0",
+    "html-react-parser": "^5.1.1",
+    "nanoid": "^5.0.5",
+    "next": "^14.1.0",
+    "openai": "^4.87.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-markdown": "^9.0.1",
+    "react-material-symbols": "^4.3.1",
+    "rehype-raw": "^7.0.0",
+    "sharp": "^0.33.2",
+    "zod": "^3.22.4"
   }
-}
 ```
 
 ### Development Dependencies
@@ -88,7 +109,7 @@ Required in package.json:
 
 ### Authentication
 
-- **Clerk Integration**:
+- **Supabase Integration**:
   - Protected routes
   - Session management
   - User context
@@ -138,8 +159,8 @@ Required in .env.local:
 DATABASE_URL="postgresql://..."
 
 # Authentication
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_..."
-CLERK_SECRET_KEY="sk_..."
+NEXT_PUBLIC_SUPABASE_URL=https://projectid.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY={{SUPABASEANONKEY}}
 
 # AI Services
 OPENAI_API_KEY="sk-..."
@@ -201,30 +222,50 @@ npm start
 
 ### Deployment
 
+#### Standard Deployment
+
 1. Environment Setup:
 
-- Configure production environment variables
-- Set up database connection
-- Configure AI service keys
+   - Configure production environment variables
+   - Set up database connection
+   - Configure AI service keys
 
 2. Database Migration:
 
-```bash
-npx prisma migrate deploy
-```
+   ```bash
+   npx prisma migrate deploy
+   ```
 
 3. Application Deployment:
+   ```bash
+   npm run build
+   npm start
+   ```
 
-```bash
-npm run build
-npm start
-```
+#### Docker Deployment
+
+1. Environment Setup:
+
+   - Configure .env.local file
+   - Ensure Docker and Docker Compose are installed
+   - Set up container registry (if using)
+
+2. Build and Deploy:
+
+   ```bash
+   docker compose -f docker-compose.yml up -d
+   ```
+
+3. Database Migration:
+   ```bash
+   docker compose exec app npx prisma migrate deploy
+   ```
 
 ## Security Considerations
 
 ### Authentication
 
-- Clerk security best practices
+- Supabase security best practices
 - Protected API routes
 - Session validation
 - CSRF protection

@@ -34,19 +34,25 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
   - MCP tool integration (coming soon)
 
 - 🔒 **Security & Reliability**
-  - Clerk authentication
+  - Supabase authentication
   - Elegant error handling
   - Type-safe database operations
   - Comprehensive data validation
 
 ## Prerequisites
 
-- Node.js v18 or higher
-- PostgreSQL database
 - API keys for desired AI services (OpenAI, Anthropic, Google AI)
-- Clerk account for authentication
+- Supabase account for authentication
+- Either:
+  - **Option 1: Local Setup**
+    - Node.js v18 or higher
+    - PostgreSQL database
+  - **Option 2: Docker Setup**
+    - Docker and Docker Compose
 
 ## Installation
+
+### Option 1: Local Setup
 
 1. Clone the repository:
 
@@ -74,8 +80,8 @@ Edit `.env.local` with your configuration:
 DATABASE_URL="postgresql://..."
 
 # Authentication
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_..."
-CLERK_SECRET_KEY="sk_..."
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
 
 # AI Services
 OPENAI_API_KEY="sk-..."
@@ -93,7 +99,40 @@ npx prisma generate
 npx prisma migrate dev
 ```
 
+### Option 2: Docker Setup
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/snowgoose.git
+cd snowgoose
+```
+
+2. Set up environment variables:
+
+```bash
+cp env.local.example .env.local
+```
+
+Edit `.env.local` with your configuration (same as above).
+
+3. Start the application with Docker Compose:
+
+```bash
+docker compose up -d
+```
+
+The application will be available at `http://localhost:3000`.
+
+To run database migrations:
+
+```bash
+docker compose exec app npx prisma migrate dev
+```
+
 ## Development
+
+### Local Development
 
 Start the development server:
 
@@ -101,15 +140,33 @@ Start the development server:
 npm run dev
 ```
 
+### Docker Development
+
+Start the development environment:
+
+```bash
+docker compose up
+```
+
 Visit `http://localhost:3000` to see the application.
 
 ## Production
+
+### Local Production
 
 Build and start the production server:
 
 ```bash
 npm run build
 npm start
+```
+
+### Docker Production
+
+Deploy using Docker Compose:
+
+```bash
+docker compose -f docker-compose.yml up -d
 ```
 
 ## Features
@@ -140,7 +197,7 @@ npm start
 - **Server Actions**: Efficient server-side operations
 - **Database Integration**: Type-safe Prisma ORM integration
 - **Error Handling**: Comprehensive error management
-- **Authentication**: Secure user authentication via Clerk
+- **Authentication**: Secure user authentication via Supabase
 - **Repository Pattern**: Clean and maintainable data access
 - **Factory Pattern**: Flexible AI vendor integration
 
