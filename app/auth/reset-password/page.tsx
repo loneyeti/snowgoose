@@ -35,7 +35,7 @@ export default function ResetPasswordPage() {
         {success ? (
           <div className="space-y-4">
             <div className="p-3 bg-green-100 border border-green-400 text-green-700 rounded-md">
-              If an account exists with this email, you'll receive a password
+              If an account exists with this email, you will receive a password
               reset link.
             </div>
             <Link

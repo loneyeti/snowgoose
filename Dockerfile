@@ -2,6 +2,9 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Install netcat for database connection checking
+RUN apk add --no-cache netcat-openbsd
+
 # Copy package files
 COPY package*.json ./
 
@@ -10,6 +13,9 @@ RUN npm install
 
 # Copy project files
 COPY . .
+
+# Make entrypoint script executable
+RUN chmod +x docker-entrypoint.sh
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -20,5 +26,6 @@ RUN npm run build
 # Expose the port the app runs on
 EXPOSE 3000
 
-# Start the application
-CMD ["npm", "start"]
+# Use the entrypoint script
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["npm", "run", "dev"]

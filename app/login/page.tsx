@@ -1,11 +1,12 @@
 "use client";
 
 import { login, signup } from "./actions";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+// Separate component to handle URL params
+function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
 
@@ -112,5 +113,14 @@ export default function LoginPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

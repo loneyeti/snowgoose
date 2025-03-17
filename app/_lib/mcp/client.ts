@@ -30,8 +30,15 @@ export class MCPClient {
   ) {
     this.mcpTool = mcpTool;
 
+    // Construct the full path to the MCP server
+    const projectRoot = process.cwd();
+    const fullPath = `${projectRoot}/mcp_servers/${mcpTool.path}`;
+
+    // Log the full path for verification
+    console.log(`Full MCP server path: ${fullPath}`);
+
     // Parse the path to extract command and args
-    const serverConfig = this.parseServerConfig(mcpTool.path);
+    const serverConfig = this.parseServerConfig(fullPath);
 
     // Create transport
     this.transport = new StdioClientTransport({
@@ -62,7 +69,7 @@ export class MCPClient {
     const parts = path.trim().split(/\s+/);
     const command = parts[0];
     const args = parts.slice(1);
-
+    console.log(`MCP Path: ${command}`);
     return {
       command,
       args,
