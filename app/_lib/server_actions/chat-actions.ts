@@ -7,7 +7,7 @@ import { getRenderTypeName } from "./render-type.actions";
 import { getMcpTool } from "./mcp-tool.actions";
 import { getApiVendor } from "./api_vendor.actions";
 import { getPersona } from "./persona.actions";
-import { gcsUploadFile } from "../gcs";
+import { supabaseUploadFile } from "../storage";
 import { generateUniqueFilename } from "../utils";
 import { FormSchema } from "../form-schemas";
 
@@ -82,13 +82,13 @@ export async function createChat(
     personaPrompt,
   };
 
-  // If there is a file, we upload to Google Cloud storage and get the URL
+  // If there is a file, we upload to Supabase storage and get the URL
   const file = formData.get("image") as File | null;
   if (file && file.name !== "undefined") {
     try {
       console.log("FILE IS:");
       console.log(file);
-      const uploadURL = await gcsUploadFile(
+      const uploadURL = await supabaseUploadFile(
         generateUniqueFilename(file.name),
         file
       );

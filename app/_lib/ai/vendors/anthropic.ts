@@ -46,7 +46,7 @@ export class AnthropicAdapter implements AIVendorAdapter {
     }));
 
     console.log(
-      `Thinking Mode Status: ${thinkingMode} ${this.isThinkingCapable}`
+      `Thinking Mode Status: ${thinkingMode} ${this.isThinkingCapable}. Max tokens are: ${maxTokens}`
     );
 
     const response = await this.client.messages.create({
@@ -101,7 +101,7 @@ export class AnthropicAdapter implements AIVendorAdapter {
       maxTokens: chat.maxTokens || undefined,
       budgetTokens: chat.budgetTokens || undefined,
       systemPrompt: chat.personaPrompt || undefined,
-      thinkingMode: true,
+      thinkingMode: (chat.budgetTokens ?? 0) > 0,
     });
     console.log("RESPONSE:");
     console.log(JSON.stringify(response));

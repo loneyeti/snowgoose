@@ -1,5 +1,4 @@
 import { getCurrentAPIUser } from "@/app/_lib/auth";
-import { UserProfile } from "@clerk/nextjs";
 
 export default async function Profile() {
   const apiUser = await getCurrentAPIUser();
@@ -8,9 +7,7 @@ export default async function Profile() {
 
   return (
     <main>
-      <div className="pb-8">
-        <UserProfile />
-      </div>
+      <div className="pb-8">User profile here</div>
     </main>
   );
 }

@@ -2,6 +2,9 @@
   "name": "snowgoose",
   "version": "0.1.0",
   "private": true,
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,17 +14,19 @@
     "db:studio": "dotenv -e .env.local -- prisma studio",
     "db:pull": "dotenv -e .env.local -- prisma db pull",
     "db:push": "dotenv -e .env.local -- prisma db push",
-    "db:test": "dotenv -e .env.local -- tsx prisma/test-connection.ts"
+    "db:test": "dotenv -e .env.local -- tsx prisma/test-connection.ts",
+    "db:seed": "dotenv -e .env.local -- prisma db seed"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
-    "@clerk/nextjs": "^4.29.5",
     "@google-cloud/storage": "^7.7.0",
     "@google/generative-ai": "^0.24.0",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.1.1",
     "@modelcontextprotocol/sdk": "^1.7.0",
     "@prisma/client": "^6.5.0",
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.49.1",
     "clsx": "^2.1.0",
     "html-react-parser": "^5.1.1",
     "nanoid": "^5.0.5",
@@ -54,6 +59,7 @@
     "prisma": "^6.5.0",
     "react-syntax-highlighter": "^15.5.0",
     "tailwindcss": "^3.3.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "tsx": "^4.7.0"
   }
 }

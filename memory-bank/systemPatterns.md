@@ -46,12 +46,9 @@ flowchart TD
   - **/db**: Database models and repositories
   - **/ai**: AI vendor implementations
   - **/mcp**: MCP server management
+  - **/server_actions**: Server action business logic for interfacing with repositories
   - Form schemas and validation
-- **api/**: API route handlers
-  - Entity-specific routes
-  - Authentication middleware
-  - Error handling
-  - Request validation
+- **mcp_servers/** Storage of MCP servers
 
 ### 2. Data Flow
 
@@ -84,7 +81,7 @@ flowchart TD
 - Form state handled by React Hook Form
 - Server state managed through Server Actions
 - UI state managed locally in components
-- Authentication state via Clerk
+- Authentication state via hosted Supabase
 - Database state via Prisma
 
 ### 5. Error Handling
@@ -188,7 +185,7 @@ flowchart TD
 
 ### 4. Authentication
 
-- Clerk integration
+- Supabase integration
 - Protected routes
 - Session management
 - Role-based access
