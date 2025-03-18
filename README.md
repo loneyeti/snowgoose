@@ -13,9 +13,10 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
 
 - 🤖 **Multi-Provider Support**
 
-  - OpenAI integration
-  - Anthropic integration
-  - Google AI integration
+  - OpenAI
+  - Anthropic
+  - Google AI
+  - OpenRouter (coming soon)
   - Extensible for additional providers
 
 - 💬 **Rich Interaction Capabilities**
@@ -28,21 +29,23 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
 
 - 🎭 **Customization Options**
 
-  - Custom personas for different interaction styles
+  - Custom personas (system prompts) for different interaction styles
   - Configurable output formats (Markdown, HTML, plain text)
-  - User preferences management
-  - MCP tool integration (coming soon)
+  - MCP tool integration
 
-- 🔒 **Security & Reliability**
-  - Supabase authentication
-  - Elegant error handling
-  - Type-safe database operations
-  - Comprehensive data validation
+### Feature Status by Vendor:
+
+| AI Provider | Chat | Vision | Image Gen | Thinking/Reasoning | MCP Use |
+| ----------- | ---- | ------ | --------- | ------------------ | ------- |
+| Anthropic   | ✅   | 🚫     | N/A       | ✅                 | ✅      |
+| OpenAI      | ✅   | ✅     | ✅        | 🚫                 | 🚫      |
+| Google      | ✅   | 🚫     | 🚫        | 🚫                 | 🚫      |
 
 ## Prerequisites
 
 - API keys for desired AI services (OpenAI, Anthropic, Google AI)
 - Supabase account for authentication
+  - Sign up for a free Supabase account at [supabase.com](https://supabase.com)
 - Either:
   - **Option 1: Local Setup**
     - Node.js v18 or higher
@@ -51,55 +54,6 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
     - Docker and Docker Compose
 
 ## Installation
-
-### Option 1: Local Setup
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/yourusername/snowgoose.git
-cd snowgoose
-```
-
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Set up environment variables:
-
-```bash
-cp env.local.example .env.local
-```
-
-Edit `.env.local` with your configuration:
-
-```env
-# Database
-DATABASE_URL="postgresql://..."
-
-# Authentication
-NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
-
-# AI Services
-OPENAI_API_KEY="sk-..."
-ANTHROPIC_API_KEY="sk-..."
-GOOGLE_AI_API_KEY="..."
-
-# MCP Configuration
-MCP_CONFIG_PATH="..."
-```
-
-4. Initialize the database:
-
-```bash
-npx prisma generate
-npx prisma migrate dev
-```
-
-### Option 2: Docker Setup
 
 1. Clone the repository:
 
@@ -114,45 +68,61 @@ cd snowgoose
 cp env.local.example .env.local
 ```
 
-Edit `.env.local` with your configuration (same as above).
+Edit `.env.local` with your configuration:
 
-3. Start the application with Docker Compose:
+```env
+# Database
+DATABASE_URL="postgresql://..."
+
+# Authentication & Cloud storage (for vision capabilities)
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
+SUPABASE_VISION_STORAGE_BUCKET=snowgoose-vision
+
+# AI Services
+OPENAI_API_KEY="sk-..."
+ANTHROPIC_API_KEY="sk-..."
+GOOGLE_AI_API_KEY="..."
+```
+
+_Note: If using Docker compose, PostgreSQL settings can be left blank as Docker compose will set up a PostgreSQL instance for you._
+
+### Option 1 (Easiest): Docker:
+
+3. Build and start the server in dev mode:
 
 ```bash
-docker compose up -d
+docker-compose up --build
 ```
 
 The application will be available at `http://localhost:3000`.
 
-To run database migrations:
+### Option 2: Local development (Non-Docker):
+
+4. Install dependencies:
 
 ```bash
-docker compose exec app npx prisma migrate dev
+npm install
 ```
 
-## Development
+3. Initialize the database:
 
-### Local Development
+```bash
+npx prisma generate
+npx prisma migrate dev
+```
 
-Start the development server:
+4. Start the development server:
 
 ```bash
 npm run dev
 ```
 
-### Docker Development
-
-Start the development environment:
-
-```bash
-docker compose up
-```
-
-Visit `http://localhost:3000` to see the application.
+The application will be available at `http://localhost:3000`.
 
 ## Production
 
-### Local Production
+### Non-docker Production
 
 Build and start the production server:
 
@@ -161,64 +131,26 @@ npm run build
 npm start
 ```
 
+Host with something like a combination of PM2 and nginx.
+
+_Note: Vercel hosting will not work with the MCP client implementation in its current state because of the need for a stateful server._
+
 ### Docker Production
 
-Deploy using Docker Compose:
-
-```bash
-docker compose -f docker-compose.yml up -d
-```
-
-## Features
-
-### AI Service Integration
-
-- **Multiple Providers**: Seamlessly switch between different AI providers
-- **Standardized Interface**: Consistent experience across all providers
-- **Provider-Specific Features**: Access unique capabilities of each provider
-- **Thinking Mode**: Support for advanced thinking models
-
-### Chat Capabilities
-
-- **Text Chat**: Natural language conversations with AI models
-- **Vision Analysis**: Process and analyze images
-- **Image Generation**: Create images using AI models
-- **History Management**: Save and revisit previous conversations
-
-### Customization
-
-- **Personas**: Create and manage different interaction styles
-- **Output Formats**: Configure response formats (Markdown, HTML, plain text)
-- **User Preferences**: Personalize your interaction experience
-- **MCP Tools**: Extend functionality with custom tools (coming soon)
-
-### Technical Features
-
-- **Server Actions**: Efficient server-side operations
-- **Database Integration**: Type-safe Prisma ORM integration
-- **Error Handling**: Comprehensive error management
-- **Authentication**: Secure user authentication via Supabase
-- **Repository Pattern**: Clean and maintainable data access
-- **Factory Pattern**: Flexible AI vendor integration
+Coming soon.
 
 ## Architecture
-
-Snowgoose follows a clean architecture pattern with:
 
 - Next.js 14 App Router
 - Server Components and Actions
 - Prisma ORM for database operations
 - Repository pattern for data access
 - Factory pattern for AI vendor integration
-- MCP integration for extensibility
+- MCP server integration
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Please contribute!
 
 ## License
 
