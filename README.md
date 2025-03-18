@@ -41,11 +41,21 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
 | OpenAI      | ✅   | ✅     | ✅        | 🚫                 | 🚫      |
 | Google      | ✅   | 🚫     | 🚫        | 🚫                 | 🚫      |
 
+## Known Issues
+
+- Need more robust Supabase authentication
+- Forget password is not working
+- Need to implement automatic deletion of saved Vision files
+- Bug when loading a history conversation that was created before a model was marked as a thinking model.
+- Error handling in general
+
 ## Prerequisites
 
 - API keys for desired AI services (OpenAI, Anthropic, Google AI)
 - Supabase account for authentication
   - Sign up for a free Supabase account at [supabase.com](https://supabase.com)
+  - Create a private storage bucket and create policies for it
+    - Hint: Use "Give users access to only their own top level folder named as uid" template Supabase policy as this matches how Snowgoose saves files.
 - Either:
   - **Option 1: Local Setup**
     - Node.js v18 or higher
