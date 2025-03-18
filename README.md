@@ -99,20 +99,20 @@ The application will be available at `http://localhost:3000`.
 
 ### Option 2: Local development (Non-Docker):
 
-4. Install dependencies:
+3. Install dependencies:
 
 ```bash
 npm install
 ```
 
-3. Initialize the database:
+4. Initialize the database:
 
 ```bash
 npx prisma generate
 npx prisma migrate dev
 ```
 
-4. Start the development server:
+5. Start the development server:
 
 ```bash
 npm run dev
