@@ -23,6 +23,12 @@ if (process.env.GOOGLE_API_KEY) {
   });
 }
 
+if (process.env.OPENROUTER_API_KEY) {
+  AIVendorFactory.setVendorConfig("openrouter", {
+    apiKey: process.env.OPENROUTER_API_KEY,
+  });
+}
+
 export class ChatRepository extends BaseRepository {
   async sendChat(
     chat: Chat,

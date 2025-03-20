@@ -5,6 +5,7 @@ import { AnthropicAdapter } from "./vendors/anthropic";
 import { GoogleAIAdapter } from "./vendors/google";
 import { prisma } from "../db/prisma";
 import { getApiVendor } from "../server_actions/api_vendor.actions";
+import { OpenRouterAdapter } from "./vendors/openrouter";
 
 export class AIVendorFactory {
   private static vendorConfigs: Map<string, VendorConfig> = new Map();
@@ -43,6 +44,9 @@ export class AIVendorFactory {
         break;
       case "google":
         adapter = new GoogleAIAdapter(config, model);
+        break;
+      case "openrouter":
+        adapter = new OpenRouterAdapter(config, model);
         break;
       default:
         throw new Error(`Unsupported vendor: ${vendorName}`);

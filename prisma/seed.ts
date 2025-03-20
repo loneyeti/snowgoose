@@ -35,6 +35,12 @@ async function main() {
     create: { name: "google" },
   });
 
+  const openRouterVendor = await prisma.aPIVendor.upsert({
+    where: { id: 4 },
+    update: { name: "openrouter" },
+    create: { name: "openrouter" },
+  });
+
   // Persona
   await prisma.persona.upsert({
     where: { id: 1 },
@@ -247,6 +253,26 @@ async function main() {
       isImageGeneration: false,
       isThinking: false,
       apiVendorId: googleVendor.id,
+    },
+  });
+
+  await prisma.model.upsert({
+    where: { id: 9 },
+    update: {
+      apiName: "deepseek/deepseek-chat",
+      name: "DeepSeek V3",
+      isVision: false,
+      isImageGeneration: false,
+      isThinking: false,
+      apiVendorId: openRouterVendor.id,
+    },
+    create: {
+      apiName: "deepseek/deepseek-chat",
+      name: "DeepSeek V3",
+      isVision: false,
+      isImageGeneration: false,
+      isThinking: false,
+      apiVendorId: openRouterVendor.id,
     },
   });
 }
