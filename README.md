@@ -16,7 +16,7 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
   - OpenAI
   - Anthropic
   - Google AI
-  - OpenRouter (coming soon)
+  - OpenRouter
   - Extensible for additional providers
 
 - 💬 **Rich Interaction Capabilities**
@@ -39,7 +39,8 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
 | ----------- | ---- | ------ | --------- | ------------------ | ------- |
 | Anthropic   | ✅   | 🚫     | N/A       | ✅                 | ✅      |
 | OpenAI      | ✅   | ✅     | ✅        | 🚫                 | 🚫      |
-| Google      | ✅   | 🚫     | 🚫        | 🚫                 | 🚫      |
+| Google      | ✅   | 🚫     | ✅        | 🚫                 | 🚫      |
+| OpenRouter  | ✅   | 🚫     | N/A       | 🚫                 | 🚫      |
 
 ## Known Issues
 
