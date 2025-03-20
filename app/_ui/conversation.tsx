@@ -63,6 +63,18 @@ export default function Conversation({
                         );
                       case "redacted_thinking":
                         return null; // Don't render redacted thinking
+                      case "image":
+                        return (
+                          <div>
+                            {/* eslint-disable @next/next/no-img-element */}
+                            <img
+                              src={block.url}
+                              width={1028}
+                              height={1028}
+                              alt="AI Generated image"
+                            />
+                          </div>
+                        );
                       case "text":
                         return (
                           <MarkdownComponent

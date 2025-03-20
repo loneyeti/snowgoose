@@ -79,7 +79,16 @@ export interface TextBlock {
   text: string;
 }
 
-export type ContentBlock = ThinkingBlock | RedactedThinkingBlock | TextBlock;
+export interface ImageBlock {
+  type: "image";
+  url: string;
+}
+
+export type ContentBlock =
+  | ThinkingBlock
+  | RedactedThinkingBlock
+  | TextBlock
+  | ImageBlock;
 
 // Content of a chat response can either be plain text or an Anthropic ContentBlock
 export interface ChatResponse {

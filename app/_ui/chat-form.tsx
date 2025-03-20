@@ -138,8 +138,8 @@ export default function ChatForm({
             setSelectedModelVendor(vendor?.name || "");
             setShowMCPTools(vendor?.name === "anthropic");
             setShowFileUpload(!!model.isVision);
-            setHideOutputFormats(!!model.isImageGeneration);
-            setHidePersonas(!!model.isImageGeneration);
+            // setHideOutputFormats(!!model.isImageGeneration);
+            // setHidePersonas(!!model.isImageGeneration);
             setShowTokenSliders(!!model.isThinking);
 
             if (model.isThinking) {

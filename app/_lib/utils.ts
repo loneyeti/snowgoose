@@ -24,6 +24,8 @@ export function contentBlockToString(block: ContentBlock): string {
       return ""; // Skip redacted thinking blocks
     case "text":
       return block.text;
+    case "image":
+      return block.url;
   }
 }
 

@@ -1,12 +1,18 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import {
+  Content,
+  GenerateContentRequest,
+  GenerationConfig,
+  GoogleGenerativeAI,
+} from "@google/generative-ai";
 import {
   AIVendorAdapter,
   AIRequestOptions,
   AIResponse,
   VendorConfig,
 } from "../types";
-import { Chat, ChatResponse } from "../../model";
+import { Chat, ChatResponse, ImageBlock } from "../../model";
 import { Model } from "@prisma/client";
+import { supabaseUploadFile } from "../../storage";
 
 export class GoogleAIAdapter implements AIVendorAdapter {
   private client: GoogleGenerativeAI;
@@ -32,6 +38,7 @@ export class GoogleAIAdapter implements AIVendorAdapter {
     } = options;
 
     // Prepare system instruction
+    /*
     let finalSystemInstruction = systemPrompt;
     if (thinkingMode) {
       const thinkingInstruction =
@@ -40,20 +47,33 @@ export class GoogleAIAdapter implements AIVendorAdapter {
         ? `${systemPrompt}\n\n${thinkingInstruction}`
         : thinkingInstruction;
     }
+        */
+    const responseModalities = ["Text"];
+
+    if (this.isImageGenerationCapable) {
+      responseModalities.push("Image");
+      console.log("Gemini is capable of images.");
+    }
+    const generationConfig: GenerationConfig = {};
+    (generationConfig as any).responseModalities = responseModalities;
+
+    console.log(generationConfig);
 
     // Initialize the model with system instruction
     const genAI = this.client.getGenerativeModel({
       model,
-      systemInstruction: finalSystemInstruction,
+      //systemInstruction: systemPrompt,
+      generationConfig: generationConfig,
     });
 
     // Convert messages to Google AI format and handle images (excluding system messages)
     const formattedMessages = messages
       .filter((msg) => msg.role !== "system")
       .map((msg) => {
+        const role = msg.role == "assistant" ? "model" : msg.role;
         if (typeof msg.content === "string") {
           return {
-            role: msg.role,
+            role: role,
             parts: [{ text: msg.content }],
           };
         } else {
@@ -68,17 +88,19 @@ export class GoogleAIAdapter implements AIVendorAdapter {
                 return {
                   text: `<redacted_thinking>${block.data}</redacted_thinking>`,
                 };
+              case "image":
+                return { text: "" };
               default:
                 return { text: "" };
             }
           });
           return {
-            role: msg.role,
+            role: role,
             parts,
           };
         }
       });
-
+    /*
     const chat = genAI.startChat({
       history: formattedMessages,
       generationConfig: {
@@ -89,8 +111,63 @@ export class GoogleAIAdapter implements AIVendorAdapter {
     const result = await chat.sendMessage(
       messages[messages.length - 1].content as string
     );
-    const response = await result.response;
+    const response = result.response;
+*/
+    const generateContentRequest: GenerateContentRequest = {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "Generate an image of a dog." }],
+        },
+      ],
+    };
 
+    const contents: GenerateContentRequest = {
+      contents: formattedMessages,
+    };
+    const result = await genAI.generateContent(contents);
+    const response = result.response;
+
+    if (!response?.candidates?.[0]?.content?.parts) {
+      throw new Error("Invalid response structure from Gemini API");
+    }
+
+    for (const part of response.candidates[0].content.parts) {
+      console.log("Going through parts");
+      console.log(part);
+      if (part.text) {
+        return {
+          role: "assistant",
+          content: part.text,
+        };
+      } else if (part.inlineData) {
+        const imageData = part.inlineData.data;
+        const buffer = Buffer.from(imageData, "base64");
+        const filename = `gemini-${Date.now()}.png`;
+        // Create a File-like object that supabaseUploadFile can handle
+        const file = {
+          name: filename,
+          type: "image/png",
+          arrayBuffer: async () => buffer,
+          size: buffer.length,
+        };
+        const url = await supabaseUploadFile(filename, file as any);
+        if (!url) {
+          throw new Error("Failed to upload image to Supabase storage");
+        }
+        const imageBlock: ImageBlock = {
+          type: "image",
+          url: url,
+        };
+        return {
+          role: "assistant",
+          content: [imageBlock],
+        };
+      }
+    }
+
+    console.log("Gemini response didn't have parts");
+    console.log(response);
     return {
       role: "assistant",
       content: response.text(),
@@ -98,7 +175,54 @@ export class GoogleAIAdapter implements AIVendorAdapter {
   }
 
   async generateImage(chat: Chat): Promise<string> {
-    throw new Error("Image generation not supported by Google AI");
+    const { prompt } = chat;
+    if (!prompt) {
+      throw new Error("Prompt is required for image generation");
+    }
+
+    try {
+      const model = this.client.getGenerativeModel({
+        model: "gemini-2.0-flash-exp-image-generation",
+        generationConfig: {
+          // @ts-ignore - responseModalities is not in official types yet
+          responseModalities: ["Text", "Image"],
+        },
+      });
+
+      const response = await model.generateContent(prompt);
+
+      if (!response?.response?.candidates?.[0]?.content?.parts) {
+        throw new Error("Invalid response structure from Gemini API");
+      }
+
+      for (const part of response.response.candidates[0].content.parts) {
+        console.log(part);
+        if (part.inlineData) {
+          const imageData = part.inlineData.data;
+          const buffer = Buffer.from(imageData, "base64");
+          const filename = `gemini-${Date.now()}.png`;
+          // Create a File-like object that supabaseUploadFile can handle
+          const file = {
+            name: filename,
+            type: "image/png",
+            arrayBuffer: async () => buffer,
+            size: buffer.length,
+          };
+          const url = await supabaseUploadFile(filename, file as any);
+          if (!url) {
+            throw new Error("Failed to upload image to Supabase storage");
+          }
+          return url;
+        }
+      }
+
+      throw new Error("No image data found in response");
+    } catch (error) {
+      console.error("Google Gemini image generation failed:", error);
+      throw new Error(
+        `Image generation failed: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    }
   }
 
   async sendChat(chat: Chat): Promise<ChatResponse> {
