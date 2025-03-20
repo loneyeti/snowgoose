@@ -1,3 +1,5 @@
+import { Model } from "@prisma/client";
+
 export interface Persona {
   id: number;
   name: string;
@@ -33,7 +35,7 @@ export interface ModelPost {
   isThinking: boolean;
   apiVendorId: number;
 }
-
+/*
 export interface Model {
   id: number;
   api_name: string;
@@ -44,6 +46,7 @@ export interface Model {
   api_vendor_id: number;
   api_vendor_name?: string;
 }
+  */
 
 export interface MCPTool {
   id: number;
@@ -117,8 +120,20 @@ export type FormProps = {
   responseHistory: ChatResponse[];
   resetChat: () => void;
   currentChat: Chat | undefined;
+  personas: Persona[];
+  models: Model[];
+  outputFormats: OutputFormat[];
+  mcpTools: MCPTool[];
+  apiVendors: APIVendor[];
 };
 
+export type ChatWrapperProps = {
+  personas: Persona[];
+  models: Model[];
+  outputFormats: OutputFormat[];
+  mcpTools: MCPTool[];
+  apiVendors: APIVendor[];
+};
 /*
 export interface APIResonse {
   message: string;

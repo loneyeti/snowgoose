@@ -38,14 +38,19 @@ export default function ChatForm({
   responseHistory,
   resetChat,
   currentChat,
+  personas,
+  models,
+  outputFormats,
+  mcpTools,
+  apiVendors,
 }: FormProps) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const [promptVal, setPromptVal] = useState("");
   const [data, setData] = useState<FormData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [personas, setPersonas] = useState<Persona[]>([]);
-  const [models, setModels] = useState<Model[]>([]);
-  const [outputFormats, setOutputFormats] = useState<OutputFormat[]>([]);
+  //const [personas, setPersonas] = useState<Persona[]>([]);
+  //const [models, setModels] = useState<Model[]>([]);
+  //const [outputFormats, setOutputFormats] = useState<OutputFormat[]>([]);
   //const [responseHistory, setResponseHistory] = useState<ChatResponse[]>([]);
   const router = useRouter();
   const disableSelection = responseHistory.length > 0;
@@ -57,7 +62,7 @@ export default function ChatForm({
   const [hideOutputFormats, setHideOutputFormats] = useState(false);
   const [showTokenSliders, setShowTokenSliders] = useState(false);
   const [showMCPTools, setShowMCPTools] = useState(false);
-  const [mcpTools, setMCPTools] = useState<MCPTool[]>([]);
+  //const [mcpTools, setMCPTools] = useState<MCPTool[]>([]);
   const [selectedPreset, setSelectedPreset] = useState<string>("Thinking Off");
   const [maxTokens, setMaxTokens] = useState<number | null>(null);
   const [budgetTokens, setBudgetTokens] = useState<number | null>(null);
@@ -79,90 +84,36 @@ export default function ChatForm({
     setSelectedModel(selectedValue);
   };
 
-  // Populate select boxes on initial load and set selected model.
-  useEffect(() => {
-    const fetchData = async () => {
-      console.log("fetching data");
-      try {
-        const [
-          personasData,
-          modelsData,
-          outputFormatsData,
-          mcpToolsData,
-          apiVendorsData,
-        ] = await Promise.all([
-          getPersonas(),
-          getModels(),
-          getOutputFormats(),
-          getMcpTools(),
-          getApiVendors(),
-        ]);
-        console.log("Setting data");
-        personasData && setPersonas(personasData);
-        modelsData && setModels(modelsData);
-        outputFormatsData && setOutputFormats(outputFormatsData);
-        mcpToolsData && setMCPTools(mcpToolsData);
-
-        if (modelsData.length > 0) {
-          setSelectedModel(modelsData[0].id.toString());
-          const selectedModelData = modelsData[0];
-          const vendor = apiVendorsData.find(
-            (v: APIVendor) => v.id === selectedModelData.apiVendorId
-          );
-          setSelectedModelVendor(vendor?.name || "");
-          setShowMCPTools(vendor?.name === "anthropic");
-        }
-      } catch (error) {
-        console.error("Error fetching initialization data:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
   // When the selected model changes, determine which form elements to show.
   useEffect(() => {
     if (selectedModel !== "") {
-      const fetchNewModel = async () => {
-        if (!selectedModel) return;
+      // Find the selected model from the models array
+      const model = models.find((model) => model.id === Number(selectedModel));
 
-        try {
-          // const model = await fetchModel(selectedModel);
-          const model = await getModel(Number(selectedModel));
-          if (model) {
-            const apiVendors = await getApiVendors();
-            const vendor = apiVendors.find(
-              (v: APIVendor) => v.id === model?.apiVendorId
-            );
+      if (model) {
+        // Find the vendor from the existing apiVendors array
+        const vendor = apiVendors.find((v) => v.id === model.apiVendorId);
 
-            setSelectedModelVendor(vendor?.name || "");
-            setShowMCPTools(vendor?.name === "anthropic");
-            setShowFileUpload(!!model.isVision);
-            // setHideOutputFormats(!!model.isImageGeneration);
-            // setHidePersonas(!!model.isImageGeneration);
-            setShowTokenSliders(!!model.isThinking);
+        setSelectedModelVendor(vendor?.name || "");
+        setShowMCPTools(vendor?.name === "anthropic");
+        setShowFileUpload(!!model.isVision);
+        // setHideOutputFormats(!!model.isImageGeneration);
+        // setHidePersonas(!!model.isImageGeneration);
+        setShowTokenSliders(!!model.isThinking);
 
-            if (model.isThinking) {
-              // Set default preset values
-              const defaultPreset = THINKING_PRESETS[0]; // Thinking Off
-              setSelectedPreset(defaultPreset.name);
-              setMaxTokens(defaultPreset.maxTokens);
-              setBudgetTokens(defaultPreset.budgetTokens);
-            } else {
-              setMaxTokens(null);
-              setBudgetTokens(null);
-            }
-          }
-        } catch (error) {
-          console.error(
-            `Error fetching model by API Name: ${selectedModel}`,
-            error
-          );
+        if (model.isThinking) {
+          // Set default preset values
+          const defaultPreset = THINKING_PRESETS[0]; // Thinking Off
+          setSelectedPreset(defaultPreset.name);
+          setMaxTokens(defaultPreset.maxTokens);
+          setBudgetTokens(defaultPreset.budgetTokens);
+        } else {
+          setMaxTokens(null);
+          setBudgetTokens(null);
         }
-      };
-      fetchNewModel();
+      }
     }
-  }, [selectedModel]);
+  }, [selectedModel, models, apiVendors]);
 
   useEffect(() => {
     const fetchData = async () => {

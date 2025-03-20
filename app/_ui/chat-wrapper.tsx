@@ -3,7 +3,12 @@
 import ChatForm from "./chat-form";
 import Conversation from "./conversation";
 import React, { useState, useEffect, Fragment } from "react";
-import { Chat, ChatResponse, ChatUserSession } from "../_lib/model";
+import {
+  Chat,
+  ChatResponse,
+  ChatUserSession,
+  ChatWrapperProps,
+} from "../_lib/model";
 import Sidebar from "./sidebar";
 import Detail from "./detail";
 import UtilityIconRow from "./utility-icon-row";
@@ -14,7 +19,13 @@ import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
 import { getUserID } from "@/app/_lib/auth";
 
-export default function ChatWrapper() {
+export default function ChatWrapper({
+  personas,
+  models,
+  outputFormats,
+  mcpTools,
+  apiVendors,
+}: ChatWrapperProps) {
   const [response, setResponse] = useState<ChatResponse[]>([]);
   const [currentChat, setCurrentChat] = useState<Chat | undefined>();
   const [isHistoryShowing, setIsHistoryShowing] = useState(false);
@@ -85,6 +96,11 @@ export default function ChatWrapper() {
             responseHistory={response}
             resetChat={resetChat}
             currentChat={currentChat}
+            personas={personas}
+            models={models}
+            outputFormats={outputFormats}
+            mcpTools={mcpTools}
+            apiVendors={apiVendors}
           />
           <UtilityIconRow
             resetChat={resetChat}
