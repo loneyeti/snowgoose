@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+export type FormState = {
+  error?: string;
+  success?: boolean;
+  message?: string;
+};
+
 export const CreatePersonaFormSchema = z.object({
   name: z.string(),
   prompt: z.string(),

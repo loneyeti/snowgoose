@@ -3,9 +3,7 @@
 import { createClient } from "@/app/_utils/supabase/server";
 import { UserSession, APIUser } from "./model";
 import { userRepository } from "./db/repositories/user.repository";
-
-const accessToken = process.env.GPTFLASK_API;
-const apiURL = process.env.GPTFLASK_URL;
+import { ensureUserExists } from "./server_actions/user.actions";
 
 export async function getUserSession() {
   const supabase = await createClient();
@@ -38,9 +36,13 @@ export async function getCurrentAPIUser() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
+  console.log(`User: ${user?.email}`);
   if (!user || !user.email) return null;
 
-  const dbUser = await userRepository.findByUsername(user.email);
+  let dbUser = await userRepository.findByUsername(user.email);
+  if (!dbUser) {
+    dbUser = await ensureUserExists(user.email);
+  }
+  console.log(`Local User: ${dbUser}`);
   return dbUser;
 }

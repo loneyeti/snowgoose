@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { CreateUserFormSchema, UpdateUserFormSchema } from "../form-schemas";
 import { User } from "@prisma/client";
 import { UserPost } from "../model";
+import { createClient } from "@/app/_utils/supabase/server";
+import { FormState } from "../form-schemas";
 
 // User Functions
 export async function getUsers() {
@@ -57,6 +59,47 @@ export async function updateUser(formData: FormData) {
     throw new Error(`Unable to update User. Error: ${error}`);
   }
   revalidatePath("/settings/profile");
+}
+
+export async function updateUserPassword(
+  prevState: FormState,
+  formData: FormData
+) {
+  const supabase = await createClient();
+  const currentPassword = formData.get("currentPassword") as string;
+  const newPassword = formData.get("newPassword") as string;
+
+  // Get existing session to verify current password
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { error: "Authentication required" };
+  }
+
+  // Reauthenticate with current password
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: user.email!,
+    password: currentPassword,
+  });
+
+  if (signInError) {
+    return { error: "Current password is incorrect" };
+  }
+
+  // Update password
+  const { error: updateError } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (updateError) {
+    return { error: updateError.message };
+  }
+
+  revalidatePath("/settings/profile");
+  return { success: true };
 }
 
 import { userSettingsRepository } from "@/app/_lib/db/repositories/user-settings.repository";
