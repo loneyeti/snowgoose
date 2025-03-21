@@ -1,4 +1,4 @@
-import { Model } from "@prisma/client";
+import { Model, User } from "@prisma/client";
 
 export interface Persona {
   id: number;
@@ -133,6 +133,7 @@ export type ChatWrapperProps = {
   outputFormats: OutputFormat[];
   mcpTools: MCPTool[];
   apiVendors: APIVendor[];
+  user: User;
 };
 /*
 export interface APIResonse {

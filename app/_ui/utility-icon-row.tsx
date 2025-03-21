@@ -3,15 +3,17 @@ import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
 import { Chat } from "../_lib/model";
 import { saveChat } from "../_lib/server_actions/history.actions";
-//import { UserButton } from "@clerk/nextjs";
+import { User } from "@prisma/client";
 
 export default function UtilityIconRow({
   resetChat,
   toggleHistory,
+  user,
   chat,
 }: {
   resetChat: () => void;
   toggleHistory: () => void;
+  user: User;
   chat: Chat | undefined;
 }) {
   async function saveChatAction() {
@@ -23,6 +25,7 @@ export default function UtilityIconRow({
       alert(`Saved conversation: ${saveMessage}`);
     }
   }
+  const initial = user.username.charAt(0).toUpperCase() ?? "";
   return (
     <div className="flex flex-row mt-8 justify-between mb-10 align-middle">
       <Link
@@ -51,7 +54,14 @@ export default function UtilityIconRow({
         <MaterialSymbol className="align-middle" icon="settings" size={18} />
       </Link>
       <div className="basis-1/5 place-self-center">
-        <div className="pl-2">U</div>
+        <div className="pl-2">
+          <Link
+            href="/settings/profile"
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-600 text-white hover:bg-slate-700 transition-colors"
+          >
+            <span className="text-sm font-medium">{initial}</span>
+          </Link>
+        </div>
       </div>
     </div>
   );

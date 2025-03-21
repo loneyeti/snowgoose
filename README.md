@@ -52,7 +52,7 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
 
 ## Prerequisites
 
-- API keys for desired AI services (OpenAI, Anthropic, Google AI)
+- API keys for desired AI services (OpenAI, Anthropic, Google AI, Openrouter)
 - Supabase account for authentication
   - Sign up for a free Supabase account at [supabase.com](https://supabase.com)
   - Create a private storage bucket and create policies for it

@@ -25,6 +25,7 @@ export default function ChatWrapper({
   outputFormats,
   mcpTools,
   apiVendors,
+  user,
 }: ChatWrapperProps) {
   const [response, setResponse] = useState<ChatResponse[]>([]);
   const [currentChat, setCurrentChat] = useState<Chat | undefined>();
@@ -106,6 +107,7 @@ export default function ChatWrapper({
             resetChat={resetChat}
             toggleHistory={toggleHistory}
             chat={currentChat}
+            user={user}
           />
         </div>
       </Sidebar>

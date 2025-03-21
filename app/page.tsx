@@ -6,12 +6,14 @@ import { getModels } from "./_lib/server_actions/model.actions";
 import { getOutputFormats } from "./_lib/server_actions/output-format.actions";
 import { getMcpTools } from "./_lib/server_actions/mcp-tool.actions";
 import { getApiVendors } from "./_lib/server_actions/api_vendor.actions";
+import { getCurrentAPIUser } from "./_lib/auth";
 
 export default async function Home() {
   const supabase = await createClient();
 
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data?.user) {
+  //const { data, error } = await supabase.auth.getUser();
+  const user = await getCurrentAPIUser();
+  if (!user) {
     redirect("/login");
   }
 
@@ -32,6 +34,7 @@ export default async function Home() {
         outputFormats={outputFormats}
         mcpTools={mcpTools}
         apiVendors={apiVendors}
+        user={user}
       />
     </main>
   );
