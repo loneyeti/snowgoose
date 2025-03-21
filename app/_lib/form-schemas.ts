@@ -9,7 +9,7 @@ export type FormState = {
 export const CreatePersonaFormSchema = z.object({
   name: z.string(),
   prompt: z.string(),
-  ownerId: z.null(),
+  ownerId: z.coerce.number().nullable(),
 });
 
 export const CreateOutputFormatFormSchema = z.object({

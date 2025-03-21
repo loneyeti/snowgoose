@@ -25,10 +25,18 @@ export class PersonaRepository extends BaseRepository {
     }
   }
 
-  async create(data: { name: string; prompt: string }): Promise<Persona> {
+  async create(data: {
+    name: string;
+    prompt: string;
+    ownerId?: number | null;
+  }): Promise<Persona> {
     try {
       return await this.prisma.persona.create({
-        data,
+        data: {
+          name: data.name,
+          prompt: data.prompt,
+          ownerId: data.ownerId,
+        },
       });
     } catch (error) {
       this.handleError(error);

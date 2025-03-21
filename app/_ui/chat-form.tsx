@@ -1,17 +1,6 @@
 "use client";
 
-import { getPersonas } from "../_lib/server_actions/persona.actions";
-import { getModel, getModels } from "../_lib/server_actions/model.actions";
-import { getOutputFormats } from "../_lib/server_actions/output-format.actions";
-import { getMcpTools } from "../_lib/server_actions/mcp-tool.actions";
-import { getApiVendors } from "../_lib/server_actions/api_vendor.actions";
-import {
-  Persona,
-  OutputFormat,
-  FormProps,
-  MCPTool,
-  APIVendor,
-} from "../_lib/model";
+import { Persona, OutputFormat, FormProps, MCPTool } from "../_lib/model";
 import { Model } from "@prisma/client";
 import SelectBox from "./select-box";
 import { createChat } from "../_lib/server_actions/chat-actions";

@@ -9,6 +9,7 @@ import {
 import { Persona } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getCurrentAPIUser, isCurrentUserAdmin } from "../auth";
 
 // Persona Functions
 export async function getPersonas() {
@@ -21,15 +22,32 @@ export async function getPersona(id: number) {
 }
 
 export async function createPersona(formData: FormData) {
+  const user = await getCurrentAPIUser();
+  const isAdmin = await isCurrentUserAdmin();
+  let ownerId: number | null = null;
+
+  if (isAdmin) {
+    const personaType = formData.get("personaType");
+    if (personaType === "user") {
+      ownerId = user?.id ?? null;
+    }
+  } else {
+    ownerId = user?.id ?? null;
+  }
+
+  console.log(ownerId);
+
   const persona: PersonaPost = CreatePersonaFormSchema.parse({
     name: formData.get("name"),
     prompt: formData.get("prompt"),
-    ownerId: formData.get("ownerId"),
+    ownerId: ownerId,
   });
+
   try {
     await personaRepository.create({
       name: persona.name,
       prompt: persona.prompt,
+      ownerId: persona.ownerId,
     });
   } catch (error) {
     throw new Error("Unable to create Persona.");
