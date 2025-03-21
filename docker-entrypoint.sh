@@ -22,6 +22,10 @@ npx prisma db push
 echo "Seeding database..."
 npx prisma db seed
 
+# Build the application (now that DB is available)
+echo "Building the application..."
+npm run build
+
 # Start the application
 echo "Starting the application..."
-npm run dev
+exec "$@"

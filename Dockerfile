@@ -17,11 +17,8 @@ COPY . .
 # Make entrypoint script executable
 RUN chmod +x docker-entrypoint.sh
 
-# Generate Prisma client
+# Generate Prisma client (no need for database connection)
 RUN npx prisma generate
-
-# Build the application
-RUN npm run build
 
 # Expose the port the app runs on
 EXPOSE 3000
