@@ -3,10 +3,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: development
+    user: "1001:1001" # matches the nextjs user ID
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "3000:3000"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/snowgoose
+      - NODE_ENV=development
     env_file:
       - .env.local
     networks:
@@ -17,13 +22,30 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-      - /app/.next/cache
+      - nextjs_cache:/app/.next/cache
     restart: unless-stopped
     stdin_open: true
     tty: true
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   db:
     image: postgres:15-alpine
+    user: postgres
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "5432:5432"
     environment:
@@ -40,6 +62,11 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
 
 networks:
   app-network:
@@ -47,3 +74,9 @@ networks:
 
 volumes:
   postgres_data:
+  nextjs_cache:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/.next/cache
+      o: bind

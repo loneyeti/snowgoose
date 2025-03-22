@@ -3,6 +3,14 @@
 # Exit on error
 set -e
 
+# Ensure proper permissions for Prisma
+mkdir -p /app/node_modules/.prisma
+chmod -R 777 /app/node_modules/.prisma
+
+# Ensure Next.js cache directory permissions
+mkdir -p /app/.next/cache
+chmod -R 777 /app/.next/cache
+
 # Function to wait for database to be ready
 wait_for_db() {
   echo "Waiting for database to be ready..."
