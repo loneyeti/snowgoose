@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: development
-    user: nextjs
+    user: "1001:1001" # matches the nextjs user ID
     security_opt:
       - no-new-privileges:true
     ports:
@@ -22,7 +22,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-      - /app/.next/cache
+      - nextjs_cache:/app/.next/cache
     restart: unless-stopped
     stdin_open: true
     tty: true
@@ -64,9 +64,9 @@ services:
     restart: unless-stopped
     deploy:
       resources:
-      limits:
-        cpus: "1"
-        memory: 1G
+        limits:
+          cpus: "1"
+          memory: 1G
 
 networks:
   app-network:
@@ -74,3 +74,9 @@ networks:
 
 volumes:
   postgres_data:
+  nextjs_cache:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/.next/cache
+      o: bind

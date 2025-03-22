@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:18-alpine AS base
 
 WORKDIR /app
 
@@ -29,8 +29,12 @@ RUN apk add --no-cache netcat-openbsd
 
 # Create a non-root user and switch to it
 RUN addgroup --system --gid 1001 nodejs \
-    && adduser --system --uid 1001 nextjs \
-    && chown -R nextjs:nodejs /app
+    && adduser --system --uid 1001 nextjs
+
+# Create and set permissions for necessary directories
+RUN mkdir -p /app/.next/cache \
+    && chown -R nextjs:nodejs /app \
+    && chmod -R 755 /app
 
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --chown=nextjs:nodejs . .
