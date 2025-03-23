@@ -14,22 +14,42 @@ export default async function SettingsNav() {
           Profile
         </MenuListItem>
         {isUserAdmin && (
-          <MenuListItem url="/settings/models">
+          <>
+            <MenuListItem url="/settings/users">
+              <MaterialSymbol
+                icon="manage_accounts"
+                size={18}
+                className="mr-2 align-middle"
+              />
+              Users
+            </MenuListItem>
+            <MenuListItem url="/settings/models">
+              <MaterialSymbol
+                icon="database"
+                size={18}
+                className="mr-2 align-middle"
+              />
+              Models
+            </MenuListItem>
+          </>
+        )}
+        {isUserAdmin && (
+          <MenuListItem url="/settings/global-personas">
             <MaterialSymbol
-              icon="database"
+              icon="smart_toy"
               size={18}
               className="mr-2 align-middle"
             />
-            Models
+            Global Personas
           </MenuListItem>
         )}
-        <MenuListItem url="/settings/personas">
+        <MenuListItem url="/settings/user-personas">
           <MaterialSymbol
-            icon="smart_toy"
+            icon="person"
             size={18}
             className="mr-2 align-middle"
           />
-          Personas
+          User Personas
         </MenuListItem>
         {isUserAdmin && (
           <MenuListItem url="/settings/output-formats">

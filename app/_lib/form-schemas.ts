@@ -22,7 +22,7 @@ export const UpdatePersonaFormSchema = z.object({
   id: z.coerce.number(),
   name: z.string(),
   prompt: z.string(),
-  ownerId: z.null(),
+  ownerId: z.coerce.number().nullable(),
 });
 
 export const UpdateOutputFormatFormSchema = z.object({

@@ -1,10 +1,11 @@
-import { getPersonas } from "@/app/_lib/server_actions/persona.actions";
 import { Persona } from "@prisma/client";
-import { DeletePersonaButton, EditPersonaButton } from "../buttons";
+import { DeletePersonaButton, EditPersonaButton } from "./buttons";
 
-export default async function PersonaList() {
-  const personas = await getPersonas();
-
+export default async function PersonaList({
+  personas,
+}: {
+  personas: Persona[];
+}) {
   return (
     <>
       {personas.map((persona: Persona) => {
