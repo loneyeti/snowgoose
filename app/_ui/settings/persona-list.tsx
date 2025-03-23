@@ -1,13 +1,15 @@
-import { getPersonas } from "@/app/_lib/server_actions/persona.actions";
-import { Persona } from "@/app/_lib/model";
-import { DeletePersonaButton, EditPersonaButton } from "../buttons";
+import { Persona } from "@prisma/client";
+import { DeletePersonaButton, EditPersonaButton } from "./buttons";
 
-export default async function PersonaList() {
-  const personas = await getPersonas();
-
+export default async function PersonaList({
+  personas,
+}: {
+  personas: Persona[];
+}) {
   return (
     <>
       {personas.map((persona: Persona) => {
+        console.log(`Persona: ${persona.ownerId}`);
         return (
           <div
             className="w-3/4 mx-auto p-6 my-3 rounded-md bg-slate-50"

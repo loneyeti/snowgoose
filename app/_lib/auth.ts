@@ -46,3 +46,9 @@ export async function getCurrentAPIUser() {
   console.log(`Local User: ${dbUser}`);
   return dbUser;
 }
+
+export async function isCurrentUserAdmin() {
+  const user = await getCurrentAPIUser();
+  if (!user) return false;
+  return user.isAdmin;
+}

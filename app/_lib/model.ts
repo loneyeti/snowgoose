@@ -10,6 +10,7 @@ export interface Persona {
 export interface PersonaPost {
   name: string;
   prompt: string;
+  ownerId: number | null;
 }
 
 export interface OutputFormatPost {

@@ -1,13 +1,11 @@
 import { SettingsHeading } from "@/app/_ui/typography";
-import { updatePersona } from "@/app/_lib/server_actions/persona.actions";
-import { Persona } from "@/app/_lib/model";
+import { createUserPersona } from "@/app/_lib/server_actions/persona.actions";
 
-export default function EditPersonaForm({ persona }: { persona: Persona }) {
+export default async function NewPersona() {
   return (
     <main>
-      <SettingsHeading>Edit Persona</SettingsHeading>
-      <form action={updatePersona}>
-        <input type="hidden" name="id" value={persona.id} />
+      <SettingsHeading>New User Persona</SettingsHeading>
+      <form action={createUserPersona}>
         <div className="w-2/3 flex justify-center flex-col">
           <div className="py-2">
             <label className="text-gray-700 text-xs" htmlFor="name">
@@ -16,9 +14,8 @@ export default function EditPersonaForm({ persona }: { persona: Persona }) {
             <input
               type="text"
               name="name"
-              defaultValue={persona.name}
               className="block w-full mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
-            ></input>
+            />
           </div>
           <div className="py-2">
             <label className="text-gray-700 text-xs" htmlFor="prompt">
@@ -26,7 +23,6 @@ export default function EditPersonaForm({ persona }: { persona: Persona }) {
             </label>
             <textarea
               name="prompt"
-              defaultValue={persona.prompt}
               className="block w-full mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
             ></textarea>
           </div>
@@ -35,7 +31,7 @@ export default function EditPersonaForm({ persona }: { persona: Persona }) {
               className="rounded-md bg-slate-200 p-2 hover:bg-slate-300"
               type="submit"
             >
-              Update Persona
+              Add Persona
             </button>
           </div>
         </div>

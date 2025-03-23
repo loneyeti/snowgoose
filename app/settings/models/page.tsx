@@ -7,6 +7,7 @@ import "react-material-symbols/outlined";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/app/_utils/supabase/server";
+import { isCurrentUserAdmin } from "@/app/_lib/auth";
 
 export default async function Models() {
   const supabase = await createClient();
@@ -15,7 +16,22 @@ export default async function Models() {
   if (error || !data?.user) {
     redirect("/login");
   }
-  //const models = await fetchModels();
+
+  const isUserAdmin = await isCurrentUserAdmin();
+
+  if (!isUserAdmin) {
+    return (
+      <main>
+        <SettingsHeading>Models</SettingsHeading>
+        <div className="flex flex-col justify-center mt-6">
+          <p className="text-center">
+            You do not have permission to view this page.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main>
       <SettingsHeading>Models</SettingsHeading>

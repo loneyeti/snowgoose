@@ -15,7 +15,8 @@
     "db:pull": "dotenv -e .env.local -- prisma db pull",
     "db:push": "dotenv -e .env.local -- prisma db push",
     "db:test": "dotenv -e .env.local -- tsx prisma/test-connection.ts",
-    "db:seed": "dotenv -e .env.local -- prisma db seed"
+    "db:seed": "dotenv -e .env.local -- prisma db seed",
+    "promote-admin": "node scripts/promote-to-admin.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
