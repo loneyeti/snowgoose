@@ -4,7 +4,7 @@ import { BaseRepository } from "./base.repository";
 export class RenderTypeRepository extends BaseRepository {
   async findAll(): Promise<RenderType[]> {
     try {
-      console.log("Repository getting render types");
+      //console.log("Repository getting render types");
       return await this.prisma.renderType.findMany({
         orderBy: {
           id: "asc",

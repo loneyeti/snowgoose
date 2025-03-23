@@ -51,9 +51,9 @@ export default function ChatWrapper({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log("Fetching history");
+        //console.log("Fetching history");
         const userId = await getUserID();
-        console.log(`UserID: ${userId}`);
+        //console.log(`UserID: ${userId}`);
         const historyData = await getHistory(userId ?? 0);
         if (historyData) {
           setHistroy(historyData);

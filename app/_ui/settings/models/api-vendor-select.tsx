@@ -8,15 +8,15 @@ export async function APIVendorSelect({
   defaultValue?: string | number;
 }) {
   const apiVendors = await getApiVendors();
-  console.log(apiVendors);
+  //console.log(apiVendors);
   let selectDefault = "";
   if (!defaultValue) {
-    console.log("No default value");
+    //console.log("No default value");
     selectDefault = `${apiVendors[0].id}`;
   } else {
     selectDefault = `${defaultValue}`;
   }
-  console.log(selectDefault);
+  //console.log(selectDefault);
 
   return (
     <select

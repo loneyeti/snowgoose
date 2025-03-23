@@ -4,7 +4,7 @@ import { BaseRepository } from "./base.repository";
 export class PersonaRepository extends BaseRepository {
   async findAll(): Promise<Persona[]> {
     try {
-      console.log("Repository getting personas");
+      //console.log("Repository getting personas");
       return await this.prisma.persona.findMany({
         orderBy: {
           id: "asc",
@@ -69,7 +69,7 @@ export class PersonaRepository extends BaseRepository {
 
   async findAllGlobal(): Promise<Persona[]> {
     try {
-      console.log("Repository getting global personas");
+      //console.log("Repository getting global personas");
       return await this.prisma.persona.findMany({
         where: {
           ownerId: null,
@@ -85,7 +85,7 @@ export class PersonaRepository extends BaseRepository {
 
   async findByUser(user: User): Promise<Persona[]> {
     try {
-      console.log("Repository getting user personas");
+      //console.log("Repository getting user personas");
       return await this.prisma.persona.findMany({
         where: {
           ownerId: user.id,

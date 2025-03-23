@@ -15,7 +15,7 @@ export async function supabaseUploadFile(filename: string, file: File) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    console.log(`User id: ${user?.id}`);
+    // console.log(`User id: ${user?.id}`);
 
     if (!user) {
       throw new Error("User not found");
@@ -48,7 +48,7 @@ export async function supabaseUploadFile(filename: string, file: File) {
 
       // If signedUrl is possibly your public URL, use it accordingly
       if (signedUrl) {
-        console.log("Public URL:", signedUrl);
+        // console.log("Public URL:", signedUrl);
         return signedUrl; // or derive the publicUrl if needed
       } else {
         console.error("Error: signedUrl does not exist in the response.");

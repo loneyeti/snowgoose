@@ -4,7 +4,7 @@ import { BaseRepository } from "./base.repository";
 export class UserRepository extends BaseRepository {
   async findAll(): Promise<User[]> {
     try {
-      console.log("Repository getting users");
+      //console.log("Repository getting users");
       return await this.prisma.user.findMany({
         orderBy: {
           id: "asc",

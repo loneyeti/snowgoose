@@ -36,8 +36,8 @@ export async function createChat(
     role: "user",
     content: prompt,
   };
-  console.log("mcp form data:");
-  console.log(formData.get("mcpTool"));
+  //console.log("mcp form data:");
+  //console.log(formData.get("mcpTool"));
   responseHistory.push(userChatResponse);
 
   // Get Render Type (eg: markdown, html, etc)
@@ -86,8 +86,8 @@ export async function createChat(
   const file = formData.get("image") as File | null;
   if (file && file.name !== "undefined") {
     try {
-      console.log("FILE IS:");
-      console.log(file);
+      //console.log("FILE IS:");
+      //console.log(file);
       const uploadURL = await supabaseUploadFile(
         generateUniqueFilename(file.name),
         file
@@ -105,11 +105,11 @@ export async function createChat(
   try {
     let mcpToolData;
     let apiVendor = await getApiVendor(modelObj?.apiVendorId ?? 0);
-    console.log(mcpTool);
+    //console.log(mcpTool);
     if (mcpTool > 0 && apiVendor?.name === "anthropic") {
-      console.log("MCP Tool data set");
+      //console.log("MCP Tool data set");
       mcpToolData = await getMcpTool(mcpTool);
-      console.log(mcpToolData);
+      //console.log(mcpToolData);
       if (!mcpToolData) {
         throw new Error(`MCP Tool not found`);
       }

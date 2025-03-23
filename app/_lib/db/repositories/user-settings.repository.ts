@@ -4,7 +4,7 @@ import { BaseRepository } from "./base.repository";
 export class UserSettingsRepository extends BaseRepository {
   async findAll(): Promise<UserSettings[]> {
     try {
-      console.log("Repository getting user settings");
+      //console.log("Repository getting user settings");
       return await this.prisma.userSettings.findMany({
         orderBy: {
           id: "asc",

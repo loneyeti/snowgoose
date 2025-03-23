@@ -3,8 +3,8 @@ import { BaseRepository } from "./base.repository";
 
 export class HistoryRepository extends BaseRepository {
   async findAll(userId: number): Promise<ConversationHistory[]> {
-    console.log("USERID:");
-    console.log(userId);
+    //console.log("USERID:");
+    // console.log(userId);
     try {
       return await this.prisma.conversationHistory.findMany({
         where: { userId },

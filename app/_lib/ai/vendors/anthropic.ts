@@ -34,16 +34,58 @@ export class AnthropicAdapter implements AIVendorAdapter {
       thinkingMode,
     } = options;
 
+    console.log(
+      `About to generate an Anthropic response. Messages: ${messages}`
+    );
+
     // Convert messages to Anthropic format
     // Convert messages to Anthropic format with inferred types
-    const formattedMessages = messages.map((msg) => ({
-      role:
-        msg.role === "assistant" ? ("assistant" as const) : ("user" as const),
-      content:
-        typeof msg.content === "string"
-          ? msg.content
-          : JSON.stringify(msg.content),
-    }));
+    const formattedMessages = messages.map((msg) => {
+      const role =
+        msg.role === "assistant" ? ("assistant" as const) : ("user" as const);
+
+      if (typeof msg.content === "string") {
+        return { role, content: msg.content };
+      }
+
+      // Map our content blocks to Anthropic's ContentBlockParam format
+      const mappedContent = msg.content.reduce<
+        Array<
+          | {
+              type: "text";
+              text: string;
+            }
+          | {
+              type: "thinking";
+              thinking: string;
+              signature: string;
+            }
+        >
+      >((acc, block) => {
+        if (block.type === "text") {
+          acc.push({
+            type: "text",
+            text: block.text,
+          });
+        } else if (block.type === "thinking") {
+          acc.push({
+            type: "thinking",
+            thinking: block.thinking,
+            signature: block.signature,
+          });
+        }
+        return acc;
+      }, []);
+
+      // If we have no valid content blocks, convert to a text block with the stringified content
+      return {
+        role,
+        content:
+          mappedContent.length > 0
+            ? mappedContent
+            : JSON.stringify(msg.content),
+      };
+    });
 
     console.log(
       `Thinking Mode Status: ${thinkingMode} ${this.isThinkingCapable}. Max tokens are: ${maxTokens}`
@@ -133,14 +175,52 @@ export class AnthropicAdapter implements AIVendorAdapter {
         : `You have access to the MCP server: ${mcpToolData.name}.`;
 
       // Convert messages to Anthropic format
-      const formattedMessages = chat.responseHistory.map((msg) => ({
-        role:
-          msg.role === "assistant" ? ("assistant" as const) : ("user" as const),
-        content:
-          typeof msg.content === "string"
-            ? msg.content
-            : JSON.stringify(msg.content),
-      }));
+      const formattedMessages = chat.responseHistory.map((msg) => {
+        const role =
+          msg.role === "assistant" ? ("assistant" as const) : ("user" as const);
+
+        if (typeof msg.content === "string") {
+          return { role, content: msg.content };
+        }
+
+        // Map our content blocks to Anthropic's ContentBlockParam format
+        const mappedContent = msg.content.reduce<
+          Array<
+            | {
+                type: "text";
+                text: string;
+              }
+            | {
+                type: "thinking";
+                thinking: string;
+                signature: string;
+              }
+          >
+        >((acc, block) => {
+          if (block.type === "text") {
+            acc.push({
+              type: "text",
+              text: block.text,
+            });
+          } else if (block.type === "thinking") {
+            acc.push({
+              type: "thinking",
+              thinking: block.thinking,
+              signature: block.signature,
+            });
+          }
+          return acc;
+        }, []);
+
+        // If we have no valid content blocks, convert to a text block with the stringified content
+        return {
+          role,
+          content:
+            mappedContent.length > 0
+              ? mappedContent
+              : JSON.stringify(msg.content),
+        };
+      });
 
       // Generate initial response with tools
       const response = await this.client.messages.create({
@@ -190,11 +270,55 @@ export class AnthropicAdapter implements AIVendorAdapter {
               toolArgs
             );
 
+            // Convert tool result content to a format compatible with Anthropic's API
+            const toolResultContent = (() => {
+              if (typeof toolResult.content === "string") {
+                return toolResult.content;
+              }
+
+              if (!Array.isArray(toolResult.content)) {
+                return JSON.stringify(toolResult.content);
+              }
+
+              type TextBlock = { type: "text"; text: string };
+              type ToolResultBlock =
+                | string
+                | { type: string; text?: string; [key: string]: any };
+
+              const textBlocks = toolResult.content
+                .map((block: ToolResultBlock) => {
+                  if (typeof block === "string") {
+                    return { type: "text" as const, text: block } as TextBlock;
+                  }
+                  if (
+                    block &&
+                    typeof block === "object" &&
+                    block.type === "text" &&
+                    typeof block.text === "string"
+                  ) {
+                    return {
+                      type: "text" as const,
+                      text: block.text,
+                    } as TextBlock;
+                  }
+                  return null;
+                })
+                .filter(
+                  (block: TextBlock | null): block is TextBlock =>
+                    block !== null
+                );
+
+              return textBlocks.length > 0
+                ? textBlocks
+                : JSON.stringify(toolResult.content);
+            })();
+
             // Add a new message with the tool result
-            formattedMessages.push({
+            const toolResultMessage = {
               role: "user" as const,
-              content: JSON.stringify(toolResult.content),
-            });
+              content: toolResultContent,
+            };
+            formattedMessages.push(toolResultMessage);
 
             // Get a follow-up response from Claude with the tool result
             const followUpResponse = await this.client.messages.create({

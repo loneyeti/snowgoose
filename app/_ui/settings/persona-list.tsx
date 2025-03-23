@@ -9,7 +9,7 @@ export default async function PersonaList({
   return (
     <>
       {personas.map((persona: Persona) => {
-        console.log(`Persona: ${persona.ownerId}`);
+        //console.log(`Persona: ${persona.ownerId}`);
         return (
           <div
             className="w-3/4 mx-auto p-6 my-3 rounded-md bg-slate-50"

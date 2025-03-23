@@ -15,7 +15,7 @@ export async function getUserSession() {
     sessionId: user?.id ?? "", // Using user ID as session ID since Supabase doesn't have a separate session ID
     email: user?.email ?? "",
   };
-  console.log(`User Session: ${userSession}`);
+  // console.log(`User Session: ${userSession}`);
   return userSession;
 }
 
@@ -36,14 +36,14 @@ export async function getCurrentAPIUser() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  console.log(`User: ${user?.email}`);
+  // console.log(`User: ${user?.email}`);
   if (!user || !user.email) return null;
 
   let dbUser = await userRepository.findByUsername(user.email);
   if (!dbUser) {
     dbUser = await ensureUserExists(user.email);
   }
-  console.log(`Local User: ${dbUser}`);
+  // console.log(`Local User: ${dbUser}`);
   return dbUser;
 }
 

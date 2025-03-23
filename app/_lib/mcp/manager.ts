@@ -41,7 +41,7 @@ export class MCPManager {
     toolName: string,
     args: Record<string, any>
   ): Promise<any> {
-    console.log("Running Manager callTool");
+    //console.log("Running Manager callTool");
     const client = await this.getClient(mcpTool);
     return client.callTool(toolName, args);
   }

@@ -4,7 +4,7 @@ export interface Persona {
   id: number;
   name: string;
   prompt: string;
-  //owner_id: number | null;
+  ownerId: number | null;
 }
 
 export interface PersonaPost {
