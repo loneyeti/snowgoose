@@ -1,4 +1,5 @@
 import { Model, User } from "@prisma/client";
+import { ResourceType } from "../_ui/settings/buttons";
 
 export interface Persona {
   id: number;
@@ -188,4 +189,16 @@ export interface MCPTool {
   id: number;
   name: string;
   path: string;
+}
+
+export interface SettingsListSettings {
+  id: number;
+  title: string;
+  detail: string;
+}
+
+export interface SettingListProps {
+  settings: SettingsListSettings[];
+  resourceType: ResourceType;
+  hideEdit: boolean | undefined;
 }

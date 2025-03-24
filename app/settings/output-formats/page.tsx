@@ -1,5 +1,5 @@
 import { SettingsHeading } from "@/app/_ui/typography";
-import PersonaSkeleton from "@/app/_ui/settings/list-skeleton";
+import ListSkeleton from "@/app/_ui/settings/list-skeleton";
 import { Suspense } from "react";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
@@ -22,9 +22,9 @@ export default async function OutputFormats() {
         <Suspense
           fallback={
             <>
-              <PersonaSkeleton />
-              <PersonaSkeleton />
-              <PersonaSkeleton />
+              <ListSkeleton />
+              <ListSkeleton />
+              <ListSkeleton />
             </>
           }
         >
