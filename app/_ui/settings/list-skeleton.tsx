@@ -1,4 +1,4 @@
-export default function PersonaSkeleton() {
+export default function ListSkeleton() {
   return (
     <div className="w-3/4 mx-auto p-6 my-3 rounded-md bg-slate-50">
       <div role="status" className="max-w-sm animate-pulse">
