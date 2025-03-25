@@ -130,7 +130,8 @@ export type FormProps = {
 };
 
 export type ChatWrapperProps = {
-  personas: Persona[];
+  userPersonas: Persona[];
+  globalPersonas: Persona[];
   models: Model[];
   outputFormats: OutputFormat[];
   mcpTools: MCPTool[];

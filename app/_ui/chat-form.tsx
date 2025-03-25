@@ -4,10 +4,13 @@ import { Persona, OutputFormat, FormProps, MCPTool } from "../_lib/model";
 import { Model } from "@prisma/client";
 import SelectBox from "./select-box";
 import { createChat } from "../_lib/server_actions/chat-actions";
-import React, { useState, useEffect, useRef, ChangeEvent } from "react";
-import { Spinner, SpinnerSize } from "./spinner";
+import React, { useState, useEffect, ChangeEvent } from "react";
+import { SpinnerSize } from "./spinner";
+import TextInputArea from "./chat/text-input-area";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
+import OptionsBar from "./chat/options-bar";
+import MoreOptions from "./chat/more-options";
 
 interface ThinkingPreset {
   name: string;
@@ -33,18 +36,15 @@ export default function ChatForm({
   mcpTools,
   apiVendors,
 }: FormProps) {
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const [promptVal, setPromptVal] = useState("");
-  const [data, setData] = useState<FormData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  //const [personas, setPersonas] = useState<Persona[]>([]);
-  //const [models, setModels] = useState<Model[]>([]);
-  //const [outputFormats, setOutputFormats] = useState<OutputFormat[]>([]);
-  //const [responseHistory, setResponseHistory] = useState<ChatResponse[]>([]);
+  const [data, setData] = useState<FormData | null>(null);
   const router = useRouter();
   const disableSelection = responseHistory.length > 0;
   //const [defaultModel, setDefaultModel] = useState("gpt-4");
-  const [selectedModel, setSelectedModel] = useState("");
+  // Initialize with the first model if available
+  const [selectedModel, setSelectedModel] = useState<string>(
+    models.length > 0 ? String(models[0].id) : ""
+  );
   const [selectedModelVendor, setSelectedModelVendor] = useState("");
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [hidePersonas, setHidePersonas] = useState(false);
@@ -55,17 +55,14 @@ export default function ChatForm({
   const [selectedPreset, setSelectedPreset] = useState<string>("Thinking Off");
   const [maxTokens, setMaxTokens] = useState<number | null>(null);
   const [budgetTokens, setBudgetTokens] = useState<number | null>(null);
-  const handleReset = (e: React.MouseEvent) => {
-    resetPage();
+  const handleReset = () => {
+    resetChat();
+    router.refresh();
   };
 
-  const resetPage = () => {
-    resetChat();
-    if (textAreaRef.current) {
-      textAreaRef.current.value = "";
-    }
-    //setResponseHistory([]);
-    router.refresh();
+  const handleSubmit = (formData: FormData) => {
+    setData(formData);
+    setIsSubmitting(true);
   };
 
   const modelChange = (event: ChangeEvent) => {
@@ -115,10 +112,6 @@ export default function ChatForm({
 
         // Set up form for followup
         updateShowSpinner(false);
-        if (textAreaRef.current) {
-          textAreaRef.current.value = "";
-        }
-        setPromptVal("");
         setIsSubmitting(false);
       } catch (error) {
         updateShowSpinner(false);
@@ -133,220 +126,56 @@ export default function ChatForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSubmitting]);
 
-  //Adjust the height of the prompt box as needed
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
+  const toggleMoreOptions = () => setShowMoreOptions(!showMoreOptions);
+
+  // Set initial model from props if a default hasn't been selected yet
   useEffect(() => {
-    //Min/Max height of the Text box
-    const minTextAreaHeight = 76;
-    const maxTextAreaHeight = 300;
-
-    const textArea = textAreaRef.current;
-    if (!textArea) return;
-
-    // Reset height to its initial or auto state to properly calculate scroll height.
-    textArea.style.height = "auto";
-
-    // Calculate the required height, and ensure it's within the defined min and max range.
-    const requiredHeight = textArea.scrollHeight;
-    const newHeight = Math.min(
-      Math.max(requiredHeight, minTextAreaHeight),
-      maxTextAreaHeight
-    );
-
-    // Apply the newHeight to the text area's height style.
-    textArea.style.height = `${newHeight}px`;
-  }, [promptVal]);
-
-  const handleSubmit = (formData: FormData) => {
-    setData(formData);
-    setIsSubmitting(true);
-  };
-
-  const handleTextAreaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setPromptVal(e.target.value);
-  };
+    if (selectedModel === "" && models.length > 0) {
+      setSelectedModel(String(models[0].id));
+    }
+  }, [models, selectedModel]);
 
   return (
     <form action={handleSubmit}>
-      <div className="m-3">
-        <label className="text-gray-700 text-xs" htmlFor="model">
-          Model
-        </label>
-        <SelectBox
-          name="model"
+      {/* Hidden input for the selected model */}
+      <input type="hidden" name="model" value={selectedModel} />
+      <OptionsBar
+        models={models}
+        personas={personas}
+        currentModel={currentChat?.modelId}
+        currentPersona={currentChat?.personaId}
+        disableSelection={disableSelection}
+        onModelChange={modelChange}
+        showMoreOptions={showMoreOptions}
+        toggleMoreOptions={toggleMoreOptions}
+      >
+        <MoreOptions
+          outputFormats={outputFormats}
+          mcpTools={mcpTools}
+          currentOutputFormat={currentChat?.outputFormatId}
           disableSelection={disableSelection}
-          defaultValue={currentChat?.modelId ?? 0}
-          hide={false}
-          onChangeFunction={modelChange}
-        >
-          {models.map((model: Model) => {
-            return (
-              <option value={model.id} key={model.id}>
-                {model.name}
-              </option>
-            );
-          })}
-        </SelectBox>
-      </div>
-      <div className="m-3">
-        <label
-          className={clsx(`text-gray-700 text-xs`, {
-            hidden: hidePersonas === true,
-          })}
-          htmlFor="persona"
-        >
-          Persona
-        </label>
-        <SelectBox
-          name="persona"
-          disableSelection={disableSelection}
-          defaultValue={currentChat?.personaId ?? 0}
-          hide={hidePersonas}
-        >
-          {personas.map((persona: Persona) => {
-            return (
-              <option value={persona.id} key={persona.id}>
-                {persona.name}
-              </option>
-            );
-          })}
-        </SelectBox>
-      </div>
-      <div className="m-3">
-        <label
-          className={clsx(`text-gray-700 text-xs`, {
-            hidden: hidePersonas === true,
-          })}
-          htmlFor="outputFormat"
-        >
-          Output Format
-        </label>
-        <SelectBox
-          name="outputFormat"
-          disableSelection={disableSelection}
-          defaultValue={currentChat?.outputFormatId ?? 0}
-          hide={hideOutputFormats}
-        >
-          {outputFormats.map((outputFormat: OutputFormat) => {
-            return (
-              <option value={outputFormat.id} key={outputFormat.id}>
-                {outputFormat.name}
-              </option>
-            );
-          })}
-        </SelectBox>
-      </div>
-      {showMCPTools && (
-        <div className="m-3">
-          <label className="text-gray-700 text-xs" htmlFor="mcpTool">
-            MCP Tool
-          </label>
-          <SelectBox
-            name="mcpTool"
-            disableSelection={disableSelection}
-            defaultValue={0}
-            hide={false}
-          >
-            <option value={0}>No Tool</option>
-            {mcpTools.map((tool: MCPTool) => (
-              <option value={tool.id} key={tool.id}>
-                {tool.name}
-              </option>
-            ))}
-          </SelectBox>
-        </div>
-      )}
-      {showFileUpload && (
-        <div className="m-3">
-          <label className="text-gray-700 text-xs" htmlFor="image">
-            Image
-          </label>
-          <input
-            className="w-full text-sm text-slate-500  border border-slate-300 cursor-pointer rounded-md bg-slate-50 file:text-xs file:border-0 file:bg-slate-300 file:rounded-md file:h-full file:pt-1"
-            name="image"
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file && file.type.startsWith("image/")) {
-                // Valid image file selected
-              } else if (file) {
-                // Invalid file type selected
-                e.target.value = "";
-                alert("Please select a valid image file");
-              }
-            }}
-          />
-        </div>
-      )}
-      {showTokenSliders && (
-        <>
-          <div className="m-3">
-            <div className="flex justify-between">
-              <label className="text-gray-700 text-xs" htmlFor="thinkingPreset">
-                Thinking Level
-              </label>
-              <span className="text-gray-700 text-xs">{selectedPreset}</span>
-            </div>
-            <input
-              type="range"
-              name="thinkingPreset"
-              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-500"
-              min="0"
-              max={THINKING_PRESETS.length - 1}
-              value={THINKING_PRESETS.findIndex(
-                (p) => p.name === selectedPreset
-              )}
-              onChange={(e) => {
-                const preset = THINKING_PRESETS[parseInt(e.target.value)];
-                setSelectedPreset(preset.name);
-                setMaxTokens(preset.maxTokens);
-                setBudgetTokens(preset.budgetTokens);
-              }}
-            />
-          </div>
-          <input type="hidden" name="maxTokens" value={maxTokens || ""} />
-          <input type="hidden" name="budgetTokens" value={budgetTokens || ""} />
-        </>
-      )}
-      <div className="m-3">
-        <label className="text-gray-700 text-xs" htmlFor="prompt">
-          Enter your prompt:
-        </label>
-        <div className="overflow-hidden [&:has(textarea:focus)]:border-token-border-xheavy [&:has(textarea:focus)]:shadow-[0_2px_6px_rgba(0,0,0,.05)] flex flex-col w-full flex-grow relative border border-token-border-heavy bg-white rounded-2xl shadow-[0_0_0_2px_rgba(255,255,255,0.95)]">
-          <textarea
-            className="m-0 text-sm w-full resize-none border-0 bg-transparent py-[10px] pr-10 focus:ring-0 focus-visible:ring-0 md:py-3.5 md:pr-12 placeholder-black/50 pl-3 md:pl-4"
-            id="prompt"
-            name="prompt"
-            ref={textAreaRef}
-            onChange={handleTextAreaChange}
-          ></textarea>
-        </div>
-      </div>
-      <div className="m-3 flex">
-        <button
-          className="rounded-md text-sm bg-slate-300 p-2 hover:bg-slate-400 mr-3"
-          disabled={isSubmitting}
-          type="submit"
-        >
-          {isSubmitting ? (
-            <div className="flex flex-row items-center">
-              <div className="pr-2">
-                <Spinner spinnerSize={SpinnerSize.sm} />
-              </div>
-              <div>Processing</div>
-            </div>
-          ) : (
-            "Submit"
-          )}
-        </button>
-        <button
-          className="rounded-md text-sm bg-slate-200 p-2 hover:bg-slate-300"
-          type="reset"
-          onClick={handleReset}
-        >
-          {"Reset"}
-        </button>
-      </div>
+          showFileUpload={showFileUpload}
+          showMCPTools={showMCPTools}
+          showTokenSliders={showTokenSliders}
+          selectedPreset={selectedPreset}
+          thinkingPresets={THINKING_PRESETS}
+          onPresetChange={(preset: ThinkingPreset) => {
+            setSelectedPreset(preset.name);
+            setMaxTokens(preset.maxTokens);
+            setBudgetTokens(preset.budgetTokens);
+          }}
+          maxTokens={maxTokens}
+          budgetTokens={budgetTokens}
+          hideOutputFormats={hideOutputFormats}
+        />
+      </OptionsBar>
+
+      <TextInputArea
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        onReset={handleReset}
+      />
     </form>
   );
 }

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { MaterialSymbol } from "react-material-symbols";
 
 export default function SelectBox({
   children,
@@ -16,25 +17,36 @@ export default function SelectBox({
   onChangeFunction?: (event: React.ChangeEvent) => void | undefined;
 }) {
   return (
-    <select
-      className={clsx(
-        `block w-full mt-0 px-3 text-sm border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-gray-400 rounded-md disabled:bg-slate-200 disabled:text-slate-500`,
-        {
-          "touch-none pointer-events-none bg-slate-200 text-slate-500":
-            disableSelection === true,
-        },
-        {
-          hidden: hide === true,
-        }
-      )}
-      id={name}
-      name={name}
-      defaultValue={defaultValue}
-      key={defaultValue}
-      disabled={hide}
-      onChange={onChangeFunction}
-    >
-      {children}
-    </select>
+    <div className="relative">
+      <select
+        className={clsx(
+          `block bg-transparent bg-none w-full pl-0 pr-6 text-sm font-medium border-0 focus:ring-0 focus:outline-none appearance-none cursor-pointer`,
+          {
+            "touch-none pointer-events-none text-slate-400":
+              disableSelection === true,
+          },
+          {
+            hidden: hide === true,
+          }
+        )}
+        id={name}
+        name={name}
+        defaultValue={defaultValue}
+        key={defaultValue}
+        disabled={hide}
+        onChange={onChangeFunction}
+      >
+        {children}
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center">
+        <MaterialSymbol
+          icon="expand_more"
+          size={16}
+          className={clsx("text-slate-500", {
+            "text-slate-300": disableSelection === true,
+          })}
+        />
+      </div>
+    </div>
   );
 }
