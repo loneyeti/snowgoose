@@ -51,6 +51,9 @@ export async function createChat(
     }
   }
 
+  // Since we're initializing with the first model in the form, we should always have a valid model ID
+  console.log(`Looking for model id: ${model}`);
+
   let modelObj = await getModel(Number(model));
   if (!modelObj) {
     throw new Error(`Model with ID ${model} not found`);

@@ -1,7 +1,7 @@
-import { ChatResponse, ContentBlock } from "../_lib/model";
-import { SpinnerSize, Spinner } from "./spinner";
-import MarkdownComponent from "./markdown-parser";
-import { isContentBlockArray } from "../_lib/utils";
+import { ChatResponse, ContentBlock } from "../../_lib/model";
+import { SpinnerSize, Spinner } from "../spinner";
+import MarkdownComponent from "../markdown-parser";
+import { isContentBlockArray } from "../../_lib/utils";
 
 interface ConversationProps {
   chats: ChatResponse[];
@@ -33,15 +33,15 @@ export default function Conversation({
     );
   } else {
     return (
-      <div>
-        <div className="prose lg:w-[65ch]">
+      <div className="grid w-full h-full">
+        <div className="prose lg:w-[65ch] mx-auto">
           {chats && chats.length > 0 ? (
             chats.map((chat: ChatResponse, index) => (
               <div
                 key={index}
                 className={
                   chat.role === "user"
-                    ? "px-6 py-2 text-sm text-slate-600 italic bg-slate-100 rounded-md border-b-2"
+                    ? "px-6 py-1 text-sm text-slate-600 italic bg-slate-100 rounded-lg"
                     : "p-2"
                 }
               >

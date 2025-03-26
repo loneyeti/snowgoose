@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation";
-import ChatWrapper from "./_ui/chat-wrapper";
+import ChatWrapper from "./_ui/chat/chat-wrapper";
 import { createClient } from "./_utils/supabase/server";
-import { getPersonas } from "./_lib/server_actions/persona.actions";
+import {
+  getGlobalPersonas,
+  getPersonas,
+  getUserPersonas,
+} from "./_lib/server_actions/persona.actions";
 import { getModels } from "./_lib/server_actions/model.actions";
 import { getOutputFormats } from "./_lib/server_actions/output-format.actions";
 import { getMcpTools } from "./_lib/server_actions/mcp-tool.actions";
@@ -17,25 +21,37 @@ export default async function Home() {
     redirect("/login");
   }
 
-  const [personas, models, outputFormats, mcpTools, apiVendors] =
-    await Promise.all([
-      getPersonas(),
-      getModels(),
-      getOutputFormats(),
-      getMcpTools(),
-      getApiVendors(),
-    ]);
+  const [
+    userPersonas,
+    globalPersonas,
+    models,
+    outputFormats,
+    mcpTools,
+    apiVendors,
+  ] = await Promise.all([
+    getUserPersonas(user),
+    getGlobalPersonas(),
+    getModels(),
+    getOutputFormats(),
+    getMcpTools(),
+    getApiVendors(),
+  ]);
+
+  console.log(`User Personas: ${userPersonas}, Global: ${globalPersonas}`);
 
   return (
-    <main>
-      <ChatWrapper
-        personas={personas}
-        models={models}
-        outputFormats={outputFormats}
-        mcpTools={mcpTools}
-        apiVendors={apiVendors}
-        user={user}
-      />
+    <main className="bg-slate-50">
+      <div className="">
+        <ChatWrapper
+          userPersonas={userPersonas}
+          globalPersonas={globalPersonas}
+          models={models}
+          outputFormats={outputFormats}
+          mcpTools={mcpTools}
+          apiVendors={apiVendors}
+          user={user}
+        />
+      </div>
     </main>
   );
 }
