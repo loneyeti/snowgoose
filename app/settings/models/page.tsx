@@ -49,7 +49,7 @@ export default async function Models() {
 
   const settingsListProps: SettingListProps = {
     settings: settingsListSettings,
-    resourceType: "personas",
+    resourceType: "models",
     hideEdit: false,
   };
 
