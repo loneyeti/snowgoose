@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import ChatWrapper from "./_ui/chat-wrapper";
+import ChatWrapper from "./_ui/chat/chat-wrapper";
 import { createClient } from "./_utils/supabase/server";
 import {
   getGlobalPersonas,

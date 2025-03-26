@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
-import { Chat } from "../_lib/model";
-import { saveChat } from "../_lib/server_actions/history.actions";
+import { Chat } from "../../_lib/model";
+import { saveChat } from "../../_lib/server_actions/history.actions";
 import { User } from "@prisma/client";
 
 export default function UtilityIconRow({

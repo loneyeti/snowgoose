@@ -1,26 +1,22 @@
 "use client";
 
 import Conversation from "./conversation";
-import OptionsBar from "./chat/options-bar";
-import MoreOptions from "./chat/more-options";
-import TextInputArea from "./chat/text-input-area";
-import { useRouter } from "next/navigation";
-import { createChat } from "../_lib/server_actions/chat-actions";
+import OptionsBar from "./options-bar";
+import MoreOptions from "./more-options";
+import TextInputArea from "./text-input-area";
 import React, { useState, useEffect, Fragment } from "react";
-import { useModelState } from "./chat/hooks/useModelState";
-import { useThinkingState } from "./chat/hooks/useThinkingState";
-import { useFormSubmission } from "./chat/hooks/useFormSubmission";
+import { useModelState } from "./hooks/useModelState";
+import { useThinkingState } from "./hooks/useThinkingState";
+import { useFormSubmission } from "./hooks/useFormSubmission";
 import { Popover, Transition } from "@headlessui/react";
 import {
   Chat,
   ChatResponse,
   ChatUserSession,
   ChatWrapperProps,
-} from "../_lib/model";
-import Sidebar from "./sidebar";
-import Detail from "./detail";
+} from "../../_lib/model";
 import UtilityIconRow from "./utility-icon-row";
-import { getHistory } from "../_lib/server_actions/history.actions";
+import { getHistory } from "../../_lib/server_actions/history.actions";
 import { ConversationHistory } from "@prisma/client";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";

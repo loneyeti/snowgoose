@@ -1,7 +1,7 @@
-import { ChatResponse, ContentBlock } from "../_lib/model";
-import { SpinnerSize, Spinner } from "./spinner";
-import MarkdownComponent from "./markdown-parser";
-import { isContentBlockArray } from "../_lib/utils";
+import { ChatResponse, ContentBlock } from "../../_lib/model";
+import { SpinnerSize, Spinner } from "../spinner";
+import MarkdownComponent from "../markdown-parser";
+import { isContentBlockArray } from "../../_lib/utils";
 
 interface ConversationProps {
   chats: ChatResponse[];
