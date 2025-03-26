@@ -193,7 +193,7 @@ export default function ChatWrapper({
           value={mcpTools?.length > 0 ? mcpTools[0].id : 0}
         />
         {/* Enhanced top bar */}
-        <div className="flex items-center bg-gradient-to-r from-white to-slate-100 border-b shadow-sm">
+        <div className="flex-none sm:flex items-center bg-gradient-to-r from-white to-slate-100 border-b shadow-sm">
           {/* Logo section with improved styling */}
           <div className="pl-5 pr-2 py-3 flex items-center">
             <img
@@ -204,70 +204,88 @@ export default function ChatWrapper({
           </div>
 
           <div className="flex-1 pr-4">
-            <div className="flex items-center justify-between">
+            <div className="flex-none sm:flex items-center sm:justify-between">
               {/* Options Bar */}
-              <OptionsBar
-                models={models}
-                personas={[...(userPersonas || []), ...(globalPersonas || [])]}
-                userPersonas={userPersonas || []}
-                globalPersonas={globalPersonas || []}
-                currentModel={currentChat?.modelId}
-                currentPersona={currentChat?.personaId}
-                disableSelection={disableSelection}
-                onModelChange={modelChange}
-                showMoreOptions={showMoreOptions}
-                toggleMoreOptions={toggleMoreOptions}
-              />
+              <div className="flex flex-row items-center">
+                <OptionsBar
+                  models={models}
+                  personas={[
+                    ...(userPersonas || []),
+                    ...(globalPersonas || []),
+                  ]}
+                  userPersonas={userPersonas || []}
+                  globalPersonas={globalPersonas || []}
+                  currentModel={currentChat?.modelId}
+                  currentPersona={currentChat?.personaId}
+                  disableSelection={disableSelection}
+                  onModelChange={modelChange}
+                  showMoreOptions={showMoreOptions}
+                  toggleMoreOptions={toggleMoreOptions}
+                />
 
-              {/* More Options Popover */}
-              <Popover className="relative">
-                {({ open }) => (
-                  <>
-                    <Popover.Button className="p-2.5 rounded-full text-slate-600 hover:text-slate-900 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors">
-                      <MaterialSymbol icon="tune" size={22} />
-                    </Popover.Button>
+                {/* More Options Popover */}
+                <Popover className="relative ml-3">
+                  {({ open }) => (
+                    <>
+                      <Popover.Button className="py-1 px-2.5 rounded-full text-slate-600 hover:text-slate-900 hover:bg-slate-200 focus:outline-none transition-colors">
+                        <MaterialSymbol
+                          className="mt-1.5"
+                          icon="tune"
+                          size={22}
+                        />
+                      </Popover.Button>
 
-                    <Transition
-                      as={Fragment}
-                      enter="transition ease-out duration-200"
-                      enterFrom="opacity-0 translate-y-1"
-                      enterTo="opacity-100 translate-y-0"
-                      leave="transition ease-in duration-150"
-                      leaveFrom="opacity-100 translate-y-0"
-                      leaveTo="opacity-0 translate-y-1"
-                    >
-                      <Popover.Panel className="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                        <div className="p-4">
-                          <MoreOptions
-                            outputFormats={outputFormats}
-                            mcpTools={mcpTools}
-                            currentOutputFormat={currentChat?.outputFormatId}
-                            disableSelection={disableSelection}
-                            showFileUpload={showFileUpload}
-                            showMCPTools={showMCPTools}
-                            showTokenSliders={showTokenSliders}
-                            selectedPreset={selectedPreset}
-                            thinkingPresets={thinkingPresets}
-                            onPresetChange={updatePreset}
-                            maxTokens={maxTokens}
-                            budgetTokens={budgetTokens}
-                            hideOutputFormats={hideOutputFormats}
-                            onOutputFormatChange={outputFormatChange}
-                            onMCPToolChange={mcpToolChange}
-                          />
-                        </div>
-                      </Popover.Panel>
-                    </Transition>
-                  </>
-                )}
-              </Popover>
+                      <Transition
+                        as={Fragment}
+                        enter="transition ease-out duration-200"
+                        enterFrom="opacity-0 translate-y-1"
+                        enterTo="opacity-100 translate-y-0"
+                        leave="transition ease-in duration-150"
+                        leaveFrom="opacity-100 translate-y-0"
+                        leaveTo="opacity-0 translate-y-1"
+                      >
+                        <Popover.Panel className="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                          <div className="p-4">
+                            <MoreOptions
+                              outputFormats={outputFormats}
+                              mcpTools={mcpTools}
+                              currentOutputFormat={currentChat?.outputFormatId}
+                              disableSelection={disableSelection}
+                              showFileUpload={showFileUpload}
+                              showMCPTools={showMCPTools}
+                              showTokenSliders={showTokenSliders}
+                              selectedPreset={selectedPreset}
+                              thinkingPresets={thinkingPresets}
+                              onPresetChange={updatePreset}
+                              maxTokens={maxTokens}
+                              budgetTokens={budgetTokens}
+                              hideOutputFormats={hideOutputFormats}
+                              onOutputFormatChange={outputFormatChange}
+                              onMCPToolChange={mcpToolChange}
+                            />
+                          </div>
+                        </Popover.Panel>
+                      </Transition>
+                    </>
+                  )}
+                </Popover>
+              </div>
+              {/* Utility icons */}
+              <div>
+                <UtilityIconRow
+                  resetChat={resetChat}
+                  toggleHistory={toggleHistory}
+                  chat={currentChat}
+                  user={user}
+                />
+              </div>
             </div>
           </div>
         </div>
 
         {/* Conversation area - fills space and scrolls internally */}
         <div className="flex-grow flex overflow-hidden">
-          <div className="max-w-4xl w-full mx-auto overflow-y-auto p-4 rounded-2xl bg-white m-3 shadow-[0_0_0_2px_rgba(255,255,255,0.95)] border flex-1">
+          <div className="max-w-3xl w-full mx-auto overflow-y-auto p-4 rounded-2xl bg-white m-3 shadow-[0_0_0_2px_rgba(255,255,255,0.95)] border flex-1">
             <Conversation
               chats={response}
               showSpinner={showConversationSpinner}
@@ -279,11 +297,12 @@ export default function ChatWrapper({
 
         {/* Text input area - at bottom */}
 
-        <div className="max-w-4xl mx-auto w-full pb-2">
+        <div className="max-w-3xl mx-auto w-full pb-2">
           <TextInputArea
             onSubmit={handleFormSubmit}
             isSubmitting={isSubmitting}
             onReset={handleReset}
+            showFileUpload={showFileUpload}
           />
         </div>
       </form>

@@ -17,41 +17,55 @@ export default function UtilityIconRow({
   chat: Chat | undefined;
 }) {
   async function saveChatAction() {
-    if (chat) {
-      console.log(
-        `Would save this chat. Model: ${chat.model} Persona: ${chat.personaId}`
-      );
-      const saveMessage = await saveChat(chat);
-      alert(`Saved conversation: ${saveMessage}`);
+    try {
+      if (chat) {
+        console.log(
+          `Saving chat. Model: ${chat.model} Persona: ${chat.personaId}`
+        );
+        const saveMessage = await saveChat(chat);
+        alert(`Saved conversation: ${saveMessage}`);
+      } else {
+        console.error("No chat to save");
+        alert("No conversation to save");
+      }
+    } catch (error) {
+      console.error("Error saving chat:", error);
+      alert("Failed to save conversation");
     }
   }
   const initial = user.username.charAt(0).toUpperCase() ?? "";
   return (
-    <div className="flex flex-row mt-8 justify-between mb-10 align-middle">
+    <div className="flex flex-row justify-between align-middle">
       <Link
         href="/"
         onClick={resetChat}
-        className="basis-1/5 text-slate-500 bg-slate-200 hover:bg-slate-300 text-center p-3 rounded-l-lg self-center place-self-center align-middle"
+        className="basis-1/5 text-slate-600 text-center p-3 rounded-l-lg self-center place-self-center align-middle"
       >
-        <MaterialSymbol className="align-middle" icon="add" size={18} />
+        <MaterialSymbol className="align-middle" icon="add" size={24} />
       </Link>
       <button
-        onClick={saveChatAction}
-        className="basis-1/5 text-slate-500 bg-slate-200 hover:bg-slate-300 text-center p-3"
+        onClick={(e) => {
+          e.preventDefault();
+          saveChatAction();
+        }}
+        className="basis-1/5 text-slate-600 text-center p-3 hover:bg-slate-100 rounded"
       >
-        <MaterialSymbol className="align-middle" icon="save" size={18} />
+        <MaterialSymbol className="align-middle" icon="save" size={24} />
       </button>
       <button
-        onClick={toggleHistory}
-        className="basis-1/5 text-slate-500 bg-slate-200 hover:bg-slate-300 text-center p-3"
+        onClick={(e) => {
+          e.preventDefault();
+          toggleHistory();
+        }}
+        className="basis-1/5 text-slate-600 text-center p-3"
       >
-        <MaterialSymbol className="align-middle" icon="history" size={18} />
+        <MaterialSymbol className="align-middle" icon="history" size={24} />
       </button>
       <Link
         href="/settings/profile"
-        className="basis-1/5 text-slate-500 bg-slate-200 hover:bg-slate-300 text-center p-3 rounded-r-lg"
+        className="basis-1/5 text-slate-600  text-center p-3 rounded-r-lg"
       >
-        <MaterialSymbol className="align-middle" icon="settings" size={18} />
+        <MaterialSymbol className="align-middle" icon="settings" size={24} />
       </Link>
       <div className="basis-1/5 place-self-center">
         <div className="pl-2">

@@ -108,26 +108,7 @@ export default function MoreOptions({
         </div>
       )}
 
-      {/* File Upload - Enhanced */}
-      {showFileUpload && (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-slate-700">
-            <MaterialSymbol icon="image" size={18} />
-            <label className="text-sm font-medium" htmlFor="image">
-              Upload Image
-            </label>
-          </div>
-          <div className="relative">
-            <input
-              className="w-full text-sm text-slate-500 border border-slate-200 cursor-pointer rounded-md bg-white file:mr-2 file:py-1.5 file:px-3 file:text-xs file:font-medium file:border-0 file:bg-slate-100 hover:file:bg-slate-200 file:text-slate-600 file:rounded-md file:transition-colors"
-              name="image"
-              type="file"
-              accept="image/*"
-              id="image"
-            />
-          </div>
-        </div>
-      )}
+      {/* File Upload section removed - Now handled in TextInputArea */}
 
       {/* Token Sliders - Enhanced */}
       {showTokenSliders && (

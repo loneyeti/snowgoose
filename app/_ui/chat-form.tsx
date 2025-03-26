@@ -175,6 +175,7 @@ export default function ChatForm({
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
         onReset={handleReset}
+        showFileUpload={showFileUpload}
       />
     </form>
   );
