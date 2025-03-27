@@ -54,6 +54,8 @@ model Model {
   isImageGeneration Boolean        @map("is_image_generation")
   apiVendorId       Int?           @map("api_vendor_id")
   isThinking        Boolean        @default(false) @map("is_thinking")
+  inputTokenCost    Float?         @map("input_token_cost")
+  outputTokenCost   Float?         @map("output_token_cost")
   apiVendor         APIVendor?     @relation(fields: [apiVendorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   userSettings      UserSettings[]
 
