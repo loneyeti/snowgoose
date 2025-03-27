@@ -105,6 +105,7 @@ export interface Chat {
   responseHistory: ChatResponse[];
   personaId: number;
   outputFormatId: number;
+  mcpToolId?: number;
   renderTypeName: string;
   imageData: string | null;
   model: string;

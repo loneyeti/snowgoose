@@ -222,6 +222,10 @@ export class AnthropicAdapter implements AIVendorAdapter {
         };
       });
 
+      console.log(
+        `Thinking Capable is: ${this.isThinkingCapable}. Budget is: ${chat.budgetTokens}`
+      );
+
       // Generate initial response with tools
       const response = await this.client.messages.create({
         model: chat.model,
@@ -229,13 +233,14 @@ export class AnthropicAdapter implements AIVendorAdapter {
         system: mcpSystemPrompt,
         max_tokens: chat.maxTokens || 1024,
         tools: formattedTools,
-        ...(this.isThinkingCapable && {
-          thinking: {
-            type: "enabled",
-            budget_tokens:
-              chat.budgetTokens || Math.floor((chat.maxTokens || 1024) / 2),
-          },
-        }),
+        ...(this.isThinkingCapable &&
+          chat.budgetTokens &&
+          chat.budgetTokens > 0 && {
+            thinking: {
+              type: "enabled",
+              budget_tokens: chat.budgetTokens,
+            },
+          }),
       });
 
       const finalContent = [];
@@ -326,14 +331,16 @@ export class AnthropicAdapter implements AIVendorAdapter {
               messages: formattedMessages,
               system: mcpSystemPrompt,
               max_tokens: chat.maxTokens || 1024,
-              ...(this.isThinkingCapable && {
-                thinking: {
-                  type: "enabled",
-                  budget_tokens:
-                    chat.budgetTokens ||
-                    Math.floor((chat.maxTokens || 1024) / 2),
-                },
-              }),
+              ...(this.isThinkingCapable &&
+                chat.budgetTokens &&
+                chat.budgetTokens > 0 && {
+                  thinking: {
+                    type: "enabled",
+                    budget_tokens:
+                      chat.budgetTokens ||
+                      Math.floor((chat.maxTokens || 1024) / 2),
+                  },
+                }),
             });
 
             // Add the follow-up response to the content

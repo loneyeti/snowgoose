@@ -21,6 +21,9 @@ import { ConversationHistory } from "@prisma/client";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
 import { getUserID } from "@/app/_lib/auth";
+import { usePersonaState } from "./hooks/usePersonaState";
+import { useOutputFormatState } from "./hooks/useOutputFormatState";
+import { useMCPToolState } from "./hooks/useMCPToolState";
 
 export default function ChatWrapper({
   userPersonas,
@@ -43,6 +46,7 @@ export default function ChatWrapper({
   const [renderTypeName, setRenderTypeName] = useState("");
   const [hidePersonas] = useState(false);
   const [hideOutputFormats] = useState(false);
+  const personas = [...(userPersonas || []), ...(globalPersonas || [])];
 
   // Custom hooks
   const {
@@ -56,6 +60,22 @@ export default function ChatWrapper({
     models,
     apiVendors,
     initialModelId: currentChat?.modelId,
+  });
+
+  const { selectedPersona, updateSelectedPersona } = usePersonaState({
+    personas,
+    initialPersonaId: currentChat?.personaId,
+  });
+
+  const { selectedOutputFormat, updateSelectedOutputFormat } =
+    useOutputFormatState({
+      outputFormats,
+      initialOutputFormatId: currentChat?.outputFormatId,
+    });
+
+  const { selectedMCPTool, updateSelectedMCPTool } = useMCPToolState({
+    mcpTools,
+    initialMCPToolId: currentChat?.mcpToolId,
   });
 
   const {
@@ -142,18 +162,19 @@ export default function ChatWrapper({
     updateSelectedModel(target.value);
   };
 
+  const personaChange = (event: React.ChangeEvent) => {
+    const target = event.target as HTMLSelectElement;
+    updateSelectedPersona(target.value);
+  };
+
   const outputFormatChange = (event: React.ChangeEvent) => {
     const target = event.target as HTMLSelectElement;
-    // Handle output format changes
-    // In a real implementation, this might update state or trigger other actions
-    // Example: updateOutputFormat(target.value);
+    updateSelectedOutputFormat(target.value);
   };
 
   const mcpToolChange = (event: React.ChangeEvent) => {
     const target = event.target as HTMLSelectElement;
-    // Handle MCP tool changes
-    // In a real implementation, this might update state or trigger other actions
-    // Example: updateMCPTool(target.value);
+    updateSelectedMCPTool(target.value);
   };
 
   return (
@@ -170,12 +191,18 @@ export default function ChatWrapper({
         <input
           type="hidden"
           name="persona"
-          value={currentChat?.personaId || ""}
+          value={
+            selectedPersona ||
+            (personas.length > 0 ? personas[0].id.toString() : "")
+          }
         />
         <input
           type="hidden"
           name="outputFormat"
-          value={currentChat?.outputFormatId || ""}
+          value={
+            selectedOutputFormat ||
+            (outputFormats.length > 0 ? outputFormats[0].id.toString() : "")
+          }
         />
         {maxTokens !== null && (
           <input type="hidden" name="maxTokens" value={maxTokens} />
@@ -183,11 +210,7 @@ export default function ChatWrapper({
         {budgetTokens !== null && (
           <input type="hidden" name="budgetTokens" value={budgetTokens} />
         )}
-        <input
-          type="hidden"
-          name="mcpTool"
-          value={mcpTools?.length > 0 ? mcpTools[0].id : 0}
-        />
+        <input type="hidden" name="mcpTool" value={selectedMCPTool || "0"} />
         {/* Enhanced top bar */}
         <div className="flex-none sm:flex items-center bg-gradient-to-r from-white to-slate-100 border-b shadow-sm">
           {/* Logo section with improved styling */}
@@ -211,12 +234,17 @@ export default function ChatWrapper({
                   ]}
                   userPersonas={userPersonas || []}
                   globalPersonas={globalPersonas || []}
+                  outputFormats={outputFormats}
                   currentModel={currentChat?.modelId}
                   currentPersona={currentChat?.personaId}
+                  currentOutputFormat={currentChat?.outputFormatId}
                   disableSelection={disableSelection}
                   onModelChange={modelChange}
+                  onPersonaChange={personaChange}
+                  onOutputFormatChange={outputFormatChange}
                   showMoreOptions={showMoreOptions}
                   toggleMoreOptions={toggleMoreOptions}
+                  hideOutputFormats={hideOutputFormats}
                 />
 
                 {/* More Options Popover */}
@@ -246,6 +274,7 @@ export default function ChatWrapper({
                               outputFormats={outputFormats}
                               mcpTools={mcpTools}
                               currentOutputFormat={currentChat?.outputFormatId}
+                              currentMCPTool={currentChat?.mcpToolId}
                               disableSelection={disableSelection}
                               showFileUpload={showFileUpload}
                               showMCPTools={showMCPTools}

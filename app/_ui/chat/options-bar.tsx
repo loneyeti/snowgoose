@@ -1,4 +1,5 @@
 import { Model, Persona } from "@prisma/client";
+import { OutputFormat } from "../../_lib/model";
 import SelectBox from "@/app/_ui/select-box";
 import { MaterialSymbol } from "react-material-symbols";
 import React, { Fragment, useState, useEffect } from "react";
@@ -9,12 +10,17 @@ interface OptionsBarProps {
   personas: Persona[];
   userPersonas?: Persona[];
   globalPersonas?: Persona[];
+  outputFormats: OutputFormat[];
   currentModel?: number;
   currentPersona?: number;
+  currentOutputFormat?: number;
   disableSelection: boolean;
   onModelChange: (event: React.ChangeEvent) => void;
+  onPersonaChange: (event: React.ChangeEvent) => void;
+  onOutputFormatChange: (event: React.ChangeEvent) => void;
   showMoreOptions: boolean;
   toggleMoreOptions: () => void;
+  hideOutputFormats?: boolean;
   children?: React.ReactNode;
 }
 
@@ -23,12 +29,17 @@ export default function OptionsBar({
   personas,
   userPersonas = [],
   globalPersonas = [],
+  outputFormats,
   currentModel,
   currentPersona,
+  currentOutputFormat,
   disableSelection,
   onModelChange,
+  onPersonaChange,
+  onOutputFormatChange,
   showMoreOptions,
   toggleMoreOptions,
+  hideOutputFormats = true,
   children,
 }: OptionsBarProps) {
   // Ensure we have proper persona arrays to work with
@@ -71,6 +82,13 @@ export default function OptionsBar({
           : undefined)
   );
 
+  const [selectedOutputFormat, setSelectedOutputFormat] = useState<
+    number | undefined
+  >(
+    currentOutputFormat ||
+      (outputFormats.length > 0 ? outputFormats[0].id : undefined)
+  );
+
   // Update local state when props change
   useEffect(() => {
     if (currentModel !== undefined) {
@@ -81,8 +99,28 @@ export default function OptionsBar({
   useEffect(() => {
     if (currentPersona !== undefined) {
       setSelectedPersona(currentPersona);
+      const event = {
+        target: {
+          name: "persona",
+          value: currentPersona,
+        },
+      } as unknown as React.ChangeEvent;
+      onPersonaChange(event);
     }
   }, [currentPersona]);
+
+  useEffect(() => {
+    if (currentOutputFormat !== undefined) {
+      setSelectedOutputFormat(currentOutputFormat);
+      const event = {
+        target: {
+          name: "outputFormat",
+          value: currentOutputFormat,
+        },
+      } as unknown as React.ChangeEvent;
+      onOutputFormatChange(event);
+    }
+  }, [currentOutputFormat]);
   return (
     <div className="py-3">
       <div className="flex items-center gap-3">
@@ -228,7 +266,7 @@ export default function OptionsBar({
                                     value: persona.id,
                                   },
                                 } as unknown as React.ChangeEvent;
-                                onModelChange(event);
+                                onPersonaChange(event);
                               }}
                             >
                               <span className="text-sm">{persona.name}</span>
@@ -262,7 +300,7 @@ export default function OptionsBar({
                                     value: persona.id,
                                   },
                                 } as unknown as React.ChangeEvent;
-                                onModelChange(event);
+                                onPersonaChange(event);
                               }}
                             >
                               <span className="text-sm">{persona.name}</span>
@@ -298,7 +336,7 @@ export default function OptionsBar({
                                       value: persona.id,
                                     },
                                   } as unknown as React.ChangeEvent;
-                                  onModelChange(event);
+                                  onPersonaChange(event);
                                 }}
                               >
                                 <span className="text-sm">{persona.name}</span>

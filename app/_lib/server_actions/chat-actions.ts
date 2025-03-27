@@ -10,11 +10,13 @@ import { getPersona } from "./persona.actions";
 import { supabaseUploadFile } from "../storage";
 import { generateUniqueFilename } from "../utils";
 import { FormSchema } from "../form-schemas";
+import { getOutputFormat } from "./output-format.actions";
 
 export async function createChat(
   formData: FormData,
   responseHistory: ChatResponse[]
 ) {
+  console.log(`MCP from form submission: ${formData.get("mcpTool")}`);
   const {
     model,
     personaId,
@@ -36,8 +38,8 @@ export async function createChat(
     role: "user",
     content: prompt,
   };
-  //console.log("mcp form data:");
-  //console.log(formData.get("mcpTool"));
+  console.log("mcp form data:");
+  console.log(formData.get("mcpTool"));
   responseHistory.push(userChatResponse);
 
   // Get Render Type (eg: markdown, html, etc)
@@ -69,6 +71,18 @@ export async function createChat(
       console.error("Error fetching persona:", error);
     }
   }
+  let outputFormatPrompt;
+  if (outputFormatId) {
+    try {
+      const outputFormat = await getOutputFormat(outputFormatId);
+      outputFormatPrompt = outputFormat?.prompt;
+    } catch (error) {
+      console.error("Error fetching Output Format:", error);
+    }
+    personaPrompt = personaPrompt + " " + outputFormatPrompt;
+  }
+
+  console.log(personaPrompt);
 
   const chat: Chat = {
     responseHistory: responseHistory,
