@@ -96,12 +96,12 @@ export async function updatePersona(formData: FormData) {
     ownerId: formData.get("ownerId"),
   });
 
-  console.log("About to update persona.");
+  console.log(`About to update persona. ownerId: ${persona.ownerId}`);
   try {
     await personaRepository.update(persona.id, {
       name: persona.name,
       prompt: persona.prompt,
-      ownerId: persona.ownerId,
+      ownerId: persona.ownerId || null || undefined,
     });
   } catch (error) {
     throw new Error(`Unable to update Persona. Error: ${error}`);
