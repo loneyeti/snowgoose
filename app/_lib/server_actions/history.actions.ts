@@ -9,8 +9,6 @@ import { Chat, TextBlock } from "../model";
 import { getUserID } from "../auth";
 
 export async function getHistory(userId: number) {
-  // You can add any business logic or caching here
-  console.log(userId);
   return historyRepository.findAll(userId);
 }
 

@@ -46,11 +46,6 @@ export default function OptionsBar({
   const allUserPersonas = userPersonas.length > 0 ? userPersonas : [];
   const allGlobalPersonas = globalPersonas.length > 0 ? globalPersonas : [];
 
-  // Log the persona counts for debugging
-  console.log(
-    `User Personas: ${allUserPersonas.length}, Global Personas: ${allGlobalPersonas.length}, Combined Personas: ${personas.length}`
-  );
-
   // State to track selected options (defaulting to first items if available)
   const [selectedModel, setSelectedModel] = useState<number | undefined>(
     currentModel !== undefined

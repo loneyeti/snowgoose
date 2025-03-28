@@ -1,9 +1,10 @@
 import { z } from "zod";
 
 export type FormState = {
-  error?: string;
+  error?: string; // General user-facing error message
+  fieldErrors?: Record<string, string[] | undefined>; // Zod validation errors
   success?: boolean;
-  message?: string;
+  message?: string; // Optional success/info message
 };
 
 export const CreatePersonaFormSchema = z.object({

@@ -9,7 +9,6 @@ export default function EditOutputFormatForm({
 }: {
   outputFormat: OutputFormat;
 }) {
-  console.log(outputFormat);
   return (
     <main>
       <SettingsHeading>New Persona</SettingsHeading>

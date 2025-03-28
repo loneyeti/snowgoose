@@ -21,9 +21,6 @@ export async function GET(request: Request) {
     );
   }
 
-  // Log success and session info for debugging
-  console.log("Auth callback success, session established");
-
   const forwardedHost = request.headers.get("x-forwarded-host");
   const isLocalEnv = process.env.NODE_ENV === "development";
   if (isLocalEnv) {

@@ -10,6 +10,7 @@ import { Persona, User } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentAPIUser, isCurrentUserAdmin } from "../auth";
+// No need to import handleServerError if we just log and throw generic
 
 // Persona Functions
 /**
@@ -71,7 +72,8 @@ export async function createPersona(
       ownerId: persona.ownerId,
     });
   } catch (error) {
-    throw new Error("Unable to create Persona.");
+    console.error("Failed to create Persona:", error); // Log detailed error
+    throw new Error("Unable to create Persona."); // Throw generic error
   }
   revalidatePath(`/settings/${type}-personas`);
   revalidatePath("/");
@@ -96,15 +98,15 @@ export async function updatePersona(formData: FormData) {
     ownerId: formData.get("ownerId"),
   });
 
-  console.log(`About to update persona. ownerId: ${persona.ownerId}`);
   try {
     await personaRepository.update(persona.id, {
       name: persona.name,
       prompt: persona.prompt,
-      ownerId: persona.ownerId || null || undefined,
+      ownerId: persona.ownerId || null || undefined, // Keep existing null/undefined logic
     });
   } catch (error) {
-    throw new Error(`Unable to update Persona. Error: ${error}`);
+    console.error("Failed to update Persona:", error); // Log detailed error
+    throw new Error("Unable to update Persona."); // Throw generic error
   }
   let appendPath: "user" | "global" = "user";
   if (!persona.ownerId) {

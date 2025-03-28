@@ -184,4 +184,5 @@ Standalone Next.js application with Server Actions
 6. AI vendor adapters
 7. MCP tool management
 8. Authentication system
-9. Error handling system
+9. Error handling system (Initial)
+10. Standardized Server Action error handling (Log details server-side, throw generic errors)

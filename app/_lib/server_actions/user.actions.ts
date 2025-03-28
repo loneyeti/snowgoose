@@ -7,10 +7,10 @@ import { User } from "@prisma/client";
 import { UserPost } from "../model";
 import { createClient } from "@/app/_utils/supabase/server";
 import { FormState } from "../form-schemas";
+import { userSettingsRepository } from "@/app/_lib/db/repositories/user-settings.repository";
 
 // User Functions
 export async function getUsers() {
-  console.log("Getting users");
   return userRepository.findAll();
 }
 
@@ -34,7 +34,8 @@ export async function createUser(formData: FormData) {
       isAdmin: user.isAdmin,
     });
   } catch (error) {
-    throw new Error("Unable to create User.");
+    console.error("Failed to create User:", error); // Log detailed error
+    throw new Error("Unable to create User."); // Throw generic error
   }
   revalidatePath("/settings/users");
 }
@@ -58,7 +59,8 @@ export async function updateUser(formData: FormData) {
       isAdmin: parsedData.isAdmin ?? undefined,
     });
   } catch (error) {
-    throw new Error(`Unable to update User. Error: ${error}`);
+    console.error("Failed to update User:", error); // Log detailed error
+    throw new Error("Unable to update User."); // Throw generic error
   }
   revalidatePath("/settings/profile");
 }
@@ -66,7 +68,8 @@ export async function updateUser(formData: FormData) {
 export async function updateUserPassword(
   prevState: FormState,
   formData: FormData
-) {
+): Promise<FormState> {
+  // Ensure return type matches FormState
   const supabase = await createClient();
   const currentPassword = formData.get("currentPassword") as string;
   const newPassword = formData.get("newPassword") as string;
@@ -78,7 +81,9 @@ export async function updateUserPassword(
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return { error: "Authentication required" };
+    // Log server-side, return generic client message
+    console.error("Authentication error in updateUserPassword:", authError);
+    return { error: "Authentication required to change password." };
   }
 
   // Reauthenticate with current password
@@ -88,7 +93,9 @@ export async function updateUserPassword(
   });
 
   if (signInError) {
-    return { error: "Current password is incorrect" };
+    // Log server-side, return generic client message
+    console.error("Sign-in error during password update:", signInError);
+    return { error: "Current password verification failed." };
   }
 
   // Update password
@@ -97,14 +104,14 @@ export async function updateUserPassword(
   });
 
   if (updateError) {
-    return { error: updateError.message };
+    // Log server-side, return generic client message
+    console.error("Supabase password update error:", updateError);
+    return { error: "Failed to update password. Please try again." };
   }
 
   revalidatePath("/settings/profile");
-  return { success: true };
+  return { success: true, message: "Password updated successfully." }; // Add success message
 }
-
-import { userSettingsRepository } from "@/app/_lib/db/repositories/user-settings.repository";
 
 export async function ensureUserExists(email: string): Promise<User | null> {
   // First check if user already exists
@@ -112,31 +119,39 @@ export async function ensureUserExists(email: string): Promise<User | null> {
 
   // If user doesn't exist, create one
   if (!user) {
-    console.log("User doesn't exist. Creating.");
     // username and email are the same.
     const username = email;
 
-    // For Supabase users, we don't store the real password in our DB
-    // We're using Supabase for auth, so just create a placeholder
-    user = await userRepository.create({
-      username,
-      password: "SUPABASE_AUTH_USER", // placeholder password since Supabase handles auth
-      email,
-      isAdmin: false, // default to non-admin
-    });
+    try {
+      // For Supabase users, we don't store the real password in our DB
+      // We're using Supabase for auth, so just create a placeholder
+      user = await userRepository.create({
+        username,
+        password: "SUPABASE_AUTH_USER", // placeholder password since Supabase handles auth
+        email,
+        isAdmin: false, // default to non-admin
+      });
 
-    // Also create a UserSettings record for the new user
-    if (user) {
-      try {
-        await userSettingsRepository.create({
-          userId: user.id,
-          appearanceMode: "light", // Default to light mode
-        });
-        console.log("Created user settings for new user");
-      } catch (error) {
-        console.error("Failed to create user settings:", error);
-        // We don't throw here to avoid blocking user creation if settings creation fails
+      // Also create a UserSettings record for the new user
+      if (user) {
+        try {
+          await userSettingsRepository.create({
+            userId: user.id,
+            appearanceMode: "light", // Default to light mode
+          });
+          console.log("Created user settings for new user");
+        } catch (settingsError) {
+          console.error("Failed to create user settings:", settingsError);
+          // We don't throw here to avoid blocking user creation if settings creation fails
+        }
       }
+    } catch (creationError) {
+      console.error(
+        "Failed to create user during ensureUserExists:",
+        creationError
+      );
+      // Don't throw, return null as user creation failed
+      return null;
     }
   } else {
     console.log("User Does exist. Returning User");
@@ -150,11 +165,13 @@ export async function updateUserUsage(userId: number, usage: number) {
     const user = await userRepository.findById(userId);
 
     if (!user) {
+      // Throw specific error for not found, but catch block will generalize
       throw new Error(`User with ID ${userId} not found.`);
     }
 
     // Ensure usage is a non-negative number
     if (typeof usage !== "number" || usage < 0) {
+      // Throw specific error for invalid input, but catch block will generalize
       throw new Error(`Invalid usage amount provided: ${usage}`);
     }
 
@@ -176,13 +193,9 @@ export async function updateUserUsage(userId: number, usage: number) {
       `Updated usage for user ${userId}. Added: ${usage}, New Period: ${newPeriodUsage}, New Total: ${newTotalUsage}`
     );
     // No revalidatePath needed here as usage updates don't typically affect cached UI paths directly.
-    // If specific UI needs invalidation, add revalidatePath('/path/to/invalidate') here.
   } catch (error) {
-    console.error(`Failed to update usage for user ${userId}:`, error);
-    // Re-throw the error or handle it as needed for server action responses
-    // For now, just logging and throwing a generic error.
-    throw new Error(
-      `Unable to update user usage. Error: ${error instanceof Error ? error.message : String(error)}`
-    );
+    console.error(`Failed to update usage for user ${userId}:`, error); // Log detailed error
+    // Throw generic error for the client
+    throw new Error("Unable to update user usage statistics.");
   }
 }

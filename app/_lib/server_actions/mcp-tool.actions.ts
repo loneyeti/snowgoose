@@ -17,7 +17,7 @@ export async function getMcpTools() {
 export async function getMcpTool(id: number) {
   return mcpToolRepository.findById(id);
 }
-CreateMCPToolFormSchema;
+// Removed stray CreateMCPToolFormSchema reference
 
 export async function createMcpTool(formData: FormData) {
   const mcpTool: MCPToolPost = CreateMCPToolFormSchema.parse({
@@ -31,7 +31,8 @@ export async function createMcpTool(formData: FormData) {
       path: mcpTool.path,
     });
   } catch (error) {
-    throw new Error("Unable to create MCP Tool.");
+    console.error("Failed to create MCP Tool:", error); // Log detailed error
+    throw new Error("Unable to create MCP Tool."); // Throw generic error
   }
   revalidatePath("/settings/mcp-tools");
   revalidatePath("/");
@@ -52,7 +53,8 @@ export async function updateMcpTool(formData: FormData) {
       path: mcpTool.path,
     });
   } catch (error) {
-    throw new Error("Unable to update MCP Tool.");
+    console.error("Failed to update MCP Tool:", error); // Log detailed error
+    throw new Error("Unable to update MCP Tool."); // Throw generic error
   }
   revalidatePath("/settings/mcp-tools");
   revalidatePath("/");
@@ -61,6 +63,12 @@ export async function updateMcpTool(formData: FormData) {
 }
 
 export async function deleteMcpTool(id: number) {
-  await mcpToolRepository.delete(id);
+  try {
+    await mcpToolRepository.delete(id);
+  } catch (error) {
+    console.error("Failed to delete MCP Tool:", error); // Log detailed error
+    throw new Error("Unable to delete MCP Tool."); // Throw generic error
+  }
   revalidatePath("/settings/mcp-tools");
+  // Consider if redirect is needed after delete failure
 }

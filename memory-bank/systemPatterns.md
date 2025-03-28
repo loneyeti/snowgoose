@@ -86,11 +86,15 @@ flowchart TD
 
 ### 5. Error Handling
 
-- Middleware-based error handling
-- Standardized error responses
-- Type-safe error handling
-- Recovery mechanisms
-- Transaction management
+- **Server Action Pattern:**
+  - `catch` blocks in Server Actions log the full error details server-side using `console.error(error)`.
+  - A new, generic `Error("User-friendly message")` is then thrown to prevent leaking implementation details to the client boundary.
+  - The `BaseRepository.handleError` method now simply re-throws the original error, allowing the Server Action layer to handle logging and user-facing message generation.
+  - For actions using `useFormState` (like `updateUserPassword`), the `handleServerError` utility in `app/_lib/utils.ts` is used to return a structured `FormState` object containing either validation errors (`fieldErrors`) or a generic `error` message.
+- Standardized error responses (primarily through generic thrown errors or `FormState`).
+- Type-safe error handling (e.g., checking for `ZodError` in `handleServerError`).
+- Recovery mechanisms (e.g., allowing chat to proceed if auxiliary data fetching fails).
+- Transaction management (handled within repositories where applicable).
 
 ## Component Relationships
 
@@ -198,6 +202,7 @@ flowchart TD
 - Responsive design
 - Loading states
 - Error boundaries
+- Toast notifications (`sonner`)
 
 ### 6. MCP Integration
 

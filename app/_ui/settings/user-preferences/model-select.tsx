@@ -7,15 +7,12 @@ export async function ModelSelect({
   defaultValue?: string | number;
 }) {
   const models = await getModels();
-  console.log(models);
   let selectDefault = "";
   if (!defaultValue) {
-    console.log("No default value");
     selectDefault = `$models[0].id}`;
   } else {
     selectDefault = `${defaultValue}`;
   }
-  console.log(selectDefault);
 
   return (
     <select

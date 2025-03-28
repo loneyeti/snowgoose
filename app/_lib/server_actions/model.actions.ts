@@ -68,9 +68,10 @@ export async function createModel(formData: FormData) {
       outputTokenCost: model.outputTokenCost,
     });
   } catch (error) {
-    throw new Error("Unable to create Model.");
+    console.error("Failed to create Model:", error); // Log detailed error
+    throw new Error("Unable to create Model."); // Throw generic error
   }
-  revalidatePath("/models");
+  revalidatePath("/settings/models"); // Corrected path
   revalidatePath("/");
 
   redirect("/settings/models");
@@ -113,16 +114,23 @@ export async function updateModel(formData: FormData) {
           : undefined,
     });
   } catch (error) {
-    throw new Error("Unable to update Model.");
+    console.error("Failed to update Model:", error); // Log detailed error
+    throw new Error("Unable to update Model."); // Throw generic error
   }
-  revalidatePath("/models");
+  revalidatePath("/settings/models"); // Corrected path
   revalidatePath("/");
 
   redirect("/settings/models");
 }
 
 export async function deleteModel(id: number) {
-  await modelRepository.delete(id);
-  revalidatePath("/models");
+  try {
+    await modelRepository.delete(id);
+  } catch (error) {
+    console.error("Failed to delete Model:", error); // Log detailed error
+    throw new Error("Unable to delete Model."); // Throw generic error
+  }
+  revalidatePath("/settings/models"); // Corrected path
   revalidatePath("/");
+  // Consider if redirect is needed after delete failure
 }

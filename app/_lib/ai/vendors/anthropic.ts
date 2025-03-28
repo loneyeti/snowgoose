@@ -47,10 +47,6 @@ export class AnthropicAdapter implements AIVendorAdapter {
       thinkingMode,
     } = options;
 
-    console.log(
-      `About to generate an Anthropic response. Messages: ${messages}`
-    );
-
     // Convert messages to Anthropic format
     // Convert messages to Anthropic format with inferred types
     const formattedMessages = messages.map((msg) => {
@@ -100,10 +96,6 @@ export class AnthropicAdapter implements AIVendorAdapter {
       };
     });
 
-    console.log(
-      `Thinking Mode Status: ${thinkingMode} ${this.isThinkingCapable}. Max tokens are: ${maxTokens}`
-    );
-
     const response = await this.client.messages.create({
       model,
       messages: formattedMessages,
@@ -140,9 +132,6 @@ export class AnthropicAdapter implements AIVendorAdapter {
     if (response.usage) {
       const inputTokens = response.usage.input_tokens;
       const outputTokens = response.usage.output_tokens;
-      console.log(
-        `Anthropic usage. Input tokens: ${inputTokens}. OutputTokens: ${outputTokens}`
-      );
       if (this.inputTokenCost && this.outputTokenCost) {
         const inputCost = inputTokens * (this.inputTokenCost / 1000000);
         const outputCost = outputTokens * (this.outputTokenCost / 1000000);
@@ -162,8 +151,6 @@ export class AnthropicAdapter implements AIVendorAdapter {
   }
 
   async sendChat(chat: Chat): Promise<ChatResponse> {
-    console.log("CHAT:");
-    console.log(JSON.stringify(chat));
     const response = await this.generateResponse({
       model: chat.model,
       messages: chat.responseHistory,
@@ -172,8 +159,6 @@ export class AnthropicAdapter implements AIVendorAdapter {
       systemPrompt: chat.personaPrompt || undefined,
       thinkingMode: (chat.budgetTokens ?? 0) > 0,
     });
-    console.log("RESPONSE:");
-    console.log(JSON.stringify(response));
 
     return {
       role: response.role,
@@ -249,10 +234,6 @@ export class AnthropicAdapter implements AIVendorAdapter {
         };
       });
 
-      console.log(
-        `Thinking Capable is: ${this.isThinkingCapable}. Budget is: ${chat.budgetTokens}`
-      );
-
       // Generate initial response with tools
       const response = await this.client.messages.create({
         model: chat.model,
@@ -284,9 +265,6 @@ export class AnthropicAdapter implements AIVendorAdapter {
           const toolName = content.name;
           // Ensure toolArgs is properly typed as Record<string, any>
           const toolArgs = content.input as Record<string, any>;
-
-          // Log the tool call
-          console.log(`Executing tool: ${toolName} with args:`, toolArgs);
 
           // Add tool call to the content
           finalContent.push({

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Chat, ChatResponse } from "@/app/_lib/model";
 import { createChat } from "@/app/_lib/server_actions/chat-actions";
 
@@ -48,7 +49,7 @@ export function useFormSubmission({
         console.error("Error during form submission:", error);
         updateShowSpinner(false);
         setIsSubmitting(false);
-        alert("Error retrieving data");
+        toast.error("Error retrieving data");
       } finally {
         // Reset the flag regardless of success or failure
         submissionInProgress.current = false;
@@ -63,7 +64,7 @@ export function useFormSubmission({
   // Prevent multiple rapid submissions
   const handleSubmit = (formData: FormData) => {
     if (submissionInProgress.current || isSubmitting) {
-      console.log("Submission already in progress, ignoring duplicate");
+      // Submission already in progress, ignoring duplicate
       return;
     }
 

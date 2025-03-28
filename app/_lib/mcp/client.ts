@@ -34,9 +34,6 @@ export class MCPClient {
     const projectRoot = process.cwd();
     const fullPath = `${projectRoot}/mcp_servers/${mcpTool.path}`;
 
-    // Log the full path for verification
-    console.log(`Full MCP server path: ${fullPath}`);
-
     // Parse the path to extract command and args
     const serverConfig = this.parseServerConfig(fullPath);
 
@@ -69,7 +66,6 @@ export class MCPClient {
     const parts = path.trim().split(/\s+/);
     const command = parts[0];
     const args = parts.slice(1);
-    console.log(`MCP Path: ${command}`);
     return {
       command,
       args,
@@ -80,7 +76,6 @@ export class MCPClient {
     try {
       await this.client.connect(this.transport);
       this.connected = true;
-      console.log(`Connected to MCP server: ${this.mcpTool.name}`);
     } catch (error) {
       console.error(
         `Failed to connect to MCP server: ${this.mcpTool.name}`,
@@ -95,7 +90,6 @@ export class MCPClient {
       try {
         await this.client.close();
         this.connected = false;
-        console.log(`Disconnected from MCP server: ${this.mcpTool.name}`);
       } catch (error) {
         console.error(
           `Failed to disconnect from MCP server: ${this.mcpTool.name}`,
@@ -124,7 +118,6 @@ export class MCPClient {
   }
 
   async callTool(name: string, args: Record<string, any>): Promise<any> {
-    console.log("Running client callTool");
     if (!this.connected) {
       await this.connect();
     }
@@ -134,7 +127,6 @@ export class MCPClient {
         name,
         arguments: args,
       });
-      console.log(`Ran clint callTool. Result: ${result}`);
       return result;
     } catch (error) {
       console.error(

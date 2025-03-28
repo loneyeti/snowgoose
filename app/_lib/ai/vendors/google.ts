@@ -64,12 +64,9 @@ export class GoogleAIAdapter implements AIVendorAdapter {
 
     if (this.isImageGenerationCapable) {
       responseModalities.push("Image");
-      console.log("Gemini is capable of images.");
     }
     const generationConfig: GenerationConfig = {};
     (generationConfig as any).responseModalities = responseModalities;
-
-    console.log(generationConfig);
 
     // Initialize the model with system instruction
     const genAI = this.client.getGenerativeModel({
@@ -145,9 +142,7 @@ export class GoogleAIAdapter implements AIVendorAdapter {
     if (response.usageMetadata) {
       const inputTokens = response.usageMetadata.promptTokenCount;
       const outputTokens = response.usageMetadata.candidatesTokenCount;
-      console.log(
-        `OpenAI usage. Input tokens: ${inputTokens}. OutputTokens: ${outputTokens}`
-      );
+
       if (this.inputTokenCost && this.outputTokenCost) {
         const inputCost = inputTokens * (this.inputTokenCost / 1000000);
         const outputCost = outputTokens * (this.outputTokenCost / 1000000);
@@ -161,8 +156,6 @@ export class GoogleAIAdapter implements AIVendorAdapter {
     }
 
     for (const part of response.candidates[0].content.parts) {
-      console.log("Going through parts");
-      console.log(part);
       if (part.text) {
         return {
           role: "assistant",
@@ -194,8 +187,6 @@ export class GoogleAIAdapter implements AIVendorAdapter {
       }
     }
 
-    console.log("Gemini response didn't have parts");
-    console.log(response);
     return {
       role: "assistant",
       content: response.text(),
@@ -224,7 +215,6 @@ export class GoogleAIAdapter implements AIVendorAdapter {
       }
 
       for (const part of response.response.candidates[0].content.parts) {
-        console.log(part);
         if (part.inlineData) {
           const imageData = part.inlineData.data;
           const buffer = Buffer.from(imageData, "base64");

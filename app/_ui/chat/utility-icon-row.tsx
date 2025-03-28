@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
+import { toast } from "sonner";
 import { Chat } from "../../_lib/model";
 import { saveChat } from "../../_lib/server_actions/history.actions";
 import { User } from "@prisma/client";
@@ -19,18 +20,15 @@ export default function UtilityIconRow({
   async function saveChatAction() {
     try {
       if (chat) {
-        console.log(
-          `Saving chat. Model: ${chat.model} Persona: ${chat.personaId}`
-        );
         const saveMessage = await saveChat(chat);
-        alert(`Saved conversation: ${saveMessage}`);
+        toast.success(`Saved conversation: ${saveMessage}`);
       } else {
         console.error("No chat to save");
-        alert("No conversation to save");
+        toast.error("No conversation to save");
       }
     } catch (error) {
       console.error("Error saving chat:", error);
-      alert("Failed to save conversation");
+      toast.error("Failed to save conversation");
     }
   }
   const initial = user.username.charAt(0).toUpperCase() ?? "";

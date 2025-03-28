@@ -1,5 +1,7 @@
 import { nanoid } from "nanoid";
+import { ZodError } from "zod";
 import { ChatResponse, TextBlock, ThinkingBlock, ContentBlock } from "./model";
+import { FormState } from "./form-schemas";
 
 export function generateUniqueFilename(filename: string) {
   // Extract the file extension from the input filename
@@ -69,4 +71,35 @@ export function hasThinking(response: ChatResponse): boolean {
   return response.content.some(
     (block) => block.type === "thinking" || block.type === "redacted_thinking"
   );
+}
+
+/**
+ * Centralized error handler for Server Actions.
+ * Logs the full error server-side and returns a user-friendly FormState object.
+ * Handles ZodErrors specifically to return field errors.
+ * @param error The error object caught in the Server Action.
+ * @param genericMessage Optional custom generic error message.
+ * @returns A FormState object suitable for returning from a Server Action.
+ */
+export function handleServerError(
+  error: unknown,
+  genericMessage = "An unexpected error occurred. Please try again."
+): FormState {
+  // Log the full error server-side for debugging
+  console.error("Server Action Error:", error);
+
+  // Handle Zod validation errors
+  if (error instanceof ZodError) {
+    return {
+      success: false,
+      fieldErrors: error.flatten().fieldErrors,
+      error: "Validation failed. Please check the highlighted fields.", // Optional: provide a general validation error message
+    };
+  }
+
+  // Handle generic errors
+  return {
+    success: false,
+    error: genericMessage,
+  };
 }

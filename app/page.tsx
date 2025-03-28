@@ -37,8 +37,6 @@ export default async function Home() {
     getApiVendors(),
   ]);
 
-  console.log(`User Personas: ${userPersonas}, Global: ${globalPersonas}`);
-
   return (
     <main className="bg-slate-50">
       <div className="">

@@ -16,7 +16,6 @@ export async function createChat(
   formData: FormData,
   responseHistory: ChatResponse[]
 ) {
-  console.log(`MCP from form submission: ${formData.get("mcpTool")}`);
   const {
     model,
     personaId,
@@ -38,8 +37,6 @@ export async function createChat(
     role: "user",
     content: prompt,
   };
-  console.log("mcp form data:");
-  console.log(formData.get("mcpTool"));
   responseHistory.push(userChatResponse);
 
   // Get Render Type (eg: markdown, html, etc)
@@ -48,13 +45,11 @@ export async function createChat(
     try {
       renderTypeName = await getRenderTypeName(outputFormatId);
     } catch (error) {
-      console.error("Error fetching output format render type name", error);
-      throw error;
+      // Log details, but don't throw, allow chat to proceed without render type if needed
+      console.error("Error fetching output format render type name:", error);
+      renderTypeName = "markdown"; // Default or fallback render type
     }
   }
-
-  // Since we're initializing with the first model in the form, we should always have a valid model ID
-  console.log(`Looking for model id: ${model}`);
 
   let modelObj = await getModel(Number(model));
   if (!modelObj) {
@@ -68,7 +63,9 @@ export async function createChat(
       const persona = await getPersona(personaId);
       personaPrompt = persona?.prompt;
     } catch (error) {
+      // Log details, but don't throw, allow chat to proceed without persona prompt
       console.error("Error fetching persona:", error);
+      // personaPrompt remains undefined, which is handled later
     }
   }
   let outputFormatPrompt;
@@ -77,12 +74,15 @@ export async function createChat(
       const outputFormat = await getOutputFormat(outputFormatId);
       outputFormatPrompt = outputFormat?.prompt;
     } catch (error) {
+      // Log details, but don't throw, allow chat to proceed without output format prompt
       console.error("Error fetching Output Format:", error);
+      // outputFormatPrompt remains undefined
     }
-    personaPrompt = personaPrompt + " " + outputFormatPrompt;
+    // Combine prompts safely, handling undefined cases
+    personaPrompt = [personaPrompt, outputFormatPrompt]
+      .filter(Boolean)
+      .join(" ");
   }
-
-  console.log(personaPrompt);
 
   const chat: Chat = {
     responseHistory: responseHistory,
@@ -103,8 +103,6 @@ export async function createChat(
   const file = formData.get("image") as File | null;
   if (file && file.name !== "undefined") {
     try {
-      //console.log("FILE IS:");
-      //console.log(file);
       const uploadURL = await supabaseUploadFile(
         generateUniqueFilename(file.name),
         file
@@ -113,8 +111,9 @@ export async function createChat(
         chat.imageData = uploadURL;
       }
     } catch (error) {
-      console.error("Problem uploading file", error);
-      throw error;
+      // Log details, but don't throw, allow chat to proceed without the image if upload fails
+      console.error("Problem uploading file:", error);
+      // chat.imageData remains null
     }
   }
 
@@ -144,8 +143,9 @@ export async function createChat(
       chat.imageURL = result as string;
     }
   } catch (error) {
-    console.error("Failed to send Chat", error);
-    throw error;
+    console.error("Failed to send Chat:", error); // Log detailed error
+    // Throw a generic error for the client
+    throw new Error("Failed to process chat request. Please try again.");
   }
   return chat;
 }

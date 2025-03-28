@@ -149,7 +149,7 @@ export default function ChatWrapper({
           setHistory(historyData);
         }
       } catch (error) {
-        console.log("Error fetching history");
+        console.error("Error fetching history", error);
       }
     };
     fetchData();

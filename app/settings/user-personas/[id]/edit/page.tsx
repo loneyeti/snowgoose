@@ -16,8 +16,8 @@ export default async function EditPersona({
     return notFound();
   }
 
-  const personas = await getUserPersonas(user);
-  const persona = personas?.find((p) => p.id === Number(params.id));
+  const persona = await getPersona(Number(params.id));
+  //const persona = personas?.find((p) => p.id === Number(params.id));
 
   if (!persona) {
     return notFound();

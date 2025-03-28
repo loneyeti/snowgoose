@@ -7,15 +7,12 @@ export default async function RenderTypeSelect({
   defaultValue?: string | number;
 }) {
   const renderTypes = await getRenderTypes();
-  console.log(renderTypes);
   let selectDefault = "";
   if (!defaultValue) {
-    console.log("No default value");
     selectDefault = `${renderTypes[0].id}`;
   } else {
     selectDefault = `${defaultValue}`;
   }
-  console.log(selectDefault);
 
   return (
     <select

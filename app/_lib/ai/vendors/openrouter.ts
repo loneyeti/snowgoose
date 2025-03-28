@@ -61,9 +61,7 @@ export class OpenRouterAdapter implements AIVendorAdapter {
     if (response.usage) {
       const inputTokens = response.usage.prompt_tokens;
       const outputTokens = response.usage.completion_tokens;
-      console.log(
-        `OpenAI usage. Input tokens: ${inputTokens}. OutputTokens: ${outputTokens}`
-      );
+
       if (this.inputTokenCost && this.outputTokenCost) {
         const inputCost = inputTokens * (this.inputTokenCost / 1000000);
         const outputCost = outputTokens * (this.outputTokenCost / 1000000);

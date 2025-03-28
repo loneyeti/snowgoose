@@ -5,7 +5,6 @@ import { APIVendorSelect } from "./api-vendor-select";
 import { Suspense } from "react";
 
 export default function EditModelForm({ model }: { model: Model }) {
-  console.log(model);
   return (
     <main>
       <SettingsHeading>Edit Model</SettingsHeading>
