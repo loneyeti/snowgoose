@@ -32,6 +32,8 @@ export interface AIVendorAdapter {
   isVisionCapable?: boolean;
   isImageGenerationCapable?: boolean;
   isThinkingCapable?: boolean;
+  inputTokenCost?: number;
+  outputTokenCost?: number;
 }
 
 export interface VendorConfig {

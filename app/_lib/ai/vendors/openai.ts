@@ -9,12 +9,16 @@ import {
 import { Chat, ChatResponse } from "../../model";
 import { Model } from "@prisma/client";
 import { json } from "stream/consumers";
+import { getCurrentAPIUser } from "../../auth";
+import { updateUserUsage } from "../../server_actions/user.actions";
 
 export class OpenAIAdapter implements AIVendorAdapter {
   private client: OpenAI;
   public isVisionCapable: boolean;
   public isImageGenerationCapable: boolean;
   public isThinkingCapable: boolean;
+  public inputTokenCost?: number | undefined;
+  public outputTokenCost?: number | undefined;
 
   constructor(config: VendorConfig, model: Model) {
     this.client = new OpenAI({
@@ -30,6 +34,12 @@ export class OpenAIAdapter implements AIVendorAdapter {
     this.isVisionCapable = model.isVision;
     this.isImageGenerationCapable = model.isImageGeneration;
     this.isThinkingCapable = model.isThinking;
+
+    if (model.inputTokenCost && model.outputTokenCost) {
+      this.inputTokenCost = model.inputTokenCost;
+      this.outputTokenCost = model.outputTokenCost;
+    }
+
     console.log(
       "OpenAIAdapter initialized with isVisionCapable:",
       this.isVisionCapable
@@ -37,6 +47,10 @@ export class OpenAIAdapter implements AIVendorAdapter {
   }
 
   async generateResponse(options: AIRequestOptions): Promise<AIResponse> {
+    const user = await getCurrentAPIUser();
+    if (!user) {
+      throw new Error("User not found.");
+    }
     const { model, messages, maxTokens, temperature = 1 } = options;
     console.log("generateResponse called with:", {
       model,
@@ -65,6 +79,20 @@ export class OpenAIAdapter implements AIVendorAdapter {
     const content = response.choices[0].message.content;
     if (!content) {
       throw new Error("No content received from OpenAI");
+    }
+
+    if (response.usage) {
+      const inputTokens = response.usage.prompt_tokens;
+      const outputTokens = response.usage.completion_tokens;
+      console.log(
+        `OpenAI usage. Input tokens: ${inputTokens}. OutputTokens: ${outputTokens}`
+      );
+      if (this.inputTokenCost && this.outputTokenCost) {
+        const inputCost = inputTokens * (this.inputTokenCost / 1000000);
+        const outputCost = outputTokens * (this.outputTokenCost / 1000000);
+        const totalCost = inputCost + outputCost;
+        updateUserUsage(user.id, totalCost);
+      }
     }
 
     return {

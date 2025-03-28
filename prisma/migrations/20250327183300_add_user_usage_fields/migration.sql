@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "users" ADD COLUMN "renewalDate" TIMESTAMP(3),
+ADD COLUMN "periodUsage" INTEGER DEFAULT 0,
+ADD COLUMN "totalUsage" INTEGER DEFAULT 0;

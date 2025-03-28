@@ -40,7 +40,8 @@ export async function createUser(formData: FormData) {
 }
 
 export async function updateUser(formData: FormData) {
-  const user: User = UpdateUserFormSchema.parse({
+  // Remove explicit : User type annotation and rename variable
+  const parsedData = UpdateUserFormSchema.parse({
     id: formData.get("id"),
     username: formData.get("username"),
     password: formData.get("password"),
@@ -49,11 +50,12 @@ export async function updateUser(formData: FormData) {
   });
 
   try {
-    await userRepository.update(user.id, {
-      username: user.username,
-      password: user.password,
-      email: user.email ?? undefined,
-      isAdmin: user.isAdmin ?? undefined,
+    // Use parsedData instead of user
+    await userRepository.update(parsedData.id, {
+      username: parsedData.username,
+      password: parsedData.password,
+      email: parsedData.email ?? undefined,
+      isAdmin: parsedData.isAdmin ?? undefined,
     });
   } catch (error) {
     throw new Error(`Unable to update User. Error: ${error}`);
@@ -141,4 +143,46 @@ export async function ensureUserExists(email: string): Promise<User | null> {
   }
 
   return user;
+}
+
+export async function updateUserUsage(userId: number, usage: number) {
+  try {
+    const user = await userRepository.findById(userId);
+
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found.`);
+    }
+
+    // Ensure usage is a non-negative number
+    if (typeof usage !== "number" || usage < 0) {
+      throw new Error(`Invalid usage amount provided: ${usage}`);
+    }
+
+    console.log(`Before usage update: periodUsage: ${user.periodUsage}`);
+
+    // Calculate new usage values, ensuring current values are treated as numbers (defaulting to 0 if null/undefined)
+    const currentPeriodUsage = Number(user.periodUsage) || 0;
+    const currentTotalUsage = Number(user.totalUsage) || 0;
+
+    const newPeriodUsage = currentPeriodUsage + usage;
+    const newTotalUsage = currentTotalUsage + usage;
+
+    await userRepository.update(userId, {
+      periodUsage: newPeriodUsage,
+      totalUsage: newTotalUsage,
+    });
+
+    console.log(
+      `Updated usage for user ${userId}. Added: ${usage}, New Period: ${newPeriodUsage}, New Total: ${newTotalUsage}`
+    );
+    // No revalidatePath needed here as usage updates don't typically affect cached UI paths directly.
+    // If specific UI needs invalidation, add revalidatePath('/path/to/invalidate') here.
+  } catch (error) {
+    console.error(`Failed to update usage for user ${userId}:`, error);
+    // Re-throw the error or handle it as needed for server action responses
+    // For now, just logging and throwing a generic error.
+    throw new Error(
+      `Unable to update user usage. Error: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 }

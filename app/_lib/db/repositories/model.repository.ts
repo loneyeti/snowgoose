@@ -50,6 +50,8 @@ export class ModelRepository extends BaseRepository {
     isImageGeneration: boolean;
     isThinking: boolean;
     apiVendorId: number;
+    inputTokenCost?: number | null;
+    outputTokenCost?: number | null;
   }): Promise<Model> {
     try {
       return await this.prisma.model.create({
@@ -72,6 +74,8 @@ export class ModelRepository extends BaseRepository {
       isImageGeneration?: boolean;
       isThinking?: boolean;
       apiVendorId?: number;
+      inputTokenCost?: number | null;
+      outputTokenCost?: number | null;
     }
   ): Promise<Model> {
     try {

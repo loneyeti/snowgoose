@@ -113,6 +113,9 @@ model User {
   outputFormats OutputFormat[]
   personas      Persona[]
   settings      UserSettings[]
+  renewalDate   DateTime?
+  periodUsage   Float?                @default(0.0) // Change Int? to Float? and default to 0.0
+  totalUsage    Float?                @default(0.0) // Change Int? to Float? and default to 0.0
 
   @@map("users")
 }

@@ -60,7 +60,7 @@ export default function EditModelForm({ model }: { model: Model }) {
             ></input>
           </div>
           <div className="py-2">
-            <label className="text-gray-700 text-xs" htmlFor="is_thinkingn">
+            <label className="text-gray-700 text-xs" htmlFor="is_thinking">
               Is Thinking
             </label>
             <input
@@ -68,6 +68,33 @@ export default function EditModelForm({ model }: { model: Model }) {
               name="is_thinking"
               defaultChecked={model.isThinking}
               className="block mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
+            ></input>
+          </div>
+          <div className="py-2">
+            <label className="text-gray-700 text-xs" htmlFor="input_token_cost">
+              Input Token Cost
+            </label>
+            <input
+              type="number"
+              step="0.000001"
+              name="input_token_cost"
+              defaultValue={model.inputTokenCost || undefined}
+              className="block w-full mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
+            ></input>
+          </div>
+          <div className="py-2">
+            <label
+              className="text-gray-700 text-xs"
+              htmlFor="output_token_cost"
+            >
+              Output Token Cost
+            </label>
+            <input
+              type="number"
+              step="0.000001"
+              name="output_token_cost"
+              defaultValue={(model as any).outputTokenCost || undefined}
+              className="block w-full mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
             ></input>
           </div>
           <div className="py-2">

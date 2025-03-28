@@ -67,6 +67,8 @@ export class UserRepository extends BaseRepository {
       password?: string;
       email?: string;
       isAdmin?: boolean;
+      periodUsage?: number;
+      totalUsage?: number;
     }
   ): Promise<User> {
     try {
