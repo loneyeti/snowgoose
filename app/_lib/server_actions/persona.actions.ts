@@ -13,21 +13,12 @@ import { getCurrentAPIUser, isCurrentUserAdmin } from "../auth";
 // No need to import handleServerError if we just log and throw generic
 
 // Persona Functions
-/**
- * @deprecated Use getGlobalPersonas or getUserPersonas instead
- */
-export async function getPersonas() {
-  console.log("Getting all personas");
-  return personaRepository.findAll();
-}
 
 export async function getGlobalPersonas() {
-  console.log("Getting global personas");
   return await personaRepository.findAllGlobal();
 }
 
 export async function getUserPersonas(user: User) {
-  console.log("Getting user personas");
   return await personaRepository.findByUser(user);
 }
 
@@ -44,20 +35,16 @@ export async function createPersona(
   let ownerId: number | null = null;
 
   if (type === "user") {
-    console.log("Still Creating User Persona");
     if (!user) {
       redirect("/error");
     }
     ownerId = user.id;
-    console.log(`OwnerID = ${ownerId}`);
   } else {
     if (!isAdmin) {
       redirect("/error");
     }
     ownerId = null;
   }
-
-  console.log(`Create Persona. OwnerID: ${ownerId}`);
 
   const persona: PersonaPost = CreatePersonaFormSchema.parse({
     name: formData.get("name"),
@@ -82,7 +69,6 @@ export async function createPersona(
 }
 
 export async function createUserPersona(formData: FormData) {
-  console.log("Creating User Persona");
   await createPersona(formData, "user");
 }
 

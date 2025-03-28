@@ -17,7 +17,6 @@ export async function getModels() {
 }
 
 export async function getModel(id: number) {
-  console.log(`Looking for model id: ${id}`);
   return modelRepository.findById(id);
 }
 
@@ -38,7 +37,6 @@ export async function createModel(formData: FormData) {
       : null,
   });
 
-  console.log("About to create model.");
   try {
     const model: ModelPost = {
       apiName: formValues.apiName,
@@ -95,7 +93,6 @@ export async function updateModel(formData: FormData) {
       : null,
   });
 
-  console.log("About to update model.");
   try {
     await modelRepository.update(formValues.id, {
       apiName: formValues.apiName,

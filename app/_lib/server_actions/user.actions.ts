@@ -139,7 +139,6 @@ export async function ensureUserExists(email: string): Promise<User | null> {
             userId: user.id,
             appearanceMode: "light", // Default to light mode
           });
-          console.log("Created user settings for new user");
         } catch (settingsError) {
           console.error("Failed to create user settings:", settingsError);
           // We don't throw here to avoid blocking user creation if settings creation fails
@@ -153,8 +152,6 @@ export async function ensureUserExists(email: string): Promise<User | null> {
       // Don't throw, return null as user creation failed
       return null;
     }
-  } else {
-    console.log("User Does exist. Returning User");
   }
 
   return user;
@@ -175,8 +172,6 @@ export async function updateUserUsage(userId: number, usage: number) {
       throw new Error(`Invalid usage amount provided: ${usage}`);
     }
 
-    console.log(`Before usage update: periodUsage: ${user.periodUsage}`);
-
     // Calculate new usage values, ensuring current values are treated as numbers (defaulting to 0 if null/undefined)
     const currentPeriodUsage = Number(user.periodUsage) || 0;
     const currentTotalUsage = Number(user.totalUsage) || 0;
@@ -189,9 +184,6 @@ export async function updateUserUsage(userId: number, usage: number) {
       totalUsage: newTotalUsage,
     });
 
-    console.log(
-      `Updated usage for user ${userId}. Added: ${usage}, New Period: ${newPeriodUsage}, New Total: ${newTotalUsage}`
-    );
     // No revalidatePath needed here as usage updates don't typically affect cached UI paths directly.
   } catch (error) {
     console.error(`Failed to update usage for user ${userId}:`, error); // Log detailed error

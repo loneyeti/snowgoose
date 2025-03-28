@@ -36,7 +36,6 @@ export async function saveChat(chat: Chat) {
       throw new Error("No summary model available");
     }
   }
-  console.log(`Summary model is: ${summaryModel.apiName}`);
   // Get the appropriate AI vendor adapter
   const adapter = await AIVendorFactory.getAdapter(summaryModel);
 
