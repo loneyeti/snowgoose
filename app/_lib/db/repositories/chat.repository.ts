@@ -2,6 +2,7 @@ import { BaseRepository } from "./base.repository";
 import { prisma } from "../prisma";
 import { Chat, ChatResponse } from "../../model";
 import { AIVendorFactory } from "../../ai/factory";
+import { getApiVendor } from "../../server_actions/api_vendor.actions";
 
 // Initialize AI vendors
 if (process.env.OPENAI_API_KEY) {
@@ -39,9 +40,11 @@ export class ChatRepository extends BaseRepository {
       where: { id: chat.modelId },
     });
 
-    if (!model) {
-      throw new Error(`Model not found with ID: ${chat.modelId}`);
+    if (!model || !model.apiVendorId) {
+      throw new Error("Model or Model Vendor not found");
     }
+
+    const apiVendor = await getApiVendor(model.apiVendorId);
 
     // Get the appropriate AI vendor adapter
     const adapter = await AIVendorFactory.getAdapter(model);
@@ -53,7 +56,7 @@ export class ChatRepository extends BaseRepository {
     }
 
     // For MCP tools with Anthropic
-    if (mcpToolData && model.apiVendorId === 2) {
+    if (mcpToolData && apiVendor?.name === "anthropic") {
       // 2 is Anthropic's vendor ID
       return await adapter.sendMCPChat(chat, mcpToolData);
     }

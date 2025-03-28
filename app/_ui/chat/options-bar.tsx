@@ -1,6 +1,5 @@
 import { Model, Persona } from "@prisma/client";
 import { OutputFormat } from "../../_lib/model";
-import SelectBox from "@/app/_ui/select-box";
 import { MaterialSymbol } from "react-material-symbols";
 import React, { Fragment, useState, useEffect } from "react";
 import { Popover, Transition } from "@headlessui/react";

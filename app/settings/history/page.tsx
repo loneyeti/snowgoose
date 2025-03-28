@@ -1,4 +1,3 @@
-import HistoryList from "@/app/_ui/history-list";
 import { SettingsHeading } from "@/app/_ui/typography";
 import ListSkeleton from "@/app/_ui/settings/list-skeleton";
 import { Suspense } from "react";
@@ -7,7 +6,6 @@ import { createClient } from "@/app/_utils/supabase/server";
 import { getHistory } from "@/app/_lib/server_actions/history.actions";
 import { getCurrentAPIUser } from "@/app/_lib/auth";
 import { SettingListProps, SettingsListSettings } from "@/app/_lib/model";
-import { title } from "process";
 import SettingsList from "@/app/_ui/settings/settings-list";
 
 export default async function HistoryPage() {

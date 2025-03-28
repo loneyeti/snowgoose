@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { Spinner, SpinnerSize } from "../spinner";
 import { MaterialSymbol } from "react-material-symbols";
 
 interface TextInputAreaProps {

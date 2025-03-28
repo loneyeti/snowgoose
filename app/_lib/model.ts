@@ -1,6 +1,9 @@
 import { Model, User } from "@prisma/client";
 import { ResourceType } from "../_ui/settings/buttons";
 
+// Re-export Prisma types for consistent usage
+export type { Model, User };
+
 export interface Persona {
   id: number;
   name: string;
