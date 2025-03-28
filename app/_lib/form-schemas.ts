@@ -40,6 +40,8 @@ export const CreateModelFormSchema = z.object({
   isImageGeneration: z.boolean().default(false),
   isThinking: z.boolean().default(false),
   apiVendorId: z.coerce.number(),
+  inputTokenCost: z.coerce.number().optional().nullable(),
+  outputTokenCost: z.coerce.number().optional().nullable(),
 });
 
 export const UpdateModelFormSchema = z.object({
@@ -50,6 +52,8 @@ export const UpdateModelFormSchema = z.object({
   isImageGeneration: z.boolean(),
   isThinking: z.boolean().default(false),
   apiVendorId: z.coerce.number(),
+  inputTokenCost: z.coerce.number().optional().nullable(),
+  outputTokenCost: z.coerce.number().optional().nullable(),
 });
 
 export const UpdateUserSettingsSchema = z.object({

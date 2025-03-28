@@ -13,21 +13,33 @@ import {
 import { Chat, ChatResponse, ImageBlock } from "../../model";
 import { Model } from "@prisma/client";
 import { supabaseUploadFile } from "../../storage";
+import { getCurrentAPIUser } from "../../auth";
+import { updateUserUsage } from "../../server_actions/user.actions";
 
 export class GoogleAIAdapter implements AIVendorAdapter {
   private client: GoogleGenerativeAI;
   public isVisionCapable: boolean;
   public isImageGenerationCapable: boolean;
   public isThinkingCapable: boolean;
+  public inputTokenCost?: number | undefined;
+  public outputTokenCost?: number | undefined;
 
   constructor(config: VendorConfig, model: Model) {
     this.client = new GoogleGenerativeAI(config.apiKey);
     this.isVisionCapable = model.isVision;
     this.isImageGenerationCapable = model.isImageGeneration;
     this.isThinkingCapable = model.isThinking;
+    if (model.inputTokenCost && model.outputTokenCost) {
+      this.inputTokenCost = model.inputTokenCost;
+      this.outputTokenCost = model.outputTokenCost;
+    }
   }
 
   async generateResponse(options: AIRequestOptions): Promise<AIResponse> {
+    const user = await getCurrentAPIUser();
+    if (!user) {
+      throw new Error("User not found.");
+    }
     const {
       model,
       messages,
@@ -113,6 +125,7 @@ export class GoogleAIAdapter implements AIVendorAdapter {
     );
     const response = result.response;
 */
+    /*
     const generateContentRequest: GenerateContentRequest = {
       contents: [
         {
@@ -121,12 +134,27 @@ export class GoogleAIAdapter implements AIVendorAdapter {
         },
       ],
     };
+    */
 
     const contents: GenerateContentRequest = {
       contents: formattedMessages,
     };
     const result = await genAI.generateContent(contents);
     const response = result.response;
+
+    if (response.usageMetadata) {
+      const inputTokens = response.usageMetadata.promptTokenCount;
+      const outputTokens = response.usageMetadata.candidatesTokenCount;
+      console.log(
+        `OpenAI usage. Input tokens: ${inputTokens}. OutputTokens: ${outputTokens}`
+      );
+      if (this.inputTokenCost && this.outputTokenCost) {
+        const inputCost = inputTokens * (this.inputTokenCost / 1000000);
+        const outputCost = outputTokens * (this.outputTokenCost / 1000000);
+        const totalCost = inputCost + outputCost;
+        updateUserUsage(user.id, totalCost);
+      }
+    }
 
     if (!response?.candidates?.[0]?.content?.parts) {
       throw new Error("Invalid response structure from Gemini API");

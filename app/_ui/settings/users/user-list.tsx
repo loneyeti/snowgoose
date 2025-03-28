@@ -33,11 +33,25 @@ export default async function UserList() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {user.email}
                     </p>
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400 space-x-4">
+                      <span>
+                        Renewal:{" "}
+                        {user.renewalDate
+                          ? new Date(user.renewalDate).toLocaleDateString()
+                          : "N/A"}
+                      </span>
+                      <span>
+                        Period Usage: ${(user.periodUsage ?? 0.0).toFixed(2)}
+                      </span>
+                      <span>
+                        Total Usage: ${(user.totalUsage ?? 0.0).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded ${
+                    className={`px-2 py-1 text-xs font-medium rounded self-start ${
                       user.isAdmin
                         ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                         : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"

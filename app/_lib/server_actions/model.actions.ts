@@ -22,7 +22,7 @@ export async function getModel(id: number) {
 }
 
 export async function createModel(formData: FormData) {
-  const model: ModelPost = CreateModelFormSchema.parse({
+  const formValues = CreateModelFormSchema.parse({
     apiName: formData.get("api_name"), // Already mapping correctly
     name: formData.get("name"),
     isVision: formData.get("is_vision") === "on" ? true : false,
@@ -30,10 +30,33 @@ export async function createModel(formData: FormData) {
       formData.get("is_image_generation") === "on" ? true : false,
     isThinking: formData.get("is_thinking") === "on" ? true : false,
     apiVendorId: formData.get("api_vendor_id"),
+    inputTokenCost: formData.get("input_token_cost")
+      ? parseFloat(formData.get("input_token_cost") as string)
+      : null,
+    outputTokenCost: formData.get("output_token_cost")
+      ? parseFloat(formData.get("output_token_cost") as string)
+      : null,
   });
 
-  console.log("About to update model.");
+  console.log("About to create model.");
   try {
+    const model: ModelPost = {
+      apiName: formValues.apiName,
+      name: formValues.name,
+      isVision: formValues.isVision,
+      isImageGeneration: formValues.isImageGeneration,
+      apiVendorId: formValues.apiVendorId,
+      isThinking: formValues.isThinking,
+      inputTokenCost:
+        formValues.inputTokenCost !== null
+          ? formValues.inputTokenCost
+          : undefined,
+      outputTokenCost:
+        formValues.outputTokenCost !== null
+          ? formValues.outputTokenCost
+          : undefined,
+    };
+
     await modelRepository.create({
       apiName: model.apiName,
       name: model.name,
@@ -41,6 +64,8 @@ export async function createModel(formData: FormData) {
       isImageGeneration: model.isImageGeneration,
       apiVendorId: model.apiVendorId ?? undefined,
       isThinking: model.isThinking,
+      inputTokenCost: model.inputTokenCost,
+      outputTokenCost: model.outputTokenCost,
     });
   } catch (error) {
     throw new Error("Unable to create Model.");
@@ -52,7 +77,7 @@ export async function createModel(formData: FormData) {
 }
 
 export async function updateModel(formData: FormData) {
-  const model: Model = UpdateModelFormSchema.parse({
+  const formValues = UpdateModelFormSchema.parse({
     id: formData.get("id"),
     apiName: formData.get("api_name"), // Already mapping correctly
     name: formData.get("name"),
@@ -61,17 +86,31 @@ export async function updateModel(formData: FormData) {
       formData.get("is_image_generation") === "on" ? true : false,
     isThinking: formData.get("is_thinking") === "on" ? true : false,
     apiVendorId: formData.get("api_vendor_id"),
+    inputTokenCost: formData.get("input_token_cost")
+      ? parseFloat(formData.get("input_token_cost") as string)
+      : null,
+    outputTokenCost: formData.get("output_token_cost")
+      ? parseFloat(formData.get("output_token_cost") as string)
+      : null,
   });
 
   console.log("About to update model.");
   try {
-    await modelRepository.update(model.id, {
-      apiName: model.apiName,
-      name: model.name,
-      isVision: model.isVision,
-      isImageGeneration: model.isImageGeneration,
-      apiVendorId: model.apiVendorId ?? undefined,
-      isThinking: model.isThinking,
+    await modelRepository.update(formValues.id, {
+      apiName: formValues.apiName,
+      name: formValues.name,
+      isVision: formValues.isVision,
+      isImageGeneration: formValues.isImageGeneration,
+      apiVendorId: formValues.apiVendorId ?? undefined,
+      isThinking: formValues.isThinking,
+      inputTokenCost:
+        formValues.inputTokenCost !== null
+          ? formValues.inputTokenCost
+          : undefined,
+      outputTokenCost:
+        formValues.outputTokenCost !== null
+          ? formValues.outputTokenCost
+          : undefined,
     });
   } catch (error) {
     throw new Error("Unable to update Model.");

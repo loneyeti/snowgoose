@@ -7,12 +7,16 @@ import {
 } from "../types";
 import { Chat, ChatResponse, ContentBlock } from "../../model";
 import { Model } from "@prisma/client";
+import { updateUserUsage } from "../../server_actions/user.actions";
+import { getCurrentAPIUser } from "../../auth";
 
 export class AnthropicAdapter implements AIVendorAdapter {
   private client: Anthropic;
   public isVisionCapable: boolean;
   public isImageGenerationCapable: boolean;
   public isThinkingCapable: boolean;
+  public inputTokenCost?: number | undefined;
+  public outputTokenCost?: number | undefined;
 
   constructor(config: VendorConfig, model: Model) {
     this.client = new Anthropic({
@@ -22,9 +26,18 @@ export class AnthropicAdapter implements AIVendorAdapter {
     this.isVisionCapable = model.isVision;
     this.isImageGenerationCapable = model.isImageGeneration;
     this.isThinkingCapable = model.isThinking;
+
+    if (model.inputTokenCost && model.outputTokenCost) {
+      this.inputTokenCost = model.inputTokenCost;
+      this.outputTokenCost = model.outputTokenCost;
+    }
   }
 
   async generateResponse(options: AIRequestOptions): Promise<AIResponse> {
+    const user = await getCurrentAPIUser();
+    if (!user) {
+      throw new Error("User not found.");
+    }
     const {
       model,
       messages,
@@ -122,6 +135,20 @@ export class AnthropicAdapter implements AIVendorAdapter {
         });
       }
       // Skip tool_use and any unknown block types
+    }
+
+    if (response.usage) {
+      const inputTokens = response.usage.input_tokens;
+      const outputTokens = response.usage.output_tokens;
+      console.log(
+        `Anthropic usage. Input tokens: ${inputTokens}. OutputTokens: ${outputTokens}`
+      );
+      if (this.inputTokenCost && this.outputTokenCost) {
+        const inputCost = inputTokens * (this.inputTokenCost / 1000000);
+        const outputCost = outputTokens * (this.outputTokenCost / 1000000);
+        const totalCost = inputCost + outputCost;
+        updateUserUsage(user.id, totalCost);
+      }
     }
 
     return {

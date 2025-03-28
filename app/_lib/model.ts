@@ -36,6 +36,8 @@ export interface ModelPost {
   isImageGeneration: boolean;
   isThinking: boolean;
   apiVendorId: number;
+  inputTokenCost?: number;
+  outputTokenCost?: number;
 }
 /*
 export interface Model {
