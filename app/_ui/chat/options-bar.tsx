@@ -67,7 +67,7 @@ export default function OptionsBar({
       } as unknown as React.ChangeEvent;
       onModelChange(event);
     }
-  }, []);
+  }, [currentModel, onModelChange, selectedModel]);
   const [selectedPersona, setSelectedPersona] = useState<number | undefined>(
     currentPersona ||
       (allUserPersonas.length > 0
@@ -102,7 +102,7 @@ export default function OptionsBar({
       } as unknown as React.ChangeEvent;
       onPersonaChange(event);
     }
-  }, [currentPersona]);
+  }, [currentPersona, onPersonaChange]);
 
   useEffect(() => {
     if (currentOutputFormat !== undefined) {
@@ -115,7 +115,7 @@ export default function OptionsBar({
       } as unknown as React.ChangeEvent;
       onOutputFormatChange(event);
     }
-  }, [currentOutputFormat]);
+  }, [currentOutputFormat, onOutputFormatChange]);
   return (
     <div className="py-3">
       <div className="flex items-center gap-3">
