@@ -7,28 +7,23 @@
 
 ## Overview
 
-Snowgoose is a powerful Next.js 14 application that provides a unified interface for interacting with multiple AI services. It simplifies the complexity of managing different AI service integrations by offering a standardized, feature-rich frontend while maintaining provider-specific capabilities.
+Snowgoose is a powerful Next.js 14 application that provides a unified interface for interacting with multiple AI services. It simplifies the complexity of managing different AI service integrations by offering a standardized, feature-rich frontend while maintaining provider-specific capabilities. It is designed to be deployed using Docker.
 
 ### Key Features
 
 - 🤖 **Multi-Provider Support**
-
   - OpenAI
   - Anthropic
   - Google AI
   - OpenRouter
   - Extensible for additional providers
-
 - 💬 **Rich Interaction Capabilities**
-
   - Text chat with AI models
   - Vision/image analysis
   - Image generation
   - Thinking mode support
   - Conversation history management
-
 - 🎭 **Customization Options**
-
   - Custom personas (system prompts) for different interaction styles
   - Configurable output formats (Markdown, HTML, plain text)
   - MCP tool integration
@@ -42,126 +37,188 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
 | Google      | ✅   | 🚫     | ✅        | 🚫                 | 🚫      |
 | OpenRouter  | ✅   | 🚫     | N/A       | 🚫                 | 🚫      |
 
-## Known Issues
+## Known Issues / Areas for Improvement
 
-- Need more robust Supabase authentication
-- Forget password is not working
+- Test coverage needs improvement
+- Performance optimization is ongoing (Server Actions, DB queries)
+- Logging and monitoring systems need enhancement/implementation
+- Forget password functionality is not working
 - Need to implement automatic deletion of saved Vision files
-- Bug when loading a history conversation that was created before a model was marked as a thinking model.
-- Error handling in general
+- Potential bug when loading history conversations created before a model was marked as 'thinking'
 
 ## Prerequisites
 
 - API keys for desired AI services (OpenAI, Anthropic, Google AI, Openrouter)
-- Supabase account for authentication
+- Supabase account for authentication & storage:
   - Sign up for a free Supabase account at [supabase.com](https://supabase.com)
-  - Create a private storage bucket and create policies for it
-    - Hint: Use "Give users access to only their own top level folder named as uid" template Supabase policy as this matches how Snowgoose saves files.
-- Either:
-  - **Option 1: Local Setup**
-    - Node.js v18 or higher
-    - PostgreSQL database
-  - **Option 2: Docker Setup**
-    - Docker and Docker Compose
+  - Create a private storage bucket (e.g., `snowgoose-vision`) and configure policies.
+    - **Hint**: Use the "Give users access to only their own top level folder named as uid" template policy, as this matches Snowgoose's file saving structure.
+- Docker and Docker Compose installed.
 
-## Installation
+## Installation & Setup
 
-1. Clone the repository:
+1.  **Clone the repository:**
 
-```bash
-git clone https://github.com/yourusername/snowgoose.git
-cd snowgoose
-```
+    ```bash
+    git clone https://github.com/yourusername/snowgoose.git # Replace with actual repo URL if different
+    cd snowgoose
+    ```
 
-2. Set up environment variables:
+2.  **Set up environment variables:**
 
-```bash
-cp env.local.example .env.local
-```
+    Copy the example file:
 
-Edit `.env.local` with your configuration:
+    ```bash
+    cp env.local.example .env.local
+    ```
 
-```env
-# Database
-DATABASE_URL="postgresql://..."
+    Edit `.env.local` with your configuration details:
 
-# Authentication & Cloud storage (for vision capabilities)
-NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
-SUPABASE_VISION_STORAGE_BUCKET=snowgoose-vision
+    ```env
+    # Database (Used by Docker Compose for the Postgres service)
+    # You can leave DATABASE_URL commented out or blank here if using the default docker-compose setup,
+    # as compose defines it for the app service. Set it if your DB is external.
+    # DATABASE_URL="postgresql://postgres:yoursecurepassword@db:5432/snowgoose?schema=public"
 
-# AI Services
-OPENAI_API_KEY="sk-..."
-ANTHROPIC_API_KEY="sk-..."
-GOOGLE_AI_API_KEY="..."
-```
+    # Authentication & Cloud storage (for vision capabilities)
+    NEXT_PUBLIC_SUPABASE_URL="https://your-project-id.supabase.co"
+    NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
+    SUPABASE_SERVICE_ROLE_KEY="your-supabase-service-role-key" # Needed for some server-side operations like deleting storage objects
+    SUPABASE_VISION_STORAGE_BUCKET=snowgoose-vision # Or your chosen bucket name
 
-_Note: If using Docker compose, PostgreSQL settings can be left blank as Docker compose will set up a PostgreSQL instance for you._
+    # AI Services
+    OPENAI_API_KEY="sk-..."
+    ANTHROPIC_API_KEY="sk-..."
+    GOOGLE_AI_API_KEY="..."
+    OPENROUTER_API_KEY="..." # If using OpenRouter
 
-### Option 1 (Easiest): Docker:
+    # MCP Configuration (Optional, if using local MCP servers)
+    # MCP_CONFIG_PATH="/path/to/your/mcp/config.json"
+    ```
 
-3. Build and start the server in dev mode:
+    **Important:** The `DATABASE_URL` in `.env.local` is primarily for Prisma CLI commands run _outside_ the container (if needed). The `docker-compose.yml` file defines the `DATABASE_URL` environment variable _for the app service container_, pointing it to the `db` service within the Docker network. Ensure the credentials match between `docker-compose.yml`'s `db` service environment variables and the `DATABASE_URL` used by the `app` service.
 
-```bash
-docker-compose up --build
-```
+## Development (Docker)
 
-The application will be available at `http://localhost:3000`.
+1.  **Build and start the development containers:**
 
-### Option 2: Local development (Non-Docker):
+    This command uses `docker-compose.yml` to build the necessary images (if they don't exist) and start the application container (`app`) and the database container (`db`). It mounts the local codebase into the `app` container for hot-reloading.
 
-3. Install dependencies:
+    ```bash
+    docker compose up --build
+    ```
 
-```bash
-npm install
-```
+2.  **Initialize the database (run in a separate terminal):**
 
-4. Initialize the database:
+    Once the containers are running, execute the Prisma migration command _inside_ the `app` container:
 
-```bash
-npx prisma generate
-npx prisma migrate dev
-```
+    ```bash
+    docker compose exec app npx prisma migrate dev
+    ```
 
-5. Start the development server:
+    You might also want to seed the database (if seed script exists):
 
-```bash
-npm run dev
-```
+    ```bash
+    docker compose exec app npx prisma db seed
+    ```
 
-The application will be available at `http://localhost:3000`.
+3.  **Access the application:**
 
-## Production
+    The application should now be available at `http://localhost:3000`. Changes made to the code locally will trigger a rebuild and reload in the container.
 
-### Non-docker Production
+## Production Deployment
 
-Build and start the production server:
+There are two primary Docker-based deployment methods:
 
-```bash
-npm run build
-npm start
-```
+### Option 1: Self-Hosted Production (using Docker Compose)
 
-Host with something like a combination of PM2 and nginx.
+This method uses `docker-compose.prod.yml` for a production-ready setup on your own server.
 
-_Note: Vercel hosting will not work with the MCP client implementation in its current state because of the need for a stateful server._
+1.  **Create Production Environment File:**
+    Create a `.env.production` file (DO NOT COMMIT THIS FILE). It should contain the same variables as `.env.local` but with your production values (production database URL, production API keys, etc.).
 
-### Docker Production
+    ```bash
+    cp .env.local .env.production
+    # Edit .env.production with production values
+    ```
 
-Coming soon.
+    _Ensure `DATABASE_URL` in `.env.production` points to your intended production database if it's external to the compose setup._
+
+2.  **Build and Start Production Containers:**
+    Use the `-f` flag to specify the production compose file. Run in detached mode (`-d`).
+
+    ```bash
+    docker compose -f docker-compose.prod.yml up --build -d
+    ```
+
+3.  **Run Database Migrations:**
+    Execute migrations inside the running production `app` container.
+
+    ```bash
+    docker compose -f docker-compose.prod.yml exec app npx prisma migrate deploy
+    ```
+
+### Option 2: Fly.io Deployment
+
+This project is configured for easy deployment to [Fly.io](https://fly.io) using the provided `Dockerfile` and `fly.toml`.
+
+1.  **Prerequisites:**
+
+    - Install `flyctl`: `curl -L https://fly.io/install.sh | sh`
+    - Login: `flyctl auth login`
+    - Create Fly app (if first time): `flyctl launch` (Review `fly.toml`, **do not** deploy a database via this command if using Fly Postgres).
+    - Provision Fly Postgres (Recommended): `flyctl postgres create`
+    - Attach Postgres to App: `flyctl postgres attach --app <your-app-name> <your-postgres-app-name>` (Sets `DATABASE_URL` secret).
+
+2.  **Set Secrets:**
+    Configure required environment variables as secrets in Fly.io:
+
+    ```bash
+    flyctl secrets set NEXT_PUBLIC_SUPABASE_URL="..." \
+      NEXT_PUBLIC_SUPABASE_ANON_KEY="..." \
+      SUPABASE_SERVICE_ROLE_KEY="..." \
+      SUPABASE_VISION_STORAGE_BUCKET="..." \
+      OPENAI_API_KEY="..." \
+      ANTHROPIC_API_KEY="..." \
+      GOOGLE_AI_API_KEY="..." \
+      # Add OPENROUTER_API_KEY if used
+      # Add MCP_CONFIG_PATH if used and relevant in production
+    ```
+
+3.  **Deploy:**
+    Fly.io uses the `Dockerfile` to build and deploy your application.
+
+    ```bash
+    flyctl deploy
+    ```
+
+4.  **Run Database Migrations (Post-Deploy):**
+    Connect to a running instance and apply migrations:
+
+    ```bash
+    flyctl ssh console --command "npx prisma migrate deploy"
+    ```
+
+5.  **Monitor:**
+    - Check status: `flyctl status`
+    - View logs: `flyctl logs`
+
+_Note: Hosting on platforms like Vercel is **not recommended** due to the MCP client implementation requiring a stateful server environment._
 
 ## Architecture
 
 - Next.js 14 App Router
-- Server Components and Actions
+- Server Components and Server Actions
 - Prisma ORM for database operations
 - Repository pattern for data access
 - Factory pattern for AI vendor integration
 - MCP server integration
+- Docker for containerization (Development & Production)
+- Fly.io configuration for cloud deployment
 
 ## Contributing
 
-Please contribute!
+Contributions are welcome! Please feel free to submit pull requests or open issues.
 
 ## License
 

@@ -6,13 +6,14 @@ Standalone Next.js application with Server Actions
 
 ## What Works
 
-1. Deployment Options
+1. **Deployment Options**
 
-   - Local development setup
-   - Docker Compose configuration
-   - Production deployment
-   - Environment configuration
-   - Database migrations
+   - Local development setup (`npm run dev`)
+   - Dockerized development setup (`docker-compose.yml`)
+   - Dockerized production setup (`docker-compose.prod.yml`, multi-stage `Dockerfile`)
+   - Fly.io deployment configuration (`fly.toml`, secrets management)
+   - Environment configuration for local, Docker, and Fly.io
+   - Database migrations (local, Docker exec, Fly SSH console)
 
 2. Server Actions
 
@@ -52,15 +53,20 @@ Standalone Next.js application with Server Actions
 
 ## In Progress
 
-1. Docker Integration
+1. **Deployment & Operations (Fly.io)**
 
-   - Container optimization
-   - Health monitoring
-   - CI/CD pipeline setup
-   - Multi-environment testing
-   - Performance profiling
+   - CI/CD pipeline setup for automated Fly.io deployments.
+   - Implement robust monitoring and logging specific to Fly.io environment.
+   - Refine container health checks in `fly.toml`.
+   - Document Fly.io specific management and troubleshooting.
 
-2. Performance Optimization
+2. **Docker Integration (General)**
+
+   - Ongoing container optimization (size, build times).
+   - Performance profiling within Docker environments.
+   - Testing Docker deployments across different environments (beyond local).
+
+3. Performance Optimization
 
    - Response time improvements
    - Memory usage optimization
@@ -68,7 +74,7 @@ Standalone Next.js application with Server Actions
    - Load testing
    - Resource monitoring
 
-3. Testing Implementation
+4. Testing Implementation
 
    - Unit test development
    - Integration testing
@@ -76,7 +82,7 @@ Standalone Next.js application with Server Actions
    - Performance testing
    - Security testing
 
-4. Documentation
+5. Documentation
    - User guides
    - Developer documentation
    - Deployment guides
@@ -176,13 +182,14 @@ Standalone Next.js application with Server Actions
 
 ## Completed Milestones
 
-1. Docker Compose setup
-2. Migration to standalone Next.js app
-3. Server Actions implementation
-4. Database integration with Prisma
-5. Repository pattern implementation
-6. AI vendor adapters
-7. MCP tool management
-8. Authentication system
-9. Error handling system (Initial)
-10. Standardized Server Action error handling (Log details server-side, throw generic errors)
+1. **Docker Setup (Dev & Prod)**: Implemented `docker-compose.yml`, `docker-compose.prod.yml`, and optimized `Dockerfile`.
+2. **Fly.io Deployment Configuration**: Set up `fly.toml` and established deployment process including secrets and migrations.
+3. Migration to standalone Next.js app
+4. Server Actions implementation
+5. Database integration with Prisma
+6. Repository pattern implementation
+7. AI vendor adapters
+8. MCP tool management
+9. Authentication system
+10. Error handling system (Initial)
+11. Standardized Server Action error handling (Log details server-side, throw generic errors)

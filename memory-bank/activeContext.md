@@ -10,19 +10,25 @@
 
 ## Recent Changes
 
-- Added Docker Compose support for easier deployment
-- Updated environment configuration for Docker setup
-- Improved project documentation for Docker usage
-- Completed migration to standalone Next.js application
-- Removed all API routes in favor of Server Actions
-- Finalized Prisma ORM integration
-- Enhanced error handling and recovery
-- Improved MCP tool management
-- Optimized database operations
+- Implemented Docker setup for both development (`docker-compose.yml`) and production (`docker-compose.prod.yml`).
+- Optimized `Dockerfile` using multi-stage builds for smaller production images.
+- Configured deployment to Fly.io using `fly.toml`.
+- Updated environment variable handling for Docker and Fly.io deployment contexts.
+- Completed migration to standalone Next.js application using Server Actions.
+- Finalized Prisma ORM integration.
+- Enhanced error handling and recovery mechanisms.
+- Improved MCP tool management and stability.
+- Optimized database operations using the repository pattern.
 
 ## Active Decisions
 
-1. Server Actions Architecture
+1. **Deployment Strategy**:
+
+   - Utilize Docker for containerization in both development and production.
+   - Employ Fly.io for hosting the production application, leveraging its Docker deployment capabilities.
+   - Manage environment variables securely through Fly.io secrets and `.env.production` (not committed).
+
+2. Server Actions Architecture
 
    - Direct database operations through Server Actions
    - Type-safe data handling with Prisma
@@ -30,7 +36,7 @@
    - Enhanced error handling
    - Performance monitoring
 
-2. Database Integration
+3. Database Integration
 
    - Prisma ORM for all database operations
    - Repository pattern for clean data access
@@ -38,7 +44,7 @@
    - Transaction handling
    - Connection pooling
 
-3. AI Vendor Integration
+4. AI Vendor Integration
 
    - Factory pattern for vendor selection
    - Adapter pattern for implementations
@@ -46,7 +52,7 @@
    - Standardized message handling
    - Thinking mode implementation
 
-4. MCP Integration
+5. MCP Integration
 
    - Enhanced tool management
    - Improved process handling
@@ -56,7 +62,14 @@
 
 ## Next Steps
 
-1. Docker Integration
+1. **Deployment & Operations**:
+
+   - Finalize Fly.io deployment pipeline (potentially CI/CD).
+   - Implement robust monitoring and logging for the Fly.io deployment.
+   - Refine container health checks for production.
+   - Document Fly.io deployment and management procedures.
+
+2. Docker Integration
 
    - Test Docker deployment in various environments
    - Optimize container configurations
@@ -64,7 +77,7 @@
    - Implement CI/CD for Docker builds
    - Create container health checks
 
-2. Performance Optimization
+3. Performance Optimization
 
    - Server Action response times
    - Database query optimization
@@ -72,7 +85,7 @@
    - Caching implementation
    - Load testing
 
-3. Testing Implementation
+4. Testing Implementation
 
    - Comprehensive unit tests
    - Integration testing
@@ -81,7 +94,7 @@
    - Security testing
    - Docker deployment testing
 
-4. Documentation Updates
+5. Documentation Updates
    - User documentation
    - Developer guides
    - API documentation

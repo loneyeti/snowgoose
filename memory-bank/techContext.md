@@ -36,15 +36,15 @@
 
 #### Docker Setup
 
-- **Docker**: Latest version
-- **Docker Compose**: v3.8+
-- **Development Mode**: `docker compose up`
-- **Production**: `docker compose -f docker-compose.yml up -d`
-- **Database**: PostgreSQL 15 (Alpine)
+- **Docker**: Latest version required.
+- **Docker Compose**: v3.8+ required.
+- **Development**: Uses `docker-compose.yml`. Run with `docker compose up`. Includes hot-reloading via volume mounts.
+- **Production**: Uses `docker-compose.prod.yml`. Run with `docker compose -f docker-compose.prod.yml up -d`. Builds optimized production image.
+- **Dockerfile**: Utilizes multi-stage builds to create smaller, more secure production images. Includes stages for dependency installation, building, and the final runtime environment.
+- **Database**: PostgreSQL 15 (Alpine image used in compose files).
 - **Container Management**:
-  - Build: Docker multi-stage builds
-  - Volumes: Node modules, Next.js cache, PostgreSQL data
-  - Network: Internal container networking
+  - Volumes: Used in development for code (`.`), node_modules cache, Next.js cache. Used in production for persistent PostgreSQL data.
+  - Network: Internal Docker network (`default` or custom) for container communication.
 
 ## Dependencies
 
@@ -153,24 +153,34 @@ Required in package.json:
 
 ### Environment Variables
 
-Required in .env.local:
+Required Environment Variables:
 
-```env
-# Database
-DATABASE_URL="postgresql://..."
+- **Development (`.env.local`)**:
 
-# Authentication
-NEXT_PUBLIC_SUPABASE_URL=https://projectid.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY={{SUPABASEANONKEY}}
+  ```env
+  # Database (for local Postgres or Dockerized Postgres)
+  DATABASE_URL="postgresql://user:password@localhost:5432/dbname?schema=public" # Or postgres:5432 if using Docker compose network
 
-# AI Services
-OPENAI_API_KEY="sk-..."
-ANTHROPIC_API_KEY="sk-..."
-GOOGLE_AI_API_KEY="..."
+  # Authentication
+  NEXT_PUBLIC_SUPABASE_URL=https://projectid.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY={{SUPABASEANONKEY}}
 
-# MCP Configuration
-MCP_CONFIG_PATH="..."
-```
+  # AI Services
+  OPENAI_API_KEY="sk-..."
+  ANTHROPIC_API_KEY="sk-..."
+  GOOGLE_AI_API_KEY="..."
+
+  # MCP Configuration (Optional, if using local MCP servers)
+  MCP_CONFIG_PATH="/path/to/your/mcp/config.json"
+  ```
+
+- **Production (`.env.production` - DO NOT COMMIT, use secrets management)**:
+  - Same variables as `.env.local`, but with production values.
+  - `DATABASE_URL` should point to the production database (e.g., Fly Postgres URL).
+- **Fly.io Deployment**:
+  - Variables are set using `fly secrets set VAR_NAME=value`.
+  - `DATABASE_URL` is typically automatically injected by Fly when attaching a Postgres cluster.
+  - Other secrets (API keys, Supabase keys) must be set manually via `fly secrets set`.
 
 ### Local Development
 
@@ -223,7 +233,7 @@ npm start
 
 ### Deployment
 
-#### Standard Deployment
+#### 1. Standard (Non-Docker) Deployment
 
 1. Environment Setup:
 
@@ -243,21 +253,82 @@ npm start
    npm start
    ```
 
-#### Docker Deployment
+#### 2. Docker Deployment (Local/Self-Hosted)
 
 1. Environment Setup:
+
+   - Create `.env.production` file with production values (ensure `DATABASE_URL` points to the correct production DB).
+   - Ensure Docker and Docker Compose are installed.
+
+2. Build and Deploy:
+
+   ```bash
+   # Build and run containers in detached mode
+   docker compose -f docker-compose.prod.yml up --build -d
+   ```
+
+3. Database Migration:
+   ```bash
+   # Execute migrations inside the running app container
+   docker compose -f docker-compose.prod.yml exec app npx prisma migrate deploy
+   ```
+
+#### 3. Fly.io Deployment
+
+1. Prerequisites:
+
+   - Install `flyctl`: `curl -L https://fly.io/install.sh | sh`
+   - Login: `flyctl auth login`
+   - Create Fly app (if not already done): `flyctl launch` (Review and adjust `fly.toml` settings, especially memory/CPU, regions, and health checks). _Do not deploy the database via this command if you intend to use Fly Postgres._
+   - Provision Fly Postgres (if needed): `flyctl postgres create`
+   - Attach Postgres to the app: `flyctl postgres attach --app <your-app-name> <your-postgres-app-name>` (This usually sets the `DATABASE_URL` secret automatically).
+
+2. Environment Setup (Secrets):
+
+   - Set required secrets (Supabase keys, AI keys, etc.):
+     ```bash
+     flyctl secrets set NEXT_PUBLIC_SUPABASE_URL=... NEXT_PUBLIC_SUPABASE_ANON_KEY=... OPENAI_API_KEY=... ANTHROPIC_API_KEY=... GOOGLE_AI_API_KEY=...
+     ```
+   - Verify secrets: `flyctl secrets list`
+
+3. Deployment:
+
+   ```bash
+   # Deploy the application using the Dockerfile and fly.toml configuration
+   flyctl deploy
+   ```
+
+   _Note: Fly.io automatically builds the Docker image based on `Dockerfile`._
+
+4. Database Migration (Post-Deployment):
+
+   - Open a remote console to the deployed app instance:
+     ```bash
+     flyctl ssh console
+     ```
+   - Once inside the console, run the migration:
+     ```bash
+     # cd /app # Navigate to the app directory if needed
+     npx prisma migrate deploy
+     exit
+     ```
+
+5. Monitoring:
+
+   - Check status: `flyctl status`
+   - View logs: `flyctl logs`
 
    - Configure .env.local file
    - Ensure Docker and Docker Compose are installed
    - Set up container registry (if using)
 
-2. Build and Deploy:
+6. Build and Deploy:
 
    ```bash
    docker compose -f docker-compose.yml up -d
    ```
 
-3. Database Migration:
+7. Database Migration:
    ```bash
    docker compose exec app npx prisma migrate deploy
    ```

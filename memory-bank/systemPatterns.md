@@ -4,7 +4,7 @@
 
 ### System Architecture (Next.js 14)
 
-```mermaid
+````mermaid
 flowchart TD
     UI[UI Components] --> Actions[Server Actions]
     UI --> ClientUtils[Client Utilities]
@@ -31,7 +31,37 @@ flowchart TD
         Repositories --> BaseRepo[Base Repository]
         BaseRepo --> EntityRepos[Entity Repositories]
     end
-```
+
+### Deployment Architecture (Docker + Fly.io)
+
+```mermaid
+graph TD
+    subgraph Local Development
+        Dev[Developer Machine] -- docker compose up --> DevCompose[docker-compose.yml]
+        DevCompose --> DevApp[App Container (Node.js)]
+        DevCompose --> DevDB[DB Container (Postgres)]
+        DevApp <--> DevDB
+        DevApp -- volume mount --> Codebase[/Users/tharris/Code/snowgoose]
+    end
+
+    subgraph Production Deployment (Fly.io)
+        CI/CD{CI/CD Pipeline (Optional)} -- triggers --> Build[Docker Build (Multi-stage)]
+        Build -- pushes image --> Registry[Container Registry (e.g., Fly Registry)]
+        Fly[Fly Platform] -- deploys --> ProdApp[App Container (Fly Machine)]
+        Fly -- deploys --> ProdDB[DB Container (Fly Postgres)]
+        ProdApp <--> ProdDB
+        Registry -- image --> ProdApp
+        User[User Browser] --> ProdApp
+        DevOps[Developer/Admin] -- flyctl deploy --> Fly
+        DevOps -- fly secrets set --> Fly[Fly Secrets]
+        Fly --> ProdApp[Injects Secrets as ENV VARS]
+    end
+
+    Build -- uses --> Dockerfile[Dockerfile]
+    Fly -- uses --> FlyToml[fly.toml]
+    Fly -- uses --> ProdCompose[docker-compose.prod.yml (Reference for services/env)]
+
+````
 
 ## Key Design Patterns
 
