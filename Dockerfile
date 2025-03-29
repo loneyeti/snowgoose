@@ -41,8 +41,8 @@ RUN npx prisma generate
 # Build the Next.js application *here*
 # This requires source code and full node_modules (incl. devDependencies)
 RUN --mount=type=secret,id=${DATABASE_URL_SECRET_ID} \
-    --mount=type=secret,id=${API_KEY_SECRET_ID} \
-    --mount=type=secret,id=${NEXT_PUBLIC_VAR_SECRET_ID} \
+    --mount=type=secret,id=${NEXT_PUBLIC_SUPABASE_URL_SECRET_ID} \
+    --mount=type=secret,id=${NEXT_PUBLIC_SUPABASE_ANON_KEY_SECRET_ID} \
     # Add more --mount lines for each secret
     echo "Exporting build secrets..." && \
     # Read each secret file and export it as an environment variable
