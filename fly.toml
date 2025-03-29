@@ -10,6 +10,11 @@ primary_region = 'lax'
   dockerfile = "Dockerfile"
   build-target = "production"
 
+[build.secrets]
+  DATABASE_URL = "DATABASE_URL"
+  NEXT_PUBLIC_SUPABASE_URL="NEXT_PUBLIC_SUPABASE_URL"
+  NEXT_PUBLIC_SUPABASE_ANON_KEY="NEXT_PUBLIC_SUPABASE_ANON_KEY"
+
 [http_service]
   internal_port = 8080
   force_https = true

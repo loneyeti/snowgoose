@@ -20,6 +20,11 @@ RUN npm ci
 # ----------------------------------------
 FROM base AS builder
 WORKDIR /app
+
+ARG DATABASE_URL_SECRET_ID = "DATABASE_URL"
+ARG NEXT_PUBLIC_SUPABASE_URL_SECRET_ID="NEXT_PUBLIC_SUPABASE_URL"
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY_SECRET_ID="NEXT_PUBLIC_SUPABASE_ANON_KEY"
+
 # Copy dependencies from the 'deps' stage
 COPY --from=deps /app/node_modules ./node_modules
 # Copy package.json again (needed for npx prisma generate and npm run build)
@@ -35,7 +40,17 @@ RUN npx prisma generate
 
 # Build the Next.js application *here*
 # This requires source code and full node_modules (incl. devDependencies)
-RUN npm run build
+RUN --mount=type=secret,id=${DATABASE_URL_SECRET_ID} \
+    --mount=type=secret,id=${API_KEY_SECRET_ID} \
+    --mount=type=secret,id=${NEXT_PUBLIC_VAR_SECRET_ID} \
+    # Add more --mount lines for each secret
+    echo "Exporting build secrets..." && \
+    # Read each secret file and export it as an environment variable
+    export DATABASE_URL=$(cat /run/secrets/${DATABASE_URL_SECRET_ID}) && \
+    export NEXT_PUBLIC_SUPABASE=$(cat /run/secrets/${NEXT_PUBLIC_SUPABASE_URL_SECRET_ID}) && \
+    export NEXT_PUBLIC_SUPABASE_ANON_KEY=$(cat /run/secrets/${NEXT_PUBLIC_SUPABASE_ANON_KEY_SECRET_ID}) && \
+    echo "Running npm run build..." && \
+    npm run build
 
 # If you are using the 'standalone' output mode in next.config.js,
 # pruning is handled by Next.js during the build when creating .next/standalone.
