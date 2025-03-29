@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production # Use the production build stage
+      args:
+        # Pass build-time args if needed (e.g., for Prisma during build)
+        # DATABASE_URL: ${DATABASE_URL} # Example if build needs DB access
+    image: troyharris1/snowgoose:latest # Or your private registry
+    # user: "1001:1001" # Set by Dockerfile
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "3000:3000" # Map port 3000 on the host to 3000 in the container
+    environment:
+      # --- THESE MUST BE INJECTED SECURELY by CI/CD or Orchestrator ---
+      # Example: DATABASE_URL=postgresql://supabase_user:password@db.project_ref.supabase.co:5432/postgres
+      - DATABASE_URL=${DATABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - SUPABASE_VISION_STORAGE_BUCKET=${SUPABASE_VISION_STORAGE_BUCKET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      # Add any other production-specific environment variables
+    # env_file: # Alternative: Use env_file populated by CI/CD
+    #   - .env.prod
+    networks:
+      - app-network # Optional: Define if needed for interaction with other services (e.g., reverse proxy)
+    # volumes: # NO code volumes for production! Only mount if needed for persistent data OUTSIDE the DB.
+    # - logs:/app/logs # Example: If you log to files
+    restart: unless-stopped
+    healthcheck: # Adjust if needed for production readiness checks
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  app-network:
+    driver: bridge
+    # name: prod-network # Optional: Use a specific name for prod network
+# volumes: # Define volumes if used above
+# logs:
