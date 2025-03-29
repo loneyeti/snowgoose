@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 
 module.exports = {
+  output: "standalone",
   webpack: (config, _) => ({
     ...config,
     watchOptions: {
