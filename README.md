@@ -49,11 +49,13 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
 ## Prerequisites
 
 - API keys for desired AI services (OpenAI, Anthropic, Google AI, Openrouter)
-- Supabase account for authentication & storage:
-  - Sign up for a free Supabase account at [supabase.com](https://supabase.com)
+- Supabase account:
+  - Sign up for a free account at [supabase.com](https://supabase.com).
+  - Used for **Authentication**, **Storage** (Vision feature), and the **Production Database**.
+  - Create a Supabase project, which includes a PostgreSQL database.
   - Create a private storage bucket (e.g., `snowgoose-vision`) and configure policies.
     - **Hint**: Use the "Give users access to only their own top level folder named as uid" template policy, as this matches Snowgoose's file saving structure.
-- Docker and Docker Compose installed.
+- Docker and Docker Compose installed (for local development environment).
 
 ## Installation & Setup
 
@@ -72,15 +74,13 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
     cp env.local.example .env.local
     ```
 
-    Edit `.env.local` with your configuration details:
+    Edit `.env.local` with your configuration details. This file is used for local Docker development:
 
     ```env
-    # Database (Used by Docker Compose for the Postgres service)
-    # You can leave DATABASE_URL commented out or blank here if using the default docker-compose setup,
-    # as compose defines it for the app service. Set it if your DB is external.
-    # DATABASE_URL="postgresql://postgres:yoursecurepassword@db:5432/snowgoose?schema=public"
+    # Database (For Local Docker Development - Points to the DB service in docker-compose.yml)
+    DATABASE_URL="postgresql://postgres:yoursecurepassword@db:5432/snowgoose?schema=public" # Default credentials from docker-compose.yml
 
-    # Authentication & Cloud storage (for vision capabilities)
+    # Supabase (Authentication & Storage)
     NEXT_PUBLIC_SUPABASE_URL="https://your-project-id.supabase.co"
     NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
     SUPABASE_SERVICE_ROLE_KEY="your-supabase-service-role-key" # Needed for some server-side operations like deleting storage objects
@@ -94,15 +94,18 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
 
     # MCP Configuration (Optional, if using local MCP servers)
     # MCP_CONFIG_PATH="/path/to/your/mcp/config.json"
+
+    # Production Database (Used when deploying, set via secrets, not directly in .env files)
+    # PRODUCTION_DATABASE_URL="postgresql://supabase_user:password@db.project-id.supabase.co:5432/postgres"
     ```
 
-    **Important:** The `DATABASE_URL` in `.env.local` is primarily for Prisma CLI commands run _outside_ the container (if needed). The `docker-compose.yml` file defines the `DATABASE_URL` environment variable _for the app service container_, pointing it to the `db` service within the Docker network. Ensure the credentials match between `docker-compose.yml`'s `db` service environment variables and the `DATABASE_URL` used by the `app` service.
+    **Note:** For local development, `DATABASE_URL` points to the PostgreSQL container managed by Docker Compose. For production deployment (e.g., on Fly.io), you will set the `DATABASE_URL` secret to your Supabase database connection string.
 
 ## Development (Docker)
 
 1.  **Build and start the development containers:**
 
-    This command uses `docker-compose.yml` to build the necessary images (if they don't exist) and start the application container (`app`) and the database container (`db`). It mounts the local codebase into the `app` container for hot-reloading.
+    This command uses `docker-compose.yml` to build the necessary images (if they don't exist) and start the application container (`app`) and the local PostgreSQL database container (`db`). It mounts the local codebase into the `app` container for hot-reloading.
 
     ```bash
     docker compose up --build
@@ -126,60 +129,31 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
 
     The application should now be available at `http://localhost:3000`. Changes made to the code locally will trigger a rebuild and reload in the container.
 
-## Production Deployment
+## Production Deployment (Fly.io with Supabase DB)
 
-There are two primary Docker-based deployment methods:
-
-### Option 1: Self-Hosted Production (using Docker Compose)
-
-This method uses `docker-compose.prod.yml` for a production-ready setup on your own server.
-
-1.  **Create Production Environment File:**
-    Create a `.env.production` file (DO NOT COMMIT THIS FILE). It should contain the same variables as `.env.local` but with your production values (production database URL, production API keys, etc.).
-
-    ```bash
-    cp .env.local .env.production
-    # Edit .env.production with production values
-    ```
-
-    _Ensure `DATABASE_URL` in `.env.production` points to your intended production database if it's external to the compose setup._
-
-2.  **Build and Start Production Containers:**
-    Use the `-f` flag to specify the production compose file. Run in detached mode (`-d`).
-
-    ```bash
-    docker compose -f docker-compose.prod.yml up --build -d
-    ```
-
-3.  **Run Database Migrations:**
-    Execute migrations inside the running production `app` container.
-
-    ```bash
-    docker compose -f docker-compose.prod.yml exec app npx prisma migrate deploy
-    ```
-
-### Option 2: Fly.io Deployment
-
-This project is configured for easy deployment to [Fly.io](https://fly.io) using the provided `Dockerfile` and `fly.toml`.
+This project is configured for deployment to [Fly.io](https://fly.io) using the provided `Dockerfile` and `fly.toml`, connecting to a Supabase database for production data.
 
 1.  **Prerequisites:**
 
+    - Ensure you have a Supabase project created (includes a PostgreSQL database).
     - Install `flyctl`: `curl -L https://fly.io/install.sh | sh`
     - Login: `flyctl auth login`
-    - Create Fly app (if first time): `flyctl launch` (Review `fly.toml`, **do not** deploy a database via this command if using Fly Postgres).
-    - Provision Fly Postgres (Recommended): `flyctl postgres create`
-    - Attach Postgres to App: `flyctl postgres attach --app <your-app-name> <your-postgres-app-name>` (Sets `DATABASE_URL` secret).
+    - Create Fly app (if first time): `flyctl launch` (Review `fly.toml`).
 
 2.  **Set Secrets:**
-    Configure required environment variables as secrets in Fly.io:
+    Configure required environment variables as secrets in Fly.io. **Crucially, set `DATABASE_URL` to your Supabase database connection string.** You can find this in your Supabase project settings (Database -> Connection string -> URI).
 
     ```bash
-    flyctl secrets set NEXT_PUBLIC_SUPABASE_URL="..." \
-      NEXT_PUBLIC_SUPABASE_ANON_KEY="..." \
-      SUPABASE_SERVICE_ROLE_KEY="..." \
-      SUPABASE_VISION_STORAGE_BUCKET="..." \
-      OPENAI_API_KEY="..." \
-      ANTHROPIC_API_KEY="..." \
+    # Database Secret (IMPORTANT!)
+    flyctl secrets set DATABASE_URL="postgresql://supabase_user:[YOUR-PASSWORD]@db.[YOUR-PROJECT-ID].supabase.co:5432/postgres"
+
+    # Other Secrets
+    flyctl secrets set NEXT_PUBLIC_SUPABASE_URL="https://[YOUR-PROJECT-ID].supabase.co" \
+      NEXT_PUBLIC_SUPABASE_ANON_KEY="[YOUR-SUPABASE-ANON-KEY]" \
+      SUPABASE_SERVICE_ROLE_KEY="[YOUR-SUPABASE-SERVICE-ROLE-KEY]" \
+      SUPABASE_VISION_STORAGE_BUCKET="snowgoose-vision" \
+      OPENAI_API_KEY="sk-..." \
+      ANTHROPIC_API_KEY="sk-..." \
       GOOGLE_AI_API_KEY="..." \
       # Add OPENROUTER_API_KEY if used
       # Add MCP_CONFIG_PATH if used and relevant in production
@@ -193,11 +167,13 @@ This project is configured for easy deployment to [Fly.io](https://fly.io) using
     ```
 
 4.  **Run Database Migrations (Post-Deploy):**
-    Connect to a running instance and apply migrations:
+    Connect to a running instance and apply migrations **to your Supabase database**:
 
     ```bash
     flyctl ssh console --command "npx prisma migrate deploy"
     ```
+
+    _This command runs inside the Fly container but targets the production `DATABASE_URL` (Supabase) you set via secrets._
 
 5.  **Monitor:**
     - Check status: `flyctl status`
@@ -213,8 +189,8 @@ _Note: Hosting on platforms like Vercel is **not recommended** due to the MCP cl
 - Repository pattern for data access
 - Factory pattern for AI vendor integration
 - MCP server integration
-- Docker for containerization (Development & Production)
-- Fly.io configuration for cloud deployment
+- **Development Environment:** Docker Compose (App + Postgres DB)
+- **Production Environment:** Fly.io (App Container) + Supabase (Postgres DB, Auth, Storage)
 
 ## Contributing
 
