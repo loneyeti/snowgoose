@@ -2,7 +2,6 @@
 
 import { modelRepository } from "@/app/_lib/db/repositories/model.repository";
 import { ModelPost } from "@/app/_lib/model";
-import { Model } from "@prisma/client";
 import {
   UpdateModelFormSchema,
   CreateModelFormSchema,

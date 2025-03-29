@@ -27,7 +27,6 @@ export interface OutputFormat {
   id: number;
   name: string;
   prompt: string;
-  //owner_id: number;
   render_type_name?: string;
   render_type_id?: number;
 }

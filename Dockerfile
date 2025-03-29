@@ -20,7 +20,11 @@ RUN npm ci
 # ----------------------------------------
 FROM base AS builder
 WORKDIR /app
+# Copy dependencies from the 'deps' stage
 COPY --from=deps /app/node_modules ./node_modules
+# Copy package.json again (needed for npx prisma generate and npm run build)
+COPY package*.json ./
+# Copy the rest of the application source code
 COPY . .
 
 # Generate Prisma client needed for build
@@ -29,15 +33,19 @@ COPY . .
 # ENV DATABASE_URL=${DATABASE_URL}
 RUN npx prisma generate
 
-# Build the Next.js application
+# Build the Next.js application *here*
+# This requires source code and full node_modules (incl. devDependencies)
 RUN npm run build
 
-# Remove development dependencies
-RUN npm prune --production
+# If you are using the 'standalone' output mode in next.config.js,
+# pruning is handled by Next.js during the build when creating .next/standalone.
+# If not using standalone, you might uncomment the prune here, but standalone is recommended.
+# RUN npm prune --production
 
 # ----------------------------------------
 # Stage 3: Production Runtime
 # ----------------------------------------
+# Start from a clean base image for the final stage
 FROM base AS production
 WORKDIR /app
 
@@ -46,23 +54,22 @@ ENV NODE_ENV=production
 # Create a non-root user (good practice)
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nextjs
-USER nextjs
 
-# Copy built artifacts and production dependencies
+# Copy only the necessary artifacts from the 'builder' stage
+# IMPORTANT: This assumes you have `output: 'standalone'` in your next.config.js
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-# Copy Prisma schema if needed by runtime (usually not after generate)
-# COPY --chown=nextjs:nodejs prisma ./prisma
+
+USER nextjs
 
 EXPOSE 3000
 
 # Set NEXT_TELEMETRY_DISABLED to 1 to disable telemetry during runtime
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Run the application using the standalone output
-# NO entrypoint script needed for basic prod start
+# Run the application using the standalone output server
+# The entrypoint is copied within .next/standalone
 CMD ["node", "server.js"]
 
 # ----------------------------------------
@@ -71,19 +78,21 @@ CMD ["node", "server.js"]
 FROM base AS development
 WORKDIR /app
 
+# Install tools needed for development (like wait-for-it or netcat)
 RUN apk add --no-cache netcat-openbsd
 
 # Create a non-root user and switch to it
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nextjs
 
-# Create and set permissions for necessary directories
-RUN mkdir -p /app/.next/cache \
-    && chown -R nextjs:nodejs /app \
-    && chmod -R 755 /app
+# Copy *all* dependencies (including dev) from the 'deps' stage
+# Use 'deps' not 'builder' as 'deps' has the clean 'npm ci' state
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+# Copy application code and necessary config files
 COPY --chown=nextjs:nodejs . .
+
+# Ensure entrypoint script is executable
 RUN chmod +x docker-entrypoint.sh
 
 USER nextjs

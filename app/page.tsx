@@ -3,7 +3,6 @@ import ChatWrapper from "./_ui/chat/chat-wrapper";
 import { createClient } from "./_utils/supabase/server";
 import {
   getGlobalPersonas,
-  getPersonas,
   getUserPersonas,
 } from "./_lib/server_actions/persona.actions";
 import { getModels } from "./_lib/server_actions/model.actions";
