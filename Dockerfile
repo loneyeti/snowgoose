@@ -50,7 +50,14 @@ RUN --mount=type=secret,id=${DATABASE_URL_SECRET_ID} \
     export NEXT_PUBLIC_SUPABASE=$(cat /run/secrets/${NEXT_PUBLIC_SUPABASE_URL_SECRET_ID}) && \
     export NEXT_PUBLIC_SUPABASE_ANON_KEY=$(cat /run/secrets/${NEXT_PUBLIC_SUPABASE_ANON_KEY_SECRET_ID}) && \
     echo "Running npm run build..." && \
-    npm run build
+    npm run build && \
+    # Build the MCP server
+    echo "Building MCP server..." && \
+    cd mcp_servers/mcp-time-js && \
+    npm ci && \
+    npm run build && \
+    # Go back to the app root
+    cd ../..
 
 # If you are using the 'standalone' output mode in next.config.js,
 # pruning is handled by Next.js during the build when creating .next/standalone.
@@ -75,6 +82,11 @@ RUN addgroup --system --gid 1001 nodejs \
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy the built MCP server and its dependencies
+COPY --from=builder --chown=nextjs:nodejs /app/mcp_servers/mcp-time-js/build ./mcp_servers/mcp-time-js/build
+COPY --from=builder --chown=nextjs:nodejs /app/mcp_servers/mcp-time-js/node_modules ./mcp_servers/mcp-time-js/node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/mcp_servers/mcp-time-js/package.json ./mcp_servers/mcp-time-js/package.json
 
 USER nextjs
 
