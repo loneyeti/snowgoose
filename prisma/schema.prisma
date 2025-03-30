@@ -109,6 +109,7 @@ model User {
   password      String                @db.VarChar(250)
   email         String?               @db.VarChar(250)
   isAdmin       Boolean?              @map("is_admin")
+  authId        String                @unique @db.Uuid // Foreign key to auth.users(id)
   conversations ConversationHistory[]
   outputFormats OutputFormat[]
   personas      Persona[]
