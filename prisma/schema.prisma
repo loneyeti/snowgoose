@@ -11,13 +11,14 @@ model AlembicVersion {
   version_num String @id(map: "alembic_version_pkc") @db.VarChar(32)
 }
 
-model APIKey {
-  id   Int    @id @default(autoincrement())
-  name String @db.VarChar(255)
-  key  String @db.VarChar(255)
-
-  @@map("api_key")
-}
+/**
+ * model APIKey {
+ * id   Int    @id @default(autoincrement())
+ * name String @db.VarChar(255)
+ * key  String @db.VarChar(255)
+ * @@map("api_key")
+ * }
+ */
 
 model APIVendor {
   id     Int     @id @default(autoincrement())
