@@ -26,9 +26,14 @@ export default function Conversation({
     );
   } else if (imageURL !== "") {
     return (
-      <div>
+      <div className="w-full">
         {/* eslint-disable @next/next/no-img-element */}
-        <img src={imageURL} width={1028} height={1028} alt="Dall-e-3 image" />
+        {/* Make image responsive */}
+        <img
+          src={imageURL}
+          className="w-full h-auto max-w-full rounded-md"
+          alt="Dall-e-3 image"
+        />
       </div>
     );
   } else {
@@ -65,29 +70,32 @@ export default function Conversation({
                         return null; // Don't render redacted thinking
                       case "image":
                         return (
-                          <div>
+                          <div key={blockIndex} className="w-full my-4">
                             {/* eslint-disable @next/next/no-img-element */}
+                            {/* Make image responsive */}
                             <img
                               src={block.url}
-                              width={1028}
-                              height={1028}
+                              className="w-full h-auto max-w-full rounded-md"
                               alt="AI Generated image"
                             />
                           </div>
                         );
                       case "text":
                         return (
-                          <MarkdownComponent
-                            key={blockIndex}
-                            markdown={block.text}
-                          />
+                          // Add overflow-x-auto for potential wide code blocks within markdown
+                          <div key={blockIndex} className="overflow-x-auto">
+                            <MarkdownComponent markdown={block.text} />
+                          </div>
                         );
                       default:
-                        return null;
+                        return null; // Should not happen with validated types
                     }
                   })
                 ) : (
-                  <MarkdownComponent markdown={chat.content} />
+                  // Add overflow-x-auto for potential wide code blocks within markdown
+                  <div className="overflow-x-auto">
+                    <MarkdownComponent markdown={chat.content} />
+                  </div>
                 )}
               </div>
             ))
