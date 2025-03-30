@@ -39,7 +39,8 @@ export default function Conversation({
   } else {
     return (
       <div className="grid w-full h-full">
-        <div className="prose lg:w-[65ch] mx-auto">
+        {/* Ensure the prose container respects parent width */}
+        <div className="prose w-full lg:w-[65ch] mx-auto">
           {chats && chats.length > 0 ? (
             chats.map((chat: ChatResponse, index) => (
               <div

@@ -154,7 +154,7 @@ export default function TextInputArea({
 
           <textarea
             // Use text-base (16px) on small screens to prevent iOS zoom, text-sm on medium and up
-            className="m-0 w-full resize-none border-0 bg-transparent py-[10px] pr-10 focus:ring-0 focus-visible:ring-0 placeholder-black/50 pl-3 md:pl-4 text-base md:text-sm md:py-3.5 md:pr-12"
+            className="m-0 w-full text-[16px] resize-none border-0 bg-transparent py-[10px] pr-10 focus:ring-0 focus-visible:ring-0 placeholder-black/50 pl-3 md:pl-4 text-base md:text-sm md:py-3.5 md:pr-12"
             id="prompt"
             name="prompt"
             ref={textAreaRef}
