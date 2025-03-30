@@ -4,7 +4,7 @@ import { userRepository } from "@/app/_lib/db/repositories/user.repository";
 import { revalidatePath } from "next/cache";
 import { CreateUserFormSchema, UpdateUserFormSchema } from "../form-schemas";
 import { User } from "@prisma/client";
-import { UserPost } from "../model";
+import { UserPost, UserSession } from "../model";
 import { createClient } from "@/app/_utils/supabase/server";
 import { FormState } from "../form-schemas";
 import { userSettingsRepository } from "@/app/_lib/db/repositories/user-settings.repository";
@@ -21,7 +21,7 @@ export async function getUser(id: number) {
 export async function createUser(formData: FormData) {
   const user: UserPost = CreateUserFormSchema.parse({
     username: formData.get("username"),
-    password: formData.get("password"),
+    //password: formData.get("password"),
     email: formData.get("email"),
     isAdmin: formData.get("isAdmin") === "true",
   });
@@ -29,9 +29,12 @@ export async function createUser(formData: FormData) {
   try {
     await userRepository.create({
       username: user.username,
-      password: user.password,
+      //password: user.password,
       email: user.email,
       isAdmin: user.isAdmin,
+      periodUsage: 0.0,
+      totalUsage: 0.0,
+      authId: "",
     });
   } catch (error) {
     console.error("Failed to create User:", error); // Log detailed error
@@ -45,7 +48,7 @@ export async function updateUser(formData: FormData) {
   const parsedData = UpdateUserFormSchema.parse({
     id: formData.get("id"),
     username: formData.get("username"),
-    password: formData.get("password"),
+    //password: formData.get("password"),
     email: formData.get("email"),
     isAdmin: formData.get("isAdmin") === "true",
   });
@@ -54,7 +57,7 @@ export async function updateUser(formData: FormData) {
     // Use parsedData instead of user
     await userRepository.update(parsedData.id, {
       username: parsedData.username,
-      password: parsedData.password,
+      //password: parsedData.password,
       email: parsedData.email ?? undefined,
       isAdmin: parsedData.isAdmin ?? undefined,
     });
@@ -113,23 +116,28 @@ export async function updateUserPassword(
   return { success: true, message: "Password updated successfully." }; // Add success message
 }
 
-export async function ensureUserExists(email: string): Promise<User | null> {
+export async function ensureUserExists(
+  userSession: UserSession
+): Promise<User | null> {
   // First check if user already exists
-  let user = await userRepository.findByEmail(email);
+  let user = await userRepository.findByEmail(userSession.email);
 
   // If user doesn't exist, create one
   if (!user) {
     // username and email are the same.
-    const username = email;
+    const username = userSession.email;
 
     try {
       // For Supabase users, we don't store the real password in our DB
       // We're using Supabase for auth, so just create a placeholder
       user = await userRepository.create({
-        username,
-        password: "SUPABASE_AUTH_USER", // placeholder password since Supabase handles auth
-        email,
-        isAdmin: false, // default to non-admin
+        username: username,
+        //password: "SUPABASE_AUTH_USER", // placeholder password since Supabase handles auth
+        email: userSession.email,
+        isAdmin: false, // default to non-admin,
+        periodUsage: 0.0,
+        totalUsage: 0.0,
+        authId: userSession.userId,
       });
 
       // Also create a UserSettings record for the new user
@@ -151,6 +159,14 @@ export async function ensureUserExists(email: string): Promise<User | null> {
       );
       // Don't throw, return null as user creation failed
       return null;
+    }
+  } else if (!user.authId || user.authId === "") {
+    try {
+      await userRepository.update(user.id, {
+        authId: userSession.userId,
+      });
+    } catch (error) {
+      console.error("Unable to link database user to Supabase user", error);
     }
   }
 

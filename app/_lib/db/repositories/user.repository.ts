@@ -35,6 +35,16 @@ export class UserRepository extends BaseRepository {
     }
   }
 
+  async findByAuthId(authId: string): Promise<User | null> {
+    try {
+      return await this.prisma.user.findUnique({
+        where: { authId: authId },
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
   async findByEmail(email: string): Promise<User | null> {
     try {
       return await this.prisma.user.findFirst({
@@ -47,9 +57,12 @@ export class UserRepository extends BaseRepository {
 
   async create(data: {
     username: string;
-    password: string;
+    //password: string;
     email?: string;
     isAdmin?: boolean;
+    periodUsage?: number;
+    totalUsage?: number;
+    authId: string;
   }): Promise<User> {
     try {
       return await this.prisma.user.create({
@@ -64,11 +77,11 @@ export class UserRepository extends BaseRepository {
     id: number,
     data: {
       username?: string;
-      password?: string;
       email?: string;
       isAdmin?: boolean;
       periodUsage?: number;
       totalUsage?: number;
+      authId?: string;
     }
   ): Promise<User> {
     try {

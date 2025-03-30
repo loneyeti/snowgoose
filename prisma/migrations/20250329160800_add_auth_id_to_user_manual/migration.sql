@@ -6,7 +6,7 @@ ALTER TABLE "public"."users" ADD CONSTRAINT "users_authId_key" UNIQUE ("authId")
 
 -- Add the foreign key constraint referencing auth.users
 -- Using ON DELETE RESTRICT as a safe default. Change if needed (e.g., SET NULL).
-ALTER TABLE "public"."users"
-ADD CONSTRAINT "users_authId_fkey"
-FOREIGN KEY ("authId") REFERENCES "auth"."users"("id")
-ON DELETE RESTRICT ON UPDATE CASCADE;
+-- ALTER TABLE "public"."users"
+-- ADD CONSTRAINT "users_authId_fkey"
+-- FOREIGN KEY ("authId") REFERENCES "auth"."users"("id")
+-- ON DELETE RESTRICT ON UPDATE CASCADE;

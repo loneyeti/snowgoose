@@ -151,7 +151,7 @@ export interface APIResonse {
 
 export interface UserSession {
   userId: string;
-  sessionId: string;
+  //sessionId: string;
   email: string;
 }
 
@@ -165,7 +165,7 @@ export interface APIUser {
 
 export interface UserPost {
   username: string;
-  password: string;
+  //password: string;
   email: string;
   isAdmin: boolean;
 }

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/app/_utils/supabase/server";
 import { ensureUserExists } from "../_lib/server_actions/user.actions";
+import { getUserSession } from "../_lib/auth";
 
 // Return type for actions to work with client-side error handling
 type ActionResult = {
@@ -34,7 +35,8 @@ export async function login(formData: FormData): Promise<ActionResult> {
 
   // Ensure user exists in our database after successful Supabase auth
   try {
-    await ensureUserExists(email);
+    const userSession = await getUserSession();
+    await ensureUserExists(userSession);
   } catch (user_error) {
     console.error("Failed to sync user with database:", user_error);
     return { error: "Failed to sync user." };
