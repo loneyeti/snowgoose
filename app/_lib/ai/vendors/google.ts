@@ -159,7 +159,7 @@ export class GoogleAIAdapter implements AIVendorAdapter {
       if (part.text) {
         return {
           role: "assistant",
-          content: part.text,
+          content: [{ type: "text", text: part.text }],
         };
       } else if (part.inlineData) {
         const imageData = part.inlineData.data;
@@ -189,7 +189,7 @@ export class GoogleAIAdapter implements AIVendorAdapter {
 
     return {
       role: "assistant",
-      content: response.text(),
+      content: [{ type: "text", text: response.text() }],
     };
   }
 

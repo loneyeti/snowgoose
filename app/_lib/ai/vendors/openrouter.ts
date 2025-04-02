@@ -6,7 +6,7 @@ import {
   VendorConfig,
   Message,
 } from "../types";
-import { Chat, ChatResponse } from "../../model";
+import { Chat, ChatResponse, ContentBlock } from "../../model";
 import { Model } from "@prisma/client";
 import { getCurrentAPIUser } from "../../auth";
 import { updateUserUsage } from "../../server_actions/user.actions";
@@ -70,9 +70,16 @@ export class OpenRouterAdapter implements AIVendorAdapter {
       }
     }
 
+    const responseBlock: ContentBlock[] = [
+      {
+        type: "text",
+        text: content,
+      },
+    ];
+
     return {
       role: response.choices[0].message.role,
-      content: content,
+      content: responseBlock,
     };
   }
 

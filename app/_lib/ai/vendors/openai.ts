@@ -6,7 +6,7 @@ import {
   VendorConfig,
   Message,
 } from "../types";
-import { Chat, ChatResponse } from "../../model";
+import { Chat, ChatResponse, ContentBlock } from "../../model";
 import { Model } from "@prisma/client";
 import { json } from "stream/consumers";
 import { getCurrentAPIUser } from "../../auth";
@@ -42,21 +42,29 @@ export class OpenAIAdapter implements AIVendorAdapter {
     }
     const { model, messages, maxTokens, temperature = 1 } = options;
 
+    const response = await this.client.responses.create({
+      model: model,
+      instructions: options.systemPrompt,
+      input: messages as any[],
+    });
+
+    /*
     const response = await this.client.chat.completions.create({
       model,
       messages: messages as any[],
       max_tokens: maxTokens,
       temperature,
     });
+    */
 
-    const content = response.choices[0].message.content;
+    const content = response.output_text;
     if (!content) {
       throw new Error("No content received from OpenAI");
     }
 
     if (response.usage) {
-      const inputTokens = response.usage.prompt_tokens;
-      const outputTokens = response.usage.completion_tokens;
+      const inputTokens = response.usage.input_tokens;
+      const outputTokens = response.usage.output_tokens;
 
       if (this.inputTokenCost && this.outputTokenCost) {
         const inputCost = inputTokens * (this.inputTokenCost / 1000000);
@@ -66,9 +74,16 @@ export class OpenAIAdapter implements AIVendorAdapter {
       }
     }
 
+    const responseBlock: ContentBlock[] = [
+      {
+        type: "text",
+        text: content,
+      },
+    ];
+
     return {
-      role: response.choices[0].message.role,
-      content: content,
+      role: "assistant",
+      content: responseBlock,
     };
   }
 
