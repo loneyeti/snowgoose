@@ -1,10 +1,12 @@
 import { BaseRepository } from "./base.repository";
 import { prisma } from "../prisma";
-import { Chat, ChatResponse } from "../../model";
-import { AIVendorFactory } from "../../ai/factory";
+// Chat and ChatResponse are now re-exported from ../../model, which imports them from the package
+import { Chat, ChatResponse, Model } from "../../model"; // Added Model import
+// Import factory and necessary types from the new package
+import { AIVendorFactory, ModelConfig } from "snowgander";
 import { getApiVendor } from "../../server_actions/api_vendor.actions";
 
-// Initialize AI vendors
+// Initialize AI vendors using the imported factory
 if (process.env.OPENAI_API_KEY) {
   AIVendorFactory.setVendorConfig("openai", {
     apiKey: process.env.OPENAI_API_KEY,
@@ -45,9 +47,24 @@ export class ChatRepository extends BaseRepository {
     }
 
     const apiVendor = await getApiVendor(model.apiVendorId);
+    // Add null check for apiVendor before proceeding
+    if (!apiVendor) {
+      throw new Error(`API Vendor not found for ID: ${model.apiVendorId}`);
+    }
 
-    // Get the appropriate AI vendor adapter
-    const adapter = await AIVendorFactory.getAdapter(model);
+    // Create ModelConfig object from the Prisma model
+    const modelConfig: ModelConfig = {
+      apiName: model.apiName,
+      isVision: model.isVision,
+      isImageGeneration: model.isImageGeneration,
+      isThinking: model.isThinking,
+      inputTokenCost: model.inputTokenCost ?? undefined, // Handle potential null
+      outputTokenCost: model.outputTokenCost ?? undefined, // Handle potential null
+    };
+
+    // Get the appropriate AI vendor adapter using vendor name and model config
+    // No longer async
+    const adapter = AIVendorFactory.getAdapter(apiVendor.name, modelConfig);
 
     // For DALL-E image generation
     if (model.apiName === "dall-e-3") {

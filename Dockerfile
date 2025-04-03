@@ -10,10 +10,11 @@ FROM base AS deps
 # Install OS-level dependencies needed for npm install or Prisma (if any)
 # RUN apk add --no-cache ...
 
-# Copy package files
+# Copy root package.json
 COPY package*.json ./
-# Install ALL dependencies (including devDependencies needed for build)
-RUN npm ci
+
+# Install ALL dependencies using npm install
+RUN npm install
 
 # ----------------------------------------
 # Stage 2: Builder (for production build)

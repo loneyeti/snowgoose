@@ -19,6 +19,7 @@
 - Enhanced error handling and recovery mechanisms.
 - Improved MCP tool management and stability.
 - Optimized database operations using the repository pattern.
+- **Refactored AI vendor logic into a reusable package (`snowgander`).**
 
 ## Active Decisions
 
@@ -46,11 +47,12 @@
 
 4. AI Vendor Integration
 
-   - Factory pattern for vendor selection
-   - Adapter pattern for implementations
-   - Support for OpenAI, Anthropic, and Google AI
-   - Standardized message handling
-   - Thinking mode implementation
+   - **AI logic encapsulated in `snowgander` package.**
+   - Factory pattern (`AIVendorFactory`) for vendor selection within the package.
+   - Adapter pattern (`AIVendorAdapter`) for implementations within the package.
+   - Support for OpenAI, Anthropic, Google AI, and OpenRouter via adapters.
+   - Standardized message handling using shared types (`Message`, `ContentBlock`, etc.).
+   - Abstracted model configuration (`ModelConfig`) to decouple from Prisma.
 
 5. MCP Integration
 

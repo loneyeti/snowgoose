@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 
-module.exports = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   output: "standalone",
+  // Add the local package to transpilePackages
+  transpilePackages: ["@snowgoose/ai-vendors"],
   webpack: (config, _) => ({
     ...config,
     watchOptions: {
@@ -16,3 +19,5 @@ module.exports = {
     },
   },
 };
+
+module.exports = nextConfig;

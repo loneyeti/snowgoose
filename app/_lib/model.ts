@@ -1,8 +1,30 @@
 import { Model, User } from "@prisma/client";
 import { ResourceType } from "../_ui/settings/buttons";
+// Import shared types from the new package
+import {
+  Chat,
+  ChatResponse,
+  ContentBlock,
+  MCPTool,
+  ThinkingBlock,
+  RedactedThinkingBlock,
+  TextBlock,
+  ImageBlock,
+} from "@snowgoose/ai-vendors";
 
 // Re-export Prisma types for consistent usage
 export type { Model, User };
+// Re-export types from the package for use within the app
+export type {
+  Chat,
+  ChatResponse,
+  ContentBlock,
+  MCPTool,
+  ThinkingBlock,
+  RedactedThinkingBlock,
+  TextBlock,
+  ImageBlock,
+};
 
 export interface Persona {
   id: number;
@@ -54,12 +76,13 @@ export interface Model {
 }
   */
 
-export interface MCPTool {
-  id: number;
-  name: string;
-  path: string;
-  env_vars?: Record<string, string>;
-}
+// MCPTool definition is now imported from @snowgoose/ai-vendors
+// export interface MCPTool {
+//   id: number;
+//   name: string;
+//   path: string;
+//   env_vars?: Record<string, string>;
+// }
 
 export interface RenderType {
   id: number;
@@ -71,55 +94,26 @@ export interface APIVendor {
   name: string;
 }
 
-// Interface for Anthropic thinking blocks
-export interface ThinkingBlock {
-  type: "thinking";
-  thinking: string;
-  signature: string;
-}
+// ThinkingBlock definition is now imported from @snowgoose/ai-vendors
+// export interface ThinkingBlock { ... }
 
-export interface RedactedThinkingBlock {
-  type: "redacted_thinking";
-  data: string;
-}
+// RedactedThinkingBlock definition is now imported from @snowgoose/ai-vendors
+// export interface RedactedThinkingBlock { ... }
 
-export interface TextBlock {
-  type: "text";
-  text: string;
-}
+// TextBlock definition is now imported from @snowgoose/ai-vendors
+// export interface TextBlock { ... }
 
-export interface ImageBlock {
-  type: "image";
-  url: string;
-}
+// ImageBlock definition is now imported from @snowgoose/ai-vendors
+// export interface ImageBlock { ... }
 
-export type ContentBlock =
-  | ThinkingBlock
-  | RedactedThinkingBlock
-  | TextBlock
-  | ImageBlock;
+// ContentBlock definition is now imported from @snowgoose/ai-vendors
+// export type ContentBlock = ...;
 
-// Content of a chat response can either be plain text or an Anthropic ContentBlock
-export interface ChatResponse {
-  role: string;
-  content: string | ContentBlock[];
-}
+// ChatResponse definition is now imported from @snowgoose/ai-vendors
+// export interface ChatResponse { ... }
 
-export interface Chat {
-  responseHistory: ChatResponse[];
-  personaId: number;
-  outputFormatId: number;
-  mcpToolId?: number;
-  renderTypeName: string;
-  imageData: string | null;
-  model: string;
-  modelId: number;
-  prompt: string;
-  imageURL: string | null;
-  maxTokens: number | null;
-  budgetTokens: number | null;
-  personaPrompt?: string;
-}
+// Chat definition is now imported from @snowgoose/ai-vendors
+// export interface Chat { ... }
 
 export type FormProps = {
   updateMessage: (chat: Chat) => void;
@@ -191,11 +185,12 @@ export interface MCPToolPost {
   path: string;
 }
 
-export interface MCPTool {
-  id: number;
-  name: string;
-  path: string;
-}
+// MCPTool definition is now imported from @snowgoose/ai-vendors
+// export interface MCPTool {
+//   id: number;
+//   name: string;
+//   path: string;
+// }
 
 export interface SettingsListSettings {
   id: number;

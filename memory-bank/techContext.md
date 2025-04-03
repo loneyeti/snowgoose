@@ -75,7 +75,8 @@ Required in package.json:
     "rehype-raw": "^7.0.0",
     "sharp": "^0.33.2",
     "sonner": "^2.0.2",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "snowgander": "^0.0.1" // AI vendor package
   }
 ```
 

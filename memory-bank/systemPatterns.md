@@ -11,8 +11,9 @@ flowchart TD
     Actions --> Repositories[Repository Layer]
     Repositories --> Prisma[Prisma ORM]
     Prisma --> DB[(Postgres Database)]
-    Actions --> AIFactory[AI Vendor Factory]
-    AIFactory --> AIVendors[AI Vendors]
+    Actions --> ChatRepo[Chat Repository]
+    ChatRepo --> AIFactory["snowgander <br> AIVendorFactory"]
+    AIFactory --> AIVendors["snowgander <br> Adapters"]
     Actions --> MCPManager[MCP Manager]
 
     subgraph Components
@@ -21,11 +22,7 @@ flowchart TD
         UIComponents --> Display[Display Components]
     end
 
-    subgraph AI Vendors
-        AIVendors --> OpenAI[OpenAI Adapter]
-        AIVendors --> Anthropic[Anthropic Adapter]
-        AIVendors --> Google[Google AI Adapter]
-    end
+    %% AI Vendors subgraph removed as it's now part of the package %%
 
     subgraph Database
         Repositories --> BaseRepo[Base Repository]
@@ -72,12 +69,13 @@ graph TD
   - Display components for responses
   - Settings management interfaces
   - Common UI utilities
-- **\_lib/**: Shared utilities and business logic
+- **\_lib/**: Shared utilities and business logic within the main app
   - **/db**: Database models and repositories
-  - **/ai**: AI vendor implementations
+    // - **/ai**: AI vendor implementations (Moved to package)
   - **/mcp**: MCP server management
   - **/server_actions**: Server action business logic for interfacing with repositories
   - Form schemas and validation
+  # Note: AI vendor logic is now in the 'snowgander' npm package
 - **mcp_servers/** Storage of MCP servers
 
 ### 2. Data Flow
@@ -153,14 +151,23 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    VendorFactory[Vendor Factory] --> Config[Vendor Config]
-    VendorFactory --> Cache[Instance Cache]
+    subgraph Snowgoose App
+        ChatRepo[Chat Repository] -- uses --> VendorFactory
+    end
 
-    subgraph Adapters
-        BaseAdapter[Base Adapter Interface] --> Common[Common Functionality]
-        OpenAIAdapter[OpenAI Adapter] --> BaseAdapter
-        AnthropicAdapter[Anthropic Adapter] --> BaseAdapter
-        GoogleAdapter[Google AI Adapter] --> BaseAdapter
+    subgraph "snowgander"
+        VendorFactory[AIVendorFactory] --> Config[Vendor Config]
+        VendorFactory -- creates --> Adapters
+        Adapters --> BaseAdapter[AIVendorAdapter Interface]
+
+        subgraph Adapters
+            OpenAIAdapter[OpenAI Adapter] --> BaseAdapter
+            AnthropicAdapter[Anthropic Adapter] --> BaseAdapter
+            GoogleAdapter[Google AI Adapter] --> BaseAdapter
+            OpenRouterAdapter[OpenRouter Adapter] --> BaseAdapter
+        end
+
+        BaseAdapter --> Common[Common Functionality]
     end
 
     subgraph Features
