@@ -1,7 +1,14 @@
 import { BaseRepository } from "./base.repository";
 import { prisma } from "../prisma";
 // Import necessary types from the model and snowgander
-import { Chat, ChatResponse, Model, MCPTool, LocalChat } from "../../model"; // Removed Message, ToolResultBlock
+import {
+  Chat,
+  ChatResponse,
+  Model,
+  MCPTool,
+  LocalChat,
+  ImageBlock,
+} from "../../model"; // Removed Message, ToolResultBlock, Added ImageBlock
 import {
   AIVendorFactory,
   ModelConfig,
@@ -10,10 +17,12 @@ import {
   MCPAvailableTool,
   ToolUseBlock,
   ContentBlock,
+  ImageDataBlock, // Added ImageDataBlock import from snowgander
 } from "snowgander"; // Added MCPAvailableTool, ToolUseBlock, ContentBlock
 import { getApiVendor } from "../../server_actions/api_vendor.actions";
 import { mcpManager } from "../../mcp/manager"; // Import MCP Manager
 import { mcpToolRepository } from "./mcp-tool.repository"; // Import MCP Tool Repository
+import { uploadBase64Image } from "../../storage"; // Import the new helper function
 
 // Initialize AI vendors using the imported factory
 if (process.env.OPENAI_API_KEY) {
@@ -42,6 +51,38 @@ if (process.env.OPENROUTER_API_KEY) {
 }
 
 export class ChatRepository extends BaseRepository {
+  // Helper function to process content blocks and upload images
+  private async processResponseContent(
+    content: ContentBlock[]
+  ): Promise<ContentBlock[]> {
+    const processedContent: ContentBlock[] = [];
+    for (const block of content) {
+      if (block.type === "image_data") {
+        // Type guard for ImageDataBlock
+        const imageDataBlock = block as ImageDataBlock;
+        try {
+          console.log(
+            `Uploading image data (mime: ${imageDataBlock.mimeType})...`
+          );
+          const imageUrl = await uploadBase64Image(
+            imageDataBlock.base64Data,
+            imageDataBlock.mimeType
+          );
+          const imageBlock: ImageBlock = { type: "image", url: imageUrl };
+          processedContent.push(imageBlock);
+          console.log(`Image uploaded successfully: ${imageUrl}`);
+        } catch (error) {
+          console.error("Failed to upload image from ImageDataBlock:", error);
+          // Optionally push an error message block or skip the block
+          // For now, skipping the block if upload fails
+        }
+      } else {
+        processedContent.push(block);
+      }
+    }
+    return processedContent;
+  }
+
   async sendChat(chat: LocalChat): Promise<ChatResponse | string> {
     // Get the model from the database
     const model = await prisma.model.findUnique({
@@ -140,7 +181,13 @@ export class ChatRepository extends BaseRepository {
     );
     const initialResponse: ChatResponse = await adapter.sendChat(chat);
     console.log(
+      // Fix: Added console.log(
       `Initial response received: ${JSON.stringify(initialResponse, null, 2)}`
+    ); // Fix: Moved closing parenthesis
+
+    // Process initial response content for ImageDataBlocks
+    initialResponse.content = await this.processResponseContent(
+      initialResponse.content
     );
 
     // Check for ToolUseBlock in the initial response
@@ -226,15 +273,21 @@ export class ChatRepository extends BaseRepository {
             2
           )}`
         );
+
+        // Process final response content for ImageDataBlocks
+        finalResponse.content = await this.processResponseContent(
+          finalResponse.content
+        );
+
         return finalResponse;
       } catch (error) {
         console.error("Error processing tool use:", error);
         // Optionally, return an error message or the initial response
-        // For now, return the initial response which might contain an error message from the LLM
+        // For now, return the initial response (already processed for images)
         return initialResponse;
       }
     } else {
-      // If no tool use or no selected tool record, return the initial response
+      // If no tool use or no selected tool record, return the initial response (already processed for images)
       return initialResponse;
     }
   }
