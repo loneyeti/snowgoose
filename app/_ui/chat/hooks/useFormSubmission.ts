@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Chat, ChatResponse } from "@/app/_lib/model";
+import { LocalChat, ChatResponse } from "@/app/_lib/model";
 import { createChat } from "@/app/_lib/server_actions/chat-actions";
 
 interface FormSubmissionState {
@@ -11,7 +11,7 @@ interface FormSubmissionState {
 
 interface UseFormSubmissionProps {
   responseHistory: ChatResponse[];
-  updateMessage: (chat: Chat | undefined) => void;
+  updateMessage: (chat: LocalChat | undefined) => void;
   updateShowSpinner: (show: boolean) => void;
 }
 
