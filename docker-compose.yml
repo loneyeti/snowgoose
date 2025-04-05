@@ -27,14 +27,13 @@ services:
     stdin_open: true
     tty: true
     healthcheck:
-      test:
-        [
+      test: [
           "CMD",
           "wget",
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://localhost:3000",
+          "http://localhost:3000/favicon.ico", # Changed target to an unprotected path
         ]
       interval: 10s
       timeout: 5s

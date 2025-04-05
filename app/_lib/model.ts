@@ -10,7 +10,7 @@ import {
   RedactedThinkingBlock,
   TextBlock,
   ImageBlock,
-} from "@snowgoose/ai-vendors";
+} from "snowgander";
 
 // Re-export Prisma types for consistent usage
 export type { Model, User };
@@ -25,6 +25,15 @@ export type {
   TextBlock,
   ImageBlock,
 };
+
+export interface LocalChat extends Chat {
+  modelId: number;
+  mcpToolId?: number;
+  imageData?: string;
+  personaId: number;
+  outputFormatId: number;
+  renderTypeName: string;
+}
 
 export interface Persona {
   id: number;
@@ -172,7 +181,7 @@ export interface UserSettings {
   summaryModelPreference: string;
 }
 
-export interface ChatUserSession extends Chat, UserSession {}
+export interface ChatUserSession extends LocalChat, UserSession {}
 
 export interface History {
   id: number;

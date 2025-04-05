@@ -42,6 +42,7 @@ Standalone Next.js application with Server Actions
    - User preferences
    - Persona management
    - Output format handling
+   - Corrected MCP tool interaction flow (prevents duplicate tool calls)
 
 5. AI Integration
    - OpenAI adapter

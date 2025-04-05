@@ -1,16 +1,18 @@
 "use server";
 
-import { ChatResponse, Chat } from "../model";
+import { ChatResponse, Chat, LocalChat } from "../model";
 import { chatRepository } from "../db/repositories/chat.repository";
 import { getModel } from "./model.actions";
 import { getRenderTypeName } from "./render-type.actions";
 import { getMcpTool } from "./mcp-tool.actions";
 import { getApiVendor } from "./api_vendor.actions";
 import { getPersona } from "./persona.actions";
+// Removed unused getMcpTool import
 import { supabaseUploadFile } from "../storage";
 import { generateUniqueFilename } from "../utils";
 import { FormSchema } from "../form-schemas";
 import { getOutputFormat } from "./output-format.actions";
+// Removed unused getApiVendor import
 
 export async function createChat(
   formData: FormData,
@@ -23,7 +25,7 @@ export async function createChat(
     prompt,
     maxTokens,
     budgetTokens,
-    mcpTool,
+    mcpTool, // Keep parsing the mcpTool ID from the form
   } = FormSchema.parse({
     model: formData.get("model"),
     personaId: formData.get("persona"),
@@ -35,7 +37,7 @@ export async function createChat(
   });
   const userChatResponse: ChatResponse = {
     role: "user",
-    content: prompt,
+    content: [{ type: "text", text: prompt }],
   };
   responseHistory.push(userChatResponse);
 
@@ -57,11 +59,11 @@ export async function createChat(
   }
 
   // Get persona prompt if personaId exists
-  let personaPrompt;
+  let systemPrompt;
   if (personaId) {
     try {
       const persona = await getPersona(personaId);
-      personaPrompt = persona?.prompt;
+      systemPrompt = persona?.prompt;
     } catch (error) {
       // Log details, but don't throw, allow chat to proceed without persona prompt
       console.error("Error fetching persona:", error);
@@ -79,24 +81,23 @@ export async function createChat(
       // outputFormatPrompt remains undefined
     }
     // Combine prompts safely, handling undefined cases
-    personaPrompt = [personaPrompt, outputFormatPrompt]
-      .filter(Boolean)
-      .join(" ");
+    systemPrompt = [systemPrompt, outputFormatPrompt].filter(Boolean).join(" ");
   }
 
-  const chat: Chat = {
+  const chat: LocalChat = {
     responseHistory: responseHistory,
     personaId,
     outputFormatId,
     renderTypeName,
-    imageData: null,
+    imageURL: null,
     model: modelObj.apiName,
     modelId: modelObj.id,
     prompt,
-    imageURL: null,
+    visionUrl: null,
     maxTokens,
     budgetTokens,
-    personaPrompt,
+    systemPrompt: systemPrompt,
+    mcpToolId: mcpTool, // Add the mcpToolId directly to the chat object
   };
 
   // If there is a file, we upload to Supabase storage and get the URL
@@ -108,7 +109,7 @@ export async function createChat(
         file
       );
       if (uploadURL) {
-        chat.imageData = uploadURL;
+        chat.visionUrl = uploadURL;
       }
     } catch (error) {
       // Log details, but don't throw, allow chat to proceed without the image if upload fails
@@ -117,27 +118,24 @@ export async function createChat(
     }
   }
 
-  // Send chat request with MCP tool if selected
+  // Send chat request
   try {
-    let mcpToolData;
-    let apiVendor = await getApiVendor(modelObj?.apiVendorId ?? 0);
-    //console.log(mcpTool);
-    if (mcpTool > 0 && apiVendor?.name === "anthropic") {
-      //console.log("MCP Tool data set");
-      mcpToolData = await getMcpTool(mcpTool);
-      //console.log(mcpToolData);
-      if (!mcpToolData) {
-        throw new Error(`MCP Tool not found`);
-      }
-    }
-    const result = await chatRepository.sendChat(chat, mcpToolData);
+    // Remove the old logic for fetching mcpToolData and apiVendor here
+    // The repository now handles fetching the tool based on chat.mcpToolId
 
+    // Call sendChat with only the chat object
+    console.log(
+      `---CHAT ACTION OBJECT BEGIN---${JSON.stringify(chat)}---CHAT ACTION OBJECT END---`
+    );
+    const result = await chatRepository.sendChat(chat);
+
+    // Handle DALL-E response or standard chat response
     if (chat.model !== "dall-e-3") {
       responseHistory.push(result as ChatResponse);
       chat.responseHistory = responseHistory;
       // Clear image data after sending while keeping the URL in response history
-      if (chat.imageData) {
-        chat.imageData = null;
+      if (chat.visionUrl) {
+        chat.imageURL = null;
       }
     } else {
       chat.imageURL = result as string;

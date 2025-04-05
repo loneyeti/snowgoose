@@ -16,10 +16,12 @@
 - Updated environment variable handling for Docker and Fly.io deployment contexts.
 - Completed migration to standalone Next.js application using Server Actions.
 - Finalized Prisma ORM integration.
-- Enhanced error handling and recovery mechanisms.
-- Improved MCP tool management and stability.
-- Optimized database operations using the repository pattern.
-- **Refactored AI vendor logic into a reusable package (`snowgander`).**
+  - Enhanced error handling and recovery mechanisms.
+  - Improved MCP tool management and stability.
+  - Optimized database operations using the repository pattern.
+  - **Refactored AI vendor logic into a reusable package (`snowgander`).**
+  - **Fixed `toolUseId` handling in `chat.repository.ts` to correctly pass the string ID from `ToolUseBlock` to `ToolResultBlock` as required by `snowgander` and vendors like Anthropic.**
+  - **Corrected MCP tool flow in `chat.repository.ts` to prevent sending available tools on the second API call (after receiving a tool result), resolving an issue where the AI would attempt to call the tool again instead of providing a final text response.**
 
 ## Active Decisions
 
