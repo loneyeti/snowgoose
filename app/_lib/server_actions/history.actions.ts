@@ -52,11 +52,16 @@ async function _generateChatTitle(userId: number, chat: Chat): Promise<string> {
       messages: [
         {
           role: "system",
-          content: systemPrompt,
+          content: [{ type: "text", text: systemPrompt }],
         },
         {
           role: "user",
-          content: `Generate a short, one-sentence title for this chat history: ${JSON.stringify(chat)}`,
+          content: [
+            {
+              type: "text",
+              text: `Generate a short, one-sentence title for this chat history: ${JSON.stringify(chat)}`,
+            },
+          ],
         },
       ],
       // Add parameters to encourage brevity if supported by the model/adapter
@@ -65,9 +70,7 @@ async function _generateChatTitle(userId: number, chat: Chat): Promise<string> {
 
     // Extract title from response content
     let title = "Untitled Chat"; // Default title
-    if (typeof titleResponse.content === "string") {
-      title = titleResponse.content.trim();
-    } else if (Array.isArray(titleResponse.content)) {
+    if (Array.isArray(titleResponse.content)) {
       const textBlock = titleResponse.content.find(
         (block): block is TextBlock => block.type === "text"
       );

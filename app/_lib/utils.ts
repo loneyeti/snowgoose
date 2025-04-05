@@ -28,6 +28,8 @@ export function contentBlockToString(block: ContentBlock): string {
       return block.text;
     case "image":
       return block.url;
+    default:
+      return "";
   }
 }
 
