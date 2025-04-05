@@ -10,7 +10,7 @@ import { useThinkingState } from "./hooks/useThinkingState";
 import { useFormSubmission } from "./hooks/useFormSubmission";
 import { Popover, Transition } from "@headlessui/react";
 import {
-  Chat,
+  LocalChat,
   ChatResponse,
   ChatUserSession,
   ChatWrapperProps,
@@ -37,7 +37,7 @@ export default function ChatWrapper({
   const [showMoreOptions, setShowMoreOptions] = useState(false);
   const toggleMoreOptions = () => setShowMoreOptions(!showMoreOptions);
   const [response, setResponse] = useState<ChatResponse[]>([]);
-  const [currentChat, setCurrentChat] = useState<Chat | undefined>();
+  const [currentChat, setCurrentChat] = useState<LocalChat | undefined>();
   const [isHistoryShowing, setIsHistoryShowing] = useState(false);
   const [showConversationSpinner, setShowConversationSpinner] =
     useState<boolean>(false);
@@ -91,7 +91,7 @@ export default function ChatWrapper({
     initialBudgetTokens: currentChat?.budgetTokens ?? null,
   });
 
-  const updateMessage = (chat: Chat | undefined) => {
+  const updateMessage = (chat: LocalChat | undefined) => {
     if (chat) {
       if (!chat.imageURL) {
         setResponse(chat.responseHistory);

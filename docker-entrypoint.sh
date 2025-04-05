@@ -34,6 +34,10 @@ npx prisma db seed
 # echo "Building the application..."
 # npm run build
 
+# Ensure dependencies are up-to-date based on mounted package.json
+echo "Ensuring dependencies are up-to-date..."
+npm install
+
 # Start the application
 echo "Starting the application..."
 exec "$@"

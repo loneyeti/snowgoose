@@ -2,12 +2,15 @@
 
 import { modelRepository } from "@/app/_lib/db/repositories/model.repository";
 import { ModelPost } from "@/app/_lib/model";
+import { Model } from "@/app/_lib/model";
 import {
   UpdateModelFormSchema,
   CreateModelFormSchema,
 } from "@/app/_lib/form-schemas";
+import { ModelConfig } from "snowgander";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getApiVendor } from "./api_vendor.actions";
 
 // Model Functions
 export async function getModels() {
@@ -17,6 +20,30 @@ export async function getModels() {
 
 export async function getModel(id: number) {
   return modelRepository.findById(id);
+}
+
+export async function getModelAPIName(model: Model) {
+  if (!model.apiVendorId) {
+    throw new Error("Model has no vendor");
+  }
+  const apiVendor = await getApiVendor(model.apiVendorId);
+  return apiVendor?.name;
+}
+
+export async function getModelAdaptorOptions(model: Model) {
+  const modelConfig: ModelConfig = {
+    apiName: model.apiName,
+    isVision: model.isVision,
+    isImageGeneration: model.isImageGeneration,
+    isThinking: model.isThinking,
+    inputTokenCost: model.inputTokenCost ?? undefined,
+    outputTokenCost: model.outputTokenCost ?? undefined,
+  };
+  const name = await getModelAPIName(model);
+  if (!name) {
+    throw new Error("Model has no vendor");
+  }
+  return { name, modelConfig };
 }
 
 export async function createModel(formData: FormData) {

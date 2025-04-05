@@ -4,9 +4,10 @@ import { revalidatePath } from "next/cache";
 import { historyRepository } from "../db/repositories/history.repository";
 import { userSettingsRepository } from "../db/repositories/user-settings.repository";
 import { modelRepository } from "../db/repositories/model.repository";
-import { AIVendorFactory } from "../ai/factory";
+import { AIVendorFactory, ModelConfig } from "snowgander";
 import { Chat, TextBlock, Model } from "../model";
 import { getUserID } from "../auth";
+import { getModelAdaptorOptions } from "./model.actions";
 
 // Helper function to generate chat title
 async function _generateChatTitle(userId: number, chat: Chat): Promise<string> {
@@ -38,7 +39,8 @@ async function _generateChatTitle(userId: number, chat: Chat): Promise<string> {
     }
 
     // Get the appropriate AI vendor adapter
-    const adapter = await AIVendorFactory.getAdapter(summaryModel);
+    const { name, modelConfig } = await getModelAdaptorOptions(summaryModel);
+    const adapter = await AIVendorFactory.getAdapter(name, modelConfig);
 
     // Create a system prompt for title generation
     const systemPrompt =

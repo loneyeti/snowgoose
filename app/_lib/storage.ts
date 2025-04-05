@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/app/_utils/supabase/server";
+import { Buffer } from "buffer"; // Import Buffer for server-side handling
 
 export async function supabaseUploadFile(filename: string, file: File) {
   const storageBucket = process.env.SUPABASE_VISION_STORAGE_BUCKET;
@@ -60,4 +61,74 @@ export async function supabaseUploadFile(filename: string, file: File) {
     console.error("Error uploading file to Supabase:", error);
     throw error;
   }
+}
+
+// Helper function to convert base64 string to a File-like object for Supabase upload
+function base64ToFile(
+  base64Data: string,
+  filename: string,
+  mimeType: string
+): File {
+  // Use Buffer for server-side base64 decoding
+  const buffer = Buffer.from(base64Data, "base64");
+  // Create a File-like object that mimics the structure expected by supabaseUploadFile
+  const file = {
+    name: filename,
+    type: mimeType,
+    size: buffer.length,
+    arrayBuffer: async () => buffer, // Provide the buffer via arrayBuffer method
+    // Add other File methods like slice(), stream(), text() if needed, though arrayBuffer is often sufficient
+    slice: (start?: number, end?: number, contentType?: string) => {
+      const slicedBuffer = buffer.slice(start, end);
+      return new Blob([slicedBuffer], { type: contentType || mimeType });
+    },
+    stream: () => {
+      // Node.js streams are different from browser ReadableStream.
+      // This might need the 'buffer-to-stream' package or similar if a true stream is required.
+      // For Supabase upload, arrayBuffer is usually enough.
+      // Returning a simple stream representation if necessary:
+      const readable = new (require("stream").Readable)();
+      readable._read = () => {}; // _read is required, do nothing
+      readable.push(buffer);
+      readable.push(null); // Signal end of stream
+      return readable as any; // Cast needed as Node stream != DOM stream
+    },
+    text: async () => {
+      return buffer.toString("utf-8"); // Assuming utf-8, adjust if needed
+    },
+    lastModified: Date.now(), // Add lastModified property
+  };
+  // Cast to 'any' then 'File' to satisfy the type checker, acknowledging it's a mock.
+  return file as any as File;
+}
+
+/**
+ * Uploads a base64 encoded image string to Supabase storage.
+ * @param base64Data The base64 encoded image data.
+ * @param mimeType The MIME type of the image (e.g., 'image/png', 'image/jpeg').
+ * @returns A promise that resolves with the public URL of the uploaded image.
+ */
+export async function uploadBase64Image(
+  base64Data: string,
+  mimeType: string
+): Promise<string> {
+  // Generate a unique filename
+  const fileExtension = mimeType.split("/")[1] || "png"; // Default to png if split fails
+  const filename = `ai-generated-${Date.now()}.${fileExtension}`;
+
+  // Convert base64 data to a File-like object
+  const file = base64ToFile(base64Data, filename, mimeType);
+
+  // Upload using the existing supabaseUploadFile function
+  const url = await supabaseUploadFile(filename, file);
+
+  // Check if URL was successfully obtained
+  if (!url) {
+    console.error("Supabase upload returned no URL for base64 image.");
+    throw new Error(
+      "Failed to upload base64 image to Supabase storage: No URL returned."
+    );
+  }
+
+  return url;
 }

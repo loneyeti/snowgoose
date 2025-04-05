@@ -42,6 +42,7 @@ Standalone Next.js application with Server Actions
    - User preferences
    - Persona management
    - Output format handling
+   - Corrected MCP tool interaction flow (prevents duplicate tool calls)
 
 5. AI Integration
    - OpenAI adapter
@@ -193,3 +194,4 @@ Standalone Next.js application with Server Actions
 9. Authentication system
 10. Error handling system (Initial)
 11. Standardized Server Action error handling (Log details server-side, throw generic errors)
+12. **AI Vendor Logic Refactoring**: Extracted AI adapters and factory into reusable `@snowgoose/ai-vendors` package.
