@@ -13,6 +13,10 @@ export const CreatePersonaFormSchema = z.object({
   ownerId: z.coerce.number().nullable(),
 });
 
+export const createCheckoutSessionFormSchema = z.object({
+  priceId: z.string(),
+});
+
 export const CreateOutputFormatFormSchema = z.object({
   name: z.string(),
   prompt: z.string(),

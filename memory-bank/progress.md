@@ -43,8 +43,20 @@ Standalone Next.js application with Server Actions
    - Persona management
    - Output format handling
    - Corrected MCP tool interaction flow (prevents duplicate tool calls)
+   - **Stripe subscription integration:**
+     - Basic checkout flow (subscription page, checkout action, success page)
+     - Basic checkout flow (subscription page, checkout action, success page)
+     - Database schema updated with Stripe fields
+     - Webhook handler for `checkout.session.completed` to update DB
+     - Checkout session linked to user via `client_reference_id`
+     - Middleware updated to allow webhook access
+     - **Stripe Customer Portal integration:**
+       - Server action (`createCustomerPortalSessionAction`) to generate portal URL
+       - Client component (`ManageSubscriptionButton`) for redirection
+       - Button added to profile page (`/settings/profile`) for subscribed users
 
 5. AI Integration
+   - **AI vendor logic moved to standalone `snowgander` npm package (v0.0.17)**
    - OpenAI adapter
    - Anthropic adapter
    - Google AI adapter
@@ -84,11 +96,32 @@ Standalone Next.js application with Server Actions
    - Security testing
 
 5. Documentation
+
    - User guides
    - Developer documentation
    - Deployment guides
    - Configuration guides
    - Troubleshooting guides
+
+6. **Subscription System**
+   - Basic Stripe integration implemented
+   - Subscription page with plan display
+   - Checkout session creation
+   - Success page confirmation
+   - Basic Stripe integration implemented
+   - Subscription page with plan display
+   - Checkout session creation
+   - Success page confirmation
+   - **Database schema updated for subscription tracking (DONE)**
+   - **Webhook handling for `checkout.session.completed` (DONE)**
+   - **Webhook handling for `customer.subscription.updated` (DONE - handles renewals, updates)**
+   - **Webhook handling for `customer.subscription.deleted` (DONE - handles cancellations)**
+   - **Webhook handling for `invoice.payment_failed` (DONE - logs failures)**
+   - **Stripe Customer Portal integration (DONE)**
+   - Need to implement subscription status checks (using new DB fields)
+   - Need to add subscription management UI (beyond portal)
+   - Need to implement usage limits based on subscription tier
+   - ~~Need to add webhook handling for other events (updates, cancellations)~~ (Now covered)
 
 ## Known Issues
 
@@ -194,4 +227,10 @@ Standalone Next.js application with Server Actions
 9. Authentication system
 10. Error handling system (Initial)
 11. Standardized Server Action error handling (Log details server-side, throw generic errors)
-12. **AI Vendor Logic Refactoring**: Extracted AI adapters and factory into reusable `@snowgoose/ai-vendors` package.
+12. **AI Vendor Logic Refactoring**: Extracted AI adapters and factory into standalone `snowgander` npm package (v0.0.17).
+13. **Basic Stripe Integration**: Implemented subscription page, checkout process, and success confirmation.
+14. **Stripe DB Schema Update**: Added necessary fields to `User` model for subscription tracking and applied migration.
+15. **Stripe Webhook Implementation**: Added webhook handler for `checkout.session.completed` to update user subscription data in the database.
+16. **Middleware Update**: Excluded Stripe webhook path from authentication checks.
+17. **Stripe Customer Portal Integration**: Added functionality for users to manage their subscriptions via the Stripe portal, accessible from the profile page.
+18. **Expanded Stripe Webhook Handling**: Added handlers for `customer.subscription.updated`, `customer.subscription.deleted`, and `invoice.payment_failed` to manage subscription lifecycle events in the database.

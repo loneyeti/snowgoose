@@ -105,19 +105,31 @@ model UserSettings {
 }
 
 model User {
-  id            Int                   @id @default(autoincrement())
-  username      String                @unique @db.VarChar(250)
+  id       Int      @id @default(autoincrement())
+  username String   @unique @db.VarChar(250)
   //password      String                @db.VarChar(250)
-  email         String?               @db.VarChar(250)
-  isAdmin       Boolean?              @map("is_admin")
-  authId        String?               @unique @db.Uuid // Foreign key to auth.users(id)
+  email    String?  @db.VarChar(250)
+  isAdmin  Boolean? @map("is_admin")
+  authId   String?  @unique @db.Uuid // Foreign key to auth.users(id)
+
+  // Usage Tracking (Existing)
+  // renewalDate   DateTime?          // REMOVED
+  periodUsage Float? @default(0.0)
+  totalUsage  Float? @default(0.0)
+
+  // Stripe Subscription Fields (New)
+  stripeCustomerId            String?   @unique @map("stripe_customer_id")
+  stripeSubscriptionId        String?   @unique @map("stripe_subscription_id")
+  stripePriceId               String?   @map("stripe_price_id")
+  stripeCurrentPeriodBegin    DateTime? @map("stripe_current_period_begin")
+  stripeCurrentPeriodEnd      DateTime? @map("stripe_current_period_end")
+  stripeSubscriptionStartDate DateTime? @map("stripe_subscription_start_date")
+
+  // Relations (Existing)
   conversations ConversationHistory[]
   outputFormats OutputFormat[]
   personas      Persona[]
   settings      UserSettings[]
-  renewalDate   DateTime?
-  periodUsage   Float?                @default(0.0) // Change Int? to Float? and default to 0.0
-  totalUsage    Float?                @default(0.0) // Change Int? to Float? and default to 0.0
 
   @@map("users")
 }
