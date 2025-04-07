@@ -8,6 +8,7 @@ interface TextInputAreaProps {
   isSubmitting: boolean;
   onReset: () => void;
   showFileUpload: boolean;
+  disabled?: boolean; // Add optional disabled prop
 }
 
 export default function TextInputArea({
@@ -15,6 +16,7 @@ export default function TextInputArea({
   isSubmitting,
   onReset,
   showFileUpload,
+  disabled = false, // Default to false
 }: TextInputAreaProps) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -160,12 +162,16 @@ export default function TextInputArea({
             ref={textAreaRef}
             value={promptVal}
             onChange={handleTextAreaChange}
-            placeholder="Send Message..."
+            placeholder={disabled ? "Usage limit reached" : "Send Message..."} // Change placeholder when disabled
+            disabled={disabled} // Disable textarea
           ></textarea>
 
           <button
             className="pr-3"
-            disabled={isSubmitting || (!promptVal.trim() && !selectedFile)}
+            // Disable if explicitly disabled OR submitting OR no text/file
+            disabled={
+              disabled || isSubmitting || (!promptVal.trim() && !selectedFile)
+            }
             type="button"
             onClick={handleButtonClick}
           >

@@ -13,12 +13,14 @@ interface UseFormSubmissionProps {
   responseHistory: ChatResponse[];
   updateMessage: (chat: LocalChat | undefined) => void;
   updateShowSpinner: (show: boolean) => void;
+  onUsageLimitError?: () => void; // Add optional callback for usage limit error
 }
 
 export function useFormSubmission({
   responseHistory,
   updateMessage,
   updateShowSpinner,
+  onUsageLimitError, // Destructure the new callback
 }: UseFormSubmissionProps): FormSubmissionState & {
   handleSubmit: (formData: FormData) => void;
   handleReset: () => void;
@@ -49,7 +51,19 @@ export function useFormSubmission({
         console.error("Error during form submission:", error);
         updateShowSpinner(false);
         setIsSubmitting(false);
-        toast.error("Error retrieving data");
+        // Check for specific usage limit error code
+        if (
+          error instanceof Error &&
+          error.message === "USAGE_LIMIT_EXCEEDED"
+        ) {
+          toast.error("Usage limit reached for the current billing period.");
+          onUsageLimitError?.(); // Call the callback if provided
+        } else {
+          // Show generic error for other issues
+          toast.error(
+            error instanceof Error ? error.message : "Error retrieving data"
+          );
+        }
       } finally {
         // Reset the flag regardless of success or failure
         submissionInProgress.current = false;
@@ -59,7 +73,14 @@ export function useFormSubmission({
     if (isSubmitting) {
       submitForm();
     }
-  }, [isSubmitting, data, responseHistory, updateMessage, updateShowSpinner]);
+  }, [
+    isSubmitting,
+    data,
+    responseHistory,
+    updateMessage,
+    updateShowSpinner,
+    onUsageLimitError,
+  ]);
 
   // Prevent multiple rapid submissions
   const handleSubmit = (formData: FormData) => {

@@ -145,6 +145,10 @@ export type ChatWrapperProps = {
   mcpTools: MCPTool[];
   apiVendors: APIVendor[];
   user: User;
+  // Add optional props for usage limit display/control
+  periodUsage?: number | null;
+  usageLimit?: number | null;
+  isOverLimit?: boolean;
 };
 /*
 export interface APIResonse {

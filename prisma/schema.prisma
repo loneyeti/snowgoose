@@ -133,3 +133,12 @@ model User {
 
   @@map("users")
 }
+
+model SubscriptionPlan {
+  id            Int    @id @default(autoincrement())
+  stripePriceId String @unique @map("stripe_price_id") // Links to Stripe Price
+  name          String // e.g., "Pro Tier", "Free Tier"
+  usageLimit    Float // The usage limit for the period
+
+  @@map("subscription_plan")
+}

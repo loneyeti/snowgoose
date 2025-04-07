@@ -102,3 +102,16 @@ export const FormSchema = z.object({
   budgetTokens: z.coerce.number().nullable(),
   mcpTool: z.coerce.number(),
 });
+
+// Schema for validating the admin subscription plan upsert action
+export const upsertSubscriptionPlanSchema = z.object({
+  stripePriceId: z.string().min(1, "Stripe Price ID is required."),
+  name: z.string().min(1, "Plan name is required."),
+  // Ensure usageLimit is treated as a number, coercing if necessary
+  usageLimit: z.coerce
+    .number({
+      invalid_type_error: "Usage limit must be a number.",
+      required_error: "Usage limit is required.",
+    })
+    .positive("Usage limit must be a positive number."),
+});

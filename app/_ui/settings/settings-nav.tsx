@@ -82,6 +82,24 @@ export default async function SettingsNav() {
                 />
                 MCP Tools
               </MenuListItem>
+              {/* Add new link for Admin Subscription Management */}
+              <MenuListItem url="/settings/admin/subscriptions">
+                <MaterialSymbol
+                  icon="receipt_long" // Using receipt_long icon
+                  size={18}
+                  className="mr-2 align-middle"
+                />
+                Subscriptions
+              </MenuListItem>
+              {/* Add new link for Subscription Limits */}
+              <MenuListItem url="/settings/admin/subscription-limits">
+                <MaterialSymbol
+                  icon="rule" // Using rule icon for limits
+                  size={18}
+                  className="mr-2 align-middle"
+                />
+                Subscription Limits
+              </MenuListItem>
             </ul>
           </li>
         )}

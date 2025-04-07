@@ -207,11 +207,27 @@ flowchart TD
         CheckoutAction -- Creates Session --> StripeAPI
         StripeAPI -- Sends Event --> WebhookRoute["/api/webhooks/stripe <br> (route.ts)"]
         WebhookRoute -- Verifies & Parses --> StripeAPI
-        WebhookRoute -- Updates User --> UserRepo["user.repository.ts <br> (updateSubscriptionByAuthId)"]
-        UserRepo --> PrismaClient[Prisma Client]
-        PrismaClient --> DB[(Database: User Table)]
+        WebhookRoute -- Updates User --> UserRepo["user.repository.ts <br> (updateSubscriptionByAuthId, <br> updateSubscriptionByCustomerId, <br> clearSubscriptionByCustomerId)"]
+        UserRepo -- Reads/Writes --> PrismaClient[Prisma Client]
+        PrismaClient --> UserTable[(Database: User Table <br> incl. periodUsage)]
+        PrismaClient --> PlanTable[(Database: SubscriptionPlan Table <br> incl. usageLimit)]
+
+        %% Usage Check Logic (Conceptual - happens before billable actions) %%
+        style UsageCheck fill:#f9f,stroke:#333,stroke-width:1px
+        BillableAction["Server Action <br> (e.g., Chat)"] -- Needs Limit Check --> UserRepo
+        UserRepo -- Reads --> UserTable
+        UserRepo -- Reads --> PlanTable
+        BillableAction -- Proceeds or Blocks --> User
+
+        %% Usage Reset Logic (Inside UserRepository) %%
+        UserRepo -- "customer.subscription.updated event" --> ResetCheck{Compare Period Start?}
+        ResetCheck -- Yes --> UpdateUsage["Update User: <br> periodUsage = 0"]
+        UpdateUsage --> UserTable
+        ResetCheck -- No --> NoReset[No Usage Reset]
+
 
         AppAccess -- Needs Check --> UserRepo["user.repository.ts <br> (findByAuthId or similar)"]
+        UserRepo --> UserTable
     end
 
     subgraph "External Services"

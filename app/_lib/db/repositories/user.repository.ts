@@ -138,12 +138,12 @@ export class UserRepository extends BaseRepository {
       stripeCurrentPeriodEnd: Date;
       // stripeSubscriptionStartDate is usually set only on creation,
       // but could be updated if needed, though less common.
-      // periodUsage?: number; // Optionally reset usage here if needed
+      // periodUsage?: number; // Optionally reset usage here if needed - Handled internally now
     }
   ): Promise<User | null> {
-    // Find the user first to ensure they exist with this customer ID
-    const user = await this.prisma.user.findFirst({
-      where: { stripeCustomerId },
+    // Find the user first to get current state, especially stripeCurrentPeriodBegin
+    const user = await this.prisma.user.findUnique({
+      where: { stripeCustomerId }, // Assuming stripeCustomerId is unique or using findFirst if not guaranteed
     });
 
     if (!user) {
@@ -152,20 +152,47 @@ export class UserRepository extends BaseRepository {
       );
       // Depending on strictness, you might throw an error or just return null
       // throw new Error(`No user found with stripeCustomerId: ${stripeCustomerId}`);
-      return null;
+      return null; // Or throw error if preferred
+    }
+
+    // Determine if usage should be reset
+    let shouldResetUsage = false;
+    if (user.stripeCurrentPeriodBegin) {
+      // Compare incoming start date with stored start date
+      // Convert both to milliseconds for reliable comparison
+      if (
+        data.stripeCurrentPeriodBegin.getTime() !==
+        user.stripeCurrentPeriodBegin.getTime()
+      ) {
+        console.log(
+          `Renewal detected for customer ${stripeCustomerId}. Resetting periodUsage.`
+        );
+        shouldResetUsage = true;
+      }
+    } else {
+      // If there's no previous begin date, maybe treat it as the start of the first period?
+      // Or assume it's not a renewal requiring reset. For now, only reset if dates differ.
+      console.log(
+        `No existing stripeCurrentPeriodBegin found for customer ${stripeCustomerId}. Not resetting usage.`
+      );
+    }
+
+    // Prepare update payload
+    const updateData: any = {
+      stripeSubscriptionId: data.stripeSubscriptionId,
+      stripePriceId: data.stripePriceId,
+      stripeCurrentPeriodBegin: data.stripeCurrentPeriodBegin,
+      stripeCurrentPeriodEnd: data.stripeCurrentPeriodEnd,
+    };
+
+    if (shouldResetUsage) {
+      updateData.periodUsage = 0.0; // Reset usage to 0
     }
 
     try {
       return await this.prisma.user.update({
         where: { id: user.id }, // Update using the found user's primary key
-        data: {
-          // stripeCustomerId should already match, no need to update it here
-          stripeSubscriptionId: data.stripeSubscriptionId,
-          stripePriceId: data.stripePriceId,
-          stripeCurrentPeriodBegin: data.stripeCurrentPeriodBegin,
-          stripeCurrentPeriodEnd: data.stripeCurrentPeriodEnd,
-          // periodUsage: data.periodUsage !== undefined ? data.periodUsage : undefined,
-        },
+        data: updateData,
       });
     } catch (error) {
       this.handleError(error);

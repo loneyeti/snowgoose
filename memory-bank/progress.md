@@ -54,6 +54,12 @@ Standalone Next.js application with Server Actions
        - Server action (`createCustomerPortalSessionAction`) to generate portal URL
        - Client component (`ManageSubscriptionButton`) for redirection
        - Button added to profile page (`/settings/profile`) for subscribed users
+     - **Usage Limit Foundation:**
+       - Added `SubscriptionPlan` table to DB schema (`prisma/schema.prisma`)
+       - Applied migration (`20250406230457_add_subscription_plan_table`)
+       - Updated `UserRepository` to reset `periodUsage` on renewal via webhook
+       - **Added Admin Active Subscriptions page (`/settings/admin/subscriptions`) for viewing active customer subscriptions and associated local plan data (read-only).**
+       - **Added Admin Subscription Limits page (`/settings/admin/subscription-limits`) for managing local plan name and usage limits per Stripe Price ID.**
 
 5. AI Integration
    - **AI vendor logic moved to standalone `snowgander` npm package (v0.0.17)**
@@ -118,9 +124,13 @@ Standalone Next.js application with Server Actions
    - **Webhook handling for `customer.subscription.deleted` (DONE - handles cancellations)**
    - **Webhook handling for `invoice.payment_failed` (DONE - logs failures)**
    - **Stripe Customer Portal integration (DONE)**
+   - **Foundation for usage limits and reset (DONE - `SubscriptionPlan` table added, `UserRepository` updated to reset usage on renewal)**
+   - **Admin UI for viewing active customer subscriptions (DONE)**
    - Need to implement subscription status checks (using new DB fields)
-   - Need to add subscription management UI (beyond portal)
-   - Need to implement usage limits based on subscription tier
+   - Need to add subscription management UI (beyond portal and admin page)
+   - Need to implement usage limit checks based on `SubscriptionPlan` table (PENDING)
+   - Need to create UI/Action for managing `SubscriptionPlan` table records (DONE)
+   - Need to populate `SubscriptionPlan` table (PENDING)
    - ~~Need to add webhook handling for other events (updates, cancellations)~~ (Now covered)
 
 ## Known Issues
@@ -234,3 +244,6 @@ Standalone Next.js application with Server Actions
 16. **Middleware Update**: Excluded Stripe webhook path from authentication checks.
 17. **Stripe Customer Portal Integration**: Added functionality for users to manage their subscriptions via the Stripe portal, accessible from the profile page.
 18. **Expanded Stripe Webhook Handling**: Added handlers for `customer.subscription.updated`, `customer.subscription.deleted`, and `invoice.payment_failed` to manage subscription lifecycle events in the database.
+19. **Subscription Usage Limit Foundation**: Added `SubscriptionPlan` table to database schema and updated `UserRepository` to reset `periodUsage` on subscription renewal via webhook.
+20. **Admin Active Subscriptions View**: Created page (`/settings/admin/subscriptions`) allowing admins to view active Stripe subscriptions and associated local `SubscriptionPlan` data (read-only).
+21. **Admin Subscription Limits Management**: Created page (`/settings/admin/subscription-limits`) allowing admins to manage local `SubscriptionPlan` records (name, usageLimit) associated with Stripe Prices.

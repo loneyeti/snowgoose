@@ -43,6 +43,17 @@
     - `customer.subscription.deleted`: Handles cancellations. Clears DB fields via `UserRepository.clearSubscriptionByCustomerId`.
     - `invoice.payment_failed`: Logs failed payment attempts.
   - **Added `updateSubscriptionByCustomerId` and `clearSubscriptionByCustomerId` methods to `UserRepository` to support webhook updates based on Stripe Customer ID.**
+  - **Added `SubscriptionPlan` model to `prisma/schema.prisma` to store usage limits per Stripe Price ID. Applied migration `20250406230457_add_subscription_plan_table`.**
+  - **Updated `UserRepository.updateSubscriptionByCustomerId` to automatically reset `periodUsage` to 0 when the `customer.subscription.updated` webhook indicates a billing period renewal.**
+  - **Added Admin Active Subscriptions page (`/settings/admin/subscriptions`):**
+    - Created `SubscriptionPlanRepository` (`app/_lib/db/repositories/subscription-plan.repository.ts`) for DB operations.
+    - Created server action (`app/_lib/server_actions/subscription-plan.actions.ts`) to fetch combined Stripe/local data (`getAdminSubscriptionData`). (Note: `upsertSubscriptionPlanAction` exists but is currently unused by the page).
+    - Created the page component (`app/settings/admin/subscriptions/page.tsx`) with admin check and read-only display of active customer subscriptions and associated local plan data.
+    - Added navigation link in `app/_ui/settings/settings-nav.tsx`.
+    - **Added Admin Subscription Limits page (`/settings/admin/subscription-limits`):**
+      - Created server action (`getSubscriptionLimitData`) to fetch Stripe Prices and merge with local `SubscriptionPlan` data.
+      - Created the page component (`app/settings/admin/subscription-limits/page.tsx`) with admin check, data fetching, and a form using `upsertSubscriptionPlanAction` to manage local plan name and usage limits per Stripe Price ID.
+      - Added navigation link in `app/_ui/settings/settings-nav.tsx`.
 
 ## Active Decisions
 
@@ -97,6 +108,10 @@
    - **Middleware configured to allow unauthenticated access to the webhook endpoint.**
    - **Customer Portal session creation implemented (`createCustomerPortalSessionAction`).**
    - **UI added to profile page (`/settings/profile`) for users to access the Customer Portal.**
+   - **Database structure (`SubscriptionPlan` table) added to support usage limits per plan.**
+   - **Logic added to `UserRepository` to reset `periodUsage` automatically on subscription renewal via webhook.**
+   - **Admin UI (`/settings/admin/subscriptions`) created for viewing active Stripe subscriptions and associated local `SubscriptionPlan` records (read-only).**
+   - **Admin UI (`/settings/admin/subscription-limits`) created for managing local `SubscriptionPlan` records (name, usageLimit) associated with Stripe Prices.**
 
 ## Next Steps
 
@@ -145,7 +160,11 @@
    - Implement usage limits based on subscription tier
    - **Add webhook handling for subscription events (DONE for `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`)**
    - **Integrate Stripe Customer Portal (DONE)**
+   - **Add Admin UI for viewing active customer subscriptions (DONE)**
    - ~~Add webhook handling for other relevant events (`customer.subscription.updated`, `customer.subscription.deleted`, etc.)~~ (Now covered)
+   - **Implement usage limit checks based on `SubscriptionPlan` table (PENDING)**
+   - **Create UI/Action for managing `SubscriptionPlan` table records (DONE)**
+   - **Populate `SubscriptionPlan` table with actual plan data (PENDING)**
 
 ## Current Considerations
 

@@ -17,12 +17,16 @@ import {
   MCPAvailableTool,
   ToolUseBlock,
   ContentBlock,
-  ImageDataBlock, // Added ImageDataBlock import from snowgander
+  ImageDataBlock,
+  AIVendorAdapter, // Added ImageDataBlock import from snowgander
 } from "snowgander"; // Added MCPAvailableTool, ToolUseBlock, ContentBlock
 import { getApiVendor } from "../../server_actions/api_vendor.actions";
 import { mcpManager } from "../../mcp/manager"; // Import MCP Manager
 import { mcpToolRepository } from "./mcp-tool.repository"; // Import MCP Tool Repository
 import { uploadBase64Image } from "../../storage"; // Import the new helper function
+import { getCurrentAPIUser } from "../../auth";
+import { SubscriptionPlanRepository } from "./subscription-plan.repository"; // Import SubscriptionPlan Repository class
+import { updateUserUsage } from "../../server_actions/user.actions";
 
 // Initialize AI vendors using the imported factory
 if (process.env.OPENAI_API_KEY) {
@@ -49,6 +53,9 @@ if (process.env.OPENROUTER_API_KEY) {
     apiKey: process.env.OPENROUTER_API_KEY,
   });
 }
+
+// Instantiate repositories needed within ChatRepository
+const subscriptionPlanRepo = new SubscriptionPlanRepository();
 
 export class ChatRepository extends BaseRepository {
   // Helper function to process content blocks and upload images
@@ -83,8 +90,8 @@ export class ChatRepository extends BaseRepository {
     return processedContent;
   }
 
-  async sendChat(chat: LocalChat): Promise<ChatResponse | string> {
-    // Get the model from the database
+  private async getVendorFactory(chat: LocalChat): Promise<AIVendorAdapter> {
+    // Get the model from the database or throw error
     const model = await prisma.model.findUnique({
       where: { id: chat.modelId },
     });
@@ -93,6 +100,7 @@ export class ChatRepository extends BaseRepository {
       throw new Error("Model or Model Vendor not found");
     }
 
+    // Get the model's vendor from the database or throw error
     const apiVendor = await getApiVendor(model.apiVendorId);
     // Add null check for apiVendor before proceeding
     if (!apiVendor) {
@@ -110,15 +118,77 @@ export class ChatRepository extends BaseRepository {
     };
 
     // Get the appropriate AI vendor adapter using vendor name and model config
-    const adapter = AIVendorFactory.getAdapter(apiVendor.name, modelConfig);
+    return AIVendorFactory.getAdapter(apiVendor.name, modelConfig);
+  }
 
-    // For DALL-E image generation (Keep this logic)
-    // Use isImageGeneration based on type definition
+  private async sendChatAndUpdateCost(
+    chat: LocalChat,
+    adapter: AIVendorAdapter
+  ): Promise<ChatResponse> {
+    const user = await getCurrentAPIUser();
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+    const response = await adapter.sendChat(chat);
+    if (response.usage) {
+      await updateUserUsage(user.id, response.usage.totalCost);
+    }
+    /*
+    console.log(
+      `${user.email}: Period Usage now: ${user.periodUsage} == ${response.usage?.totalCost}`
+    );
+    */
+    return response;
+  }
+
+  async sendChat(chat: LocalChat): Promise<ChatResponse | string> {
+    // --- Usage Limit Check ---
+    const user = await getCurrentAPIUser();
+    if (!user) {
+      throw new Error("Unauthorized: User not found for usage check.");
+    }
+
+    // Check if user has a subscription plan linked
+    if (user.stripePriceId) {
+      try {
+        // Use the instantiated repository
+        const plan = await subscriptionPlanRepo.findByStripePriceId(
+          user.stripePriceId
+        );
+
+        // Check if a plan exists and has a usage limit defined (limit > 0)
+        if (plan && plan.usageLimit && plan.usageLimit > 0) {
+          // Compare usage (ensure periodUsage is not null, default to 0 if it is)
+          const currentUsage = user.periodUsage ?? 0;
+          if (currentUsage >= plan.usageLimit) {
+            console.warn(
+              `User ${user.email} exceeded usage limit. Usage: ${currentUsage}, Limit: ${plan.usageLimit}`
+            );
+            // Throw a specific, unique error string
+            throw new Error("USAGE_LIMIT_EXCEEDED");
+          }
+        }
+      } catch (error) {
+        console.error("Error checking usage limit:", error);
+        // Decide how to handle errors during the check (e.g., allow request, throw error)
+        // For safety, let's throw an error to prevent potential over-usage if check fails
+        throw new Error(
+          "Failed to verify usage limit. Please try again later."
+        );
+      }
+    }
+    // --- End Usage Limit Check ---
+
+    const adapter = await this.getVendorFactory(chat);
+
+    /*
+    // For DALL-E image generation. Will be depreciated soon.
     if (modelConfig.isImageGeneration && model.apiName === "dall-e-3") {
       // Assuming generateImage takes just the prompt string based on snowgander README
       const imageUrl = await adapter.generateImage(chat);
       return imageUrl;
     }
+      */
 
     // --- MCP Tool Handling ---
     let selectedMCPToolRecord: MCPTool | null = null;
@@ -142,20 +212,7 @@ export class ChatRepository extends BaseRepository {
             description: tool.description || `Tool: ${tool.name}`,
             input_schema: tool.inputSchema,
           }));
-          /*const toolInfo = availableToolsInfo.find(
-            (t) => t.name === selectedMCPToolRecord!.name
-          );
-          //console.log(`FOUND TOOL INFO: ${toolInfo}`);
-          */
           if (formattedTools) {
-            /*
-            // Format for snowgander, ensuring input_schema is a string
-            const formattedTool: MCPAvailableTool = {
-              name: toolInfo.name,
-              description: toolInfo.description || "",
-              input_schema: JSON.stringify(toolInfo.inputSchema || {}), // Stringify the schema
-            };
-            */
             chat.mcpAvailableTools = formattedTools;
           } else {
             console.warn(
@@ -179,7 +236,10 @@ export class ChatRepository extends BaseRepository {
     console.log(
       `Chat before initial sending: ${JSON.stringify(chat, null, 2)}`
     );
-    const initialResponse: ChatResponse = await adapter.sendChat(chat);
+    const initialResponse: ChatResponse = await this.sendChatAndUpdateCost(
+      chat,
+      adapter
+    );
     console.log(
       // Fix: Added console.log(
       `Initial response received: ${JSON.stringify(initialResponse, null, 2)}`
@@ -265,7 +325,7 @@ export class ChatRepository extends BaseRepository {
           )}`
         );
         // Call sendChat again with the updated history but without tools enabled
-        const finalResponse = await adapter.sendChat(chat);
+        const finalResponse = await this.sendChatAndUpdateCost(chat, adapter);
         console.log(
           `Final response received after tool use: ${JSON.stringify(
             finalResponse,
