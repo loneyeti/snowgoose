@@ -1,16 +1,16 @@
 import { redirect } from "next/navigation";
-import ChatWrapper from "./_ui/chat/chat-wrapper";
-import { createClient } from "./_utils/supabase/server";
+import ChatWrapper from "../_ui/chat/chat-wrapper";
+import { createClient } from "../_utils/supabase/server";
 import {
   getGlobalPersonas,
   getUserPersonas,
-} from "./_lib/server_actions/persona.actions";
-import { getModels } from "./_lib/server_actions/model.actions";
-import { getOutputFormats } from "./_lib/server_actions/output-format.actions";
-import { getMcpTools } from "./_lib/server_actions/mcp-tool.actions";
-import { getApiVendors } from "./_lib/server_actions/api_vendor.actions";
-import { getCurrentAPIUser } from "./_lib/auth";
-import { SubscriptionPlanRepository } from "./_lib/db/repositories/subscription-plan.repository"; // Import repo
+} from "../_lib/server_actions/persona.actions";
+import { getModels } from "../_lib/server_actions/model.actions";
+import { getOutputFormats } from "../_lib/server_actions/output-format.actions";
+import { getMcpTools } from "../_lib/server_actions/mcp-tool.actions";
+import { getApiVendors } from "../_lib/server_actions/api_vendor.actions";
+import { getCurrentAPIUser } from "../_lib/auth";
+import { SubscriptionPlanRepository } from "../_lib/db/repositories/subscription-plan.repository"; // Import repo
 import { SubscriptionPlan } from "@prisma/client"; // Import type
 
 // Instantiate repositories needed on the page

@@ -1,0 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: "Inter", sans-serif;
+  }
+  body {
+    @apply bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-gray-100 antialiased;
+  }
+}
+
+/* Add more marketing-specific styles here later if needed */

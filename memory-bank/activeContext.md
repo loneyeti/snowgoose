@@ -2,6 +2,7 @@
 
 ## Current Focus
 
+- **Build initial marketing pages (Home, Features, Pricing).**
 - Performance optimization of Server Actions
 - Enhanced error handling and recovery
 - Monitoring and logging implementation
@@ -165,6 +166,15 @@
    - **Implement usage limit checks based on `SubscriptionPlan` table (PENDING)**
    - **Create UI/Action for managing `SubscriptionPlan` table records (DONE)**
    - **Populate `SubscriptionPlan` table with actual plan data (PENDING)**
+7. **Marketing Site Development**
+   - **Create Home page content (`/`) (IN PROGRESS)**
+   - **Create Features page content (`/features`) (IN PROGRESS)**
+   - **Create Pricing page content (`/pricing`) (IN PROGRESS)**
+   - Create About page content (`/about`) (PENDING)
+   - Create Blog structure and initial posts (`/blog`) (PENDING)
+   - Create Contact page content (`/contact`) (PENDING)
+   - Implement shared marketing navigation/layout (PENDING)
+   - Refine styling and visuals (PENDING)
 
 ## Current Considerations
 
