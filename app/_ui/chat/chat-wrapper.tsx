@@ -33,10 +33,16 @@ export default function ChatWrapper({
   mcpTools,
   apiVendors,
   user,
+  // Destructure new usage limit props
+  periodUsage,
+  usageLimit,
+  isOverLimit: initialIsOverLimit = false, // Rename prop for clarity, default false
 }: ChatWrapperProps) {
   const [showMoreOptions, setShowMoreOptions] = useState(false);
   const toggleMoreOptions = () => setShowMoreOptions(!showMoreOptions);
   const [response, setResponse] = useState<ChatResponse[]>([]);
+  // Local state to manage the over-limit status immediately
+  const [localIsOverLimit, setLocalIsOverLimit] = useState(initialIsOverLimit);
   const [currentChat, setCurrentChat] = useState<LocalChat | undefined>();
   const [isHistoryShowing, setIsHistoryShowing] = useState(false);
   const [showConversationSpinner, setShowConversationSpinner] =
@@ -121,6 +127,10 @@ export default function ChatWrapper({
     responseHistory: response,
     updateMessage,
     updateShowSpinner,
+    // Define the callback function
+    onUsageLimitError: () => {
+      setLocalIsOverLimit(true); // Set local state immediately on error
+    },
   });
 
   // Custom form submission handler to avoid double submissions
@@ -321,11 +331,19 @@ export default function ChatWrapper({
         </div>
 
         {/* Text input area - at bottom */}
-
-        <div className="max-w-3xl mx-auto w-full pb-2">
+        <div className="max-w-3xl mx-auto w-full pb-2 px-2">
+          {/* Usage Limit Warning - Use local state */}
+          {localIsOverLimit && usageLimit && usageLimit > 0 && (
+            <div className="mb-2 p-2 text-center text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">
+              You have reached your usage limit ({periodUsage?.toFixed(2) ?? 0}{" "}
+              / {usageLimit.toFixed(2)}) for the current billing period. Please
+              upgrade your plan or wait for the next cycle to continue.
+            </div>
+          )}
           <TextInputArea
             onSubmit={handleFormSubmit}
             isSubmitting={isSubmitting}
+            disabled={localIsOverLimit} // Pass local disabled state
             onReset={handleReset}
             showFileUpload={showFileUpload}
           />

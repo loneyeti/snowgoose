@@ -142,7 +142,12 @@ export async function createChat(
     }
   } catch (error) {
     console.error("Failed to send Chat:", error); // Log detailed error
-    // Throw a generic error for the client
+    // Check if it's the specific usage limit error code
+    if (error instanceof Error && error.message === "USAGE_LIMIT_EXCEEDED") {
+      // Re-throw the specific error code so the client hook can catch it
+      throw error; // Re-throw the original error object
+    }
+    // Otherwise, throw a generic error for the client
     throw new Error("Failed to process chat request. Please try again.");
   }
   return chat;

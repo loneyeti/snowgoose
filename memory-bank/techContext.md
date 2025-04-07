@@ -61,22 +61,25 @@ Required in package.json:
     "@heroicons/react": "^2.1.1",
     "@modelcontextprotocol/sdk": "^1.7.0",
     "@prisma/client": "^6.5.0",
+    "@stripe/stripe-js": "^7.0.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.49.1",
+    "blob-polyfill": "^9.0.20240710",
     "clsx": "^2.1.0",
     "html-react-parser": "^5.1.1",
     "nanoid": "^5.0.5",
     "next": "^14.1.0",
-    "openai": "^4.87.3",
+    "openai": "^4.91.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^9.0.1",
     "react-material-symbols": "^4.3.1",
     "rehype-raw": "^7.0.0",
     "sharp": "^0.33.2",
+    "snowgander": "^0.0.17", // Standalone AI vendor package
     "sonner": "^2.0.2",
-    "zod": "^3.22.4",
-    "snowgander": "^0.0.1" // AI vendor package
+    "stripe": "^18.0.0", // Stripe API for subscription management
+    "zod": "^3.22.4"
   }
 ```
 
@@ -171,6 +174,11 @@ Required Environment Variables:
   ANTHROPIC_API_KEY="sk-..."
   GOOGLE_AI_API_KEY="..."
 
+  # Stripe Configuration
+  STRIPE_SECRET_KEY="sk_test_..." # Use test keys for development
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..." # Use test keys for development
+  STRIPE_WEBHOOK_SECRET="whsec_..." # From Stripe Dashboard (or temporary from Stripe CLI for local testing)
+
   # MCP Configuration (Optional, if using local MCP servers)
   MCP_CONFIG_PATH="/path/to/your/mcp/config.json"
   ```
@@ -210,6 +218,8 @@ npx prisma migrate dev
 ```bash
 npm run dev
 ```
+
+**Note on Stripe Webhook Testing:** Use the Stripe CLI (`stripe listen --forward-to localhost:3000/api/webhooks/stripe`) to forward test events to your local server. Remember to temporarily update `STRIPE_WEBHOOK_SECRET` in `.env.local` with the secret provided by the CLI during testing.
 
 ### Build Process
 

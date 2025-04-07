@@ -15,6 +15,10 @@ flowchart TD
     ChatRepo --> AIFactory["snowgander <br> AIVendorFactory"]
     AIFactory --> AIVendors["snowgander <br> Adapters"]
     Actions --> MCPManager[MCP Manager]
+    Actions --> StripeActions[Stripe Actions]
+    StripeActions --> StripeAPI[Stripe API]
+    StripeAPI -- Webhook Event --> StripeWebhookRoute[API Route: /api/webhooks/stripe]
+    StripeWebhookRoute --> Repositories
 
     subgraph Components
         Pages[Pages] --> UIComponents[UI Components]
@@ -71,12 +75,16 @@ graph TD
   - Common UI utilities
 - **\_lib/**: Shared utilities and business logic within the main app
   - **/db**: Database models and repositories
-    // - **/ai**: AI vendor implementations (Moved to package)
+    // - **/ai**: AI vendor implementations (Moved to standalone package)
   - **/mcp**: MCP server management
   - **/server_actions**: Server action business logic for interfacing with repositories
+    - **stripe.actions.ts**: Stripe checkout session creation
   - Form schemas and validation
-  # Note: AI vendor logic is now in the 'snowgander' npm package
+  # Note: AI vendor logic is now in the standalone 'snowgander' npm package (v0.0.17)
 - **mcp_servers/** Storage of MCP servers
+- **app/subscriptions/** Subscription management pages (`page.tsx`)
+- **app/success/** Subscription confirmation page (`page.tsx`)
+- **app/api/webhooks/stripe/** Stripe webhook handler (`route.ts`)
 
 ### 2. Data Flow
 
@@ -155,7 +163,7 @@ flowchart TD
         ChatRepo[Chat Repository] -- uses --> VendorFactory
     end
 
-    subgraph "snowgander"
+    subgraph "snowgander npm package"
         VendorFactory[AIVendorFactory] --> Config[Vendor Config]
         VendorFactory -- creates --> Adapters
         Adapters --> BaseAdapter[AIVendorAdapter Interface]
@@ -175,6 +183,56 @@ flowchart TD
         Common --> ErrorHandling[Error Handling]
         Common --> ResponseFormat[Response Format]
         Common --> ThinkingMode[Thinking Mode]
+    end
+```
+
+### Subscription Integration
+
+```mermaid
+flowchart TD
+    subgraph "User Flow (Browser)"
+        User[User Browser] --> SubPage["/subscriptions <br> (page.tsx)"]
+        SubPage -- Selects Plan & Submits Form --> CheckoutAction["stripe.actions.ts <br> (createCheckoutSessionAction)"]
+        CheckoutAction -- Redirects --> StripeHostedCheckout[Stripe Hosted Checkout Page]
+        StripeHostedCheckout -- Success --> SuccessPage["/success <br> (page.tsx)"]
+        SuccessPage --> AppAccess[App Access (Future Check)]
+    end
+
+    subgraph "Backend Logic (Server)"
+        style Backend fill:#e6f7ff,stroke:#333,stroke-width:1px
+        SubPage -- Calls --> GetPlansAction["stripe.actions.ts <br> (getSubscriptionPlans)"]
+        GetPlansAction --> StripeAPI[Stripe API]
+
+        CheckoutAction -- Gets User Auth ID --> AuthHelper["auth.ts <br> (getUserSession)"]
+        CheckoutAction -- Creates Session --> StripeAPI
+        StripeAPI -- Sends Event --> WebhookRoute["/api/webhooks/stripe <br> (route.ts)"]
+        WebhookRoute -- Verifies & Parses --> StripeAPI
+        WebhookRoute -- Updates User --> UserRepo["user.repository.ts <br> (updateSubscriptionByAuthId, <br> updateSubscriptionByCustomerId, <br> clearSubscriptionByCustomerId)"]
+        UserRepo -- Reads/Writes --> PrismaClient[Prisma Client]
+        PrismaClient --> UserTable[(Database: User Table <br> incl. periodUsage)]
+        PrismaClient --> PlanTable[(Database: SubscriptionPlan Table <br> incl. usageLimit)]
+
+        %% Usage Check Logic (Conceptual - happens before billable actions) %%
+        style UsageCheck fill:#f9f,stroke:#333,stroke-width:1px
+        BillableAction["Server Action <br> (e.g., Chat)"] -- Needs Limit Check --> UserRepo
+        UserRepo -- Reads --> UserTable
+        UserRepo -- Reads --> PlanTable
+        BillableAction -- Proceeds or Blocks --> User
+
+        %% Usage Reset Logic (Inside UserRepository) %%
+        UserRepo -- "customer.subscription.updated event" --> ResetCheck{Compare Period Start?}
+        ResetCheck -- Yes --> UpdateUsage["Update User: <br> periodUsage = 0"]
+        UpdateUsage --> UserTable
+        ResetCheck -- No --> NoReset[No Usage Reset]
+
+
+        AppAccess -- Needs Check --> UserRepo["user.repository.ts <br> (findByAuthId or similar)"]
+        UserRepo --> UserTable
+    end
+
+    subgraph "External Services"
+        StripeAPI
+        StripeHostedCheckout
     end
 ```
 

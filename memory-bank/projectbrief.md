@@ -11,6 +11,7 @@ Snowgoose is a standalone NextJS 14 application that provides a unified interfac
    - OpenAI integration
    - Anthropic integration
    - Google integration
+   - OpenRouter integration
    - Extensible for future providers
 
 2. Feature Support
@@ -25,6 +26,7 @@ Snowgoose is a standalone NextJS 14 application that provides a unified interfac
    - Thinking mode support for Anthropic and Google thinking models
    - Conversation history management
    - MCP tool integration
+   - Subscription management via Stripe
 
 3. Key Goals
    - Clean, beautiful UI/UX
@@ -40,3 +42,5 @@ Snowgoose is a standalone NextJS 14 application that provides a unified interfac
 - Comprehensive error handling and reliability
 - Security and authentication
 - Server-side processing with Server Actions
+- Standalone AI vendor integration package (snowgander)
+- Payment processing and subscription management

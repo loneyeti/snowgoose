@@ -93,6 +93,147 @@ export class UserRepository extends BaseRepository {
       this.handleError(error);
     }
   }
+
+  async updateSubscriptionByAuthId(
+    authId: string,
+    data: {
+      stripeCustomerId: string;
+      stripeSubscriptionId: string;
+      stripePriceId?: string | null; // Make optional as it might not always be present or needed
+      stripeCurrentPeriodBegin: Date;
+      stripeCurrentPeriodEnd: Date;
+      stripeSubscriptionStartDate: Date;
+      // Optionally reset usage here if needed
+      // periodUsage?: number;
+    }
+  ): Promise<User> {
+    try {
+      return await this.prisma.user.update({
+        where: { authId: authId },
+        data: {
+          stripeCustomerId: data.stripeCustomerId,
+          stripeSubscriptionId: data.stripeSubscriptionId,
+          stripePriceId: data.stripePriceId,
+          stripeCurrentPeriodBegin: data.stripeCurrentPeriodBegin,
+          stripeCurrentPeriodEnd: data.stripeCurrentPeriodEnd,
+          stripeSubscriptionStartDate: data.stripeSubscriptionStartDate,
+          // periodUsage: data.periodUsage !== undefined ? data.periodUsage : undefined, // Example if resetting usage
+        },
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  /**
+   * Updates subscription details for a user identified by their Stripe Customer ID.
+   * Used for webhook events like 'customer.subscription.updated'.
+   */
+  async updateSubscriptionByCustomerId(
+    stripeCustomerId: string,
+    data: {
+      stripeSubscriptionId: string;
+      stripePriceId?: string | null;
+      stripeCurrentPeriodBegin: Date;
+      stripeCurrentPeriodEnd: Date;
+      // stripeSubscriptionStartDate is usually set only on creation,
+      // but could be updated if needed, though less common.
+      // periodUsage?: number; // Optionally reset usage here if needed - Handled internally now
+    }
+  ): Promise<User | null> {
+    // Find the user first to get current state, especially stripeCurrentPeriodBegin
+    const user = await this.prisma.user.findUnique({
+      where: { stripeCustomerId }, // Assuming stripeCustomerId is unique or using findFirst if not guaranteed
+    });
+
+    if (!user) {
+      console.warn(
+        `UserRepository: No user found with stripeCustomerId: ${stripeCustomerId}. Cannot update subscription.`
+      );
+      // Depending on strictness, you might throw an error or just return null
+      // throw new Error(`No user found with stripeCustomerId: ${stripeCustomerId}`);
+      return null; // Or throw error if preferred
+    }
+
+    // Determine if usage should be reset
+    let shouldResetUsage = false;
+    if (user.stripeCurrentPeriodBegin) {
+      // Compare incoming start date with stored start date
+      // Convert both to milliseconds for reliable comparison
+      if (
+        data.stripeCurrentPeriodBegin.getTime() !==
+        user.stripeCurrentPeriodBegin.getTime()
+      ) {
+        console.log(
+          `Renewal detected for customer ${stripeCustomerId}. Resetting periodUsage.`
+        );
+        shouldResetUsage = true;
+      }
+    } else {
+      // If there's no previous begin date, maybe treat it as the start of the first period?
+      // Or assume it's not a renewal requiring reset. For now, only reset if dates differ.
+      console.log(
+        `No existing stripeCurrentPeriodBegin found for customer ${stripeCustomerId}. Not resetting usage.`
+      );
+    }
+
+    // Prepare update payload
+    const updateData: any = {
+      stripeSubscriptionId: data.stripeSubscriptionId,
+      stripePriceId: data.stripePriceId,
+      stripeCurrentPeriodBegin: data.stripeCurrentPeriodBegin,
+      stripeCurrentPeriodEnd: data.stripeCurrentPeriodEnd,
+    };
+
+    if (shouldResetUsage) {
+      updateData.periodUsage = 0.0; // Reset usage to 0
+    }
+
+    try {
+      return await this.prisma.user.update({
+        where: { id: user.id }, // Update using the found user's primary key
+        data: updateData,
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  /**
+   * Clears Stripe subscription details for a user identified by their Stripe Customer ID.
+   * Used for webhook events like 'customer.subscription.deleted'.
+   */
+  async clearSubscriptionByCustomerId(
+    stripeCustomerId: string
+  ): Promise<User | null> {
+    // Find the user first
+    const user = await this.prisma.user.findFirst({
+      where: { stripeCustomerId },
+    });
+
+    if (!user) {
+      console.warn(
+        `UserRepository: No user found with stripeCustomerId: ${stripeCustomerId}. Cannot clear subscription.`
+      );
+      return null;
+    }
+
+    try {
+      return await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          stripeSubscriptionId: null,
+          stripePriceId: null,
+          stripeCurrentPeriodBegin: null,
+          stripeCurrentPeriodEnd: null,
+          // Keep stripeCustomerId? Maybe, depends on if you want to retain the link
+          // Keep stripeSubscriptionStartDate? Maybe for historical reference
+        },
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
 }
 
 export const userRepository = new UserRepository();

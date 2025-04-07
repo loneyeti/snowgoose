@@ -13,6 +13,10 @@ export const CreatePersonaFormSchema = z.object({
   ownerId: z.coerce.number().nullable(),
 });
 
+export const createCheckoutSessionFormSchema = z.object({
+  priceId: z.string(),
+});
+
 export const CreateOutputFormatFormSchema = z.object({
   name: z.string(),
   prompt: z.string(),
@@ -97,4 +101,17 @@ export const FormSchema = z.object({
   maxTokens: z.coerce.number().nullable(),
   budgetTokens: z.coerce.number().nullable(),
   mcpTool: z.coerce.number(),
+});
+
+// Schema for validating the admin subscription plan upsert action
+export const upsertSubscriptionPlanSchema = z.object({
+  stripePriceId: z.string().min(1, "Stripe Price ID is required."),
+  name: z.string().min(1, "Plan name is required."),
+  // Ensure usageLimit is treated as a number, coercing if necessary
+  usageLimit: z.coerce
+    .number({
+      invalid_type_error: "Usage limit must be a number.",
+      required_error: "Usage limit is required.",
+    })
+    .positive("Usage limit must be a positive number."),
 });
