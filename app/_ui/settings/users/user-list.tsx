@@ -36,8 +36,10 @@ export default async function UserList() {
                     <div className="mt-1 text-xs text-gray-500 dark:text-gray-400 space-x-4">
                       <span>
                         Renewal:{" "}
-                        {user.renewalDate
-                          ? new Date(user.renewalDate).toLocaleDateString()
+                        {user.stripeCurrentPeriodEnd
+                          ? new Date(
+                              user.stripeCurrentPeriodEnd
+                            ).toLocaleDateString()
                           : "N/A"}
                       </span>
                       <span>
