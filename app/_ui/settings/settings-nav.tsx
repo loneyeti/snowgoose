@@ -10,11 +10,11 @@ export default async function SettingsNav() {
     <Sidebar>
       <ul className="mt-6 space-y-1">
         {/* General Settings */}
-        <MenuListItem url="/settings/profile">
+        <MenuListItem url="/chat/settings/profile">
           <MaterialSymbol icon="face" size={18} className="mr-2 align-middle" />
           Profile
         </MenuListItem>
-        <MenuListItem url="/settings/user-personas">
+        <MenuListItem url="/chat/settings/user-personas">
           <MaterialSymbol
             icon="person"
             size={18}
@@ -22,7 +22,7 @@ export default async function SettingsNav() {
           />
           User Personas
         </MenuListItem>
-        <MenuListItem url="/settings/history">
+        <MenuListItem url="/chat/settings/history">
           <MaterialSymbol
             icon="history"
             size={18}
@@ -30,7 +30,7 @@ export default async function SettingsNav() {
           />
           History
         </MenuListItem>
-        <MenuListItem url="/settings/user-preferences">
+        <MenuListItem url="/chat/settings/user-preferences">
           <MaterialSymbol icon="tune" size={18} className="mr-2 align-middle" />
           Preferences
         </MenuListItem>
@@ -42,7 +42,7 @@ export default async function SettingsNav() {
               Admin
             </div>
             <ul className="mt-1 space-y-1">
-              <MenuListItem url="/settings/users">
+              <MenuListItem url="/chat/settings/users">
                 <MaterialSymbol
                   icon="manage_accounts"
                   size={18}
@@ -50,7 +50,7 @@ export default async function SettingsNav() {
                 />
                 Users
               </MenuListItem>
-              <MenuListItem url="/settings/models">
+              <MenuListItem url="/chat/settings/models">
                 <MaterialSymbol
                   icon="database"
                   size={18}
@@ -58,7 +58,7 @@ export default async function SettingsNav() {
                 />
                 Models
               </MenuListItem>
-              <MenuListItem url="/settings/global-personas">
+              <MenuListItem url="/chat/settings/global-personas">
                 <MaterialSymbol
                   icon="smart_toy"
                   size={18}
@@ -66,7 +66,7 @@ export default async function SettingsNav() {
                 />
                 Global Personas
               </MenuListItem>
-              <MenuListItem url="/settings/output-formats">
+              <MenuListItem url="/chat/settings/output-formats">
                 <MaterialSymbol
                   icon="speaker_notes"
                   size={18}
@@ -74,7 +74,7 @@ export default async function SettingsNav() {
                 />
                 Output Formats
               </MenuListItem>
-              <MenuListItem url="/settings/mcp-tools">
+              <MenuListItem url="/chat/settings/mcp-tools">
                 <MaterialSymbol
                   icon="construction"
                   size={18}
@@ -83,7 +83,7 @@ export default async function SettingsNav() {
                 MCP Tools
               </MenuListItem>
               {/* Add new link for Admin Subscription Management */}
-              <MenuListItem url="/settings/admin/subscriptions">
+              <MenuListItem url="/chat/settings/admin/subscriptions">
                 <MaterialSymbol
                   icon="receipt_long" // Using receipt_long icon
                   size={18}
@@ -92,7 +92,7 @@ export default async function SettingsNav() {
                 Subscriptions
               </MenuListItem>
               {/* Add new link for Subscription Limits */}
-              <MenuListItem url="/settings/admin/subscription-limits">
+              <MenuListItem url="/chat/settings/admin/subscription-limits">
                 <MaterialSymbol
                   icon="rule" // Using rule icon for limits
                   size={18}

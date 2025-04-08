@@ -28,7 +28,7 @@ export default async function UserPersonasPage() {
   return (
     <main>
       <SettingsHeadingWithButton
-        href="/settings/user-personas/new"
+        href="/chat/settings/user-personas/new"
         buttonTitle="Add User Persona"
       >
         User Personas

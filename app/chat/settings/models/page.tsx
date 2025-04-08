@@ -56,7 +56,7 @@ export default async function Models() {
   return (
     <main>
       <SettingsHeadingWithButton
-        href="/settings/models/new"
+        href="/chat/settings/models/new"
         buttonTitle="Add Model"
       >
         Models

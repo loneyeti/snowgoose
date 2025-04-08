@@ -30,7 +30,7 @@ export default async function OutputFormats() {
         >
           <OutputFormatList />
         </Suspense>
-        <Link href="/settings/output-formats/new">
+        <Link href="/chat/settings/output-formats/new">
           <div className="w-3/4 mx-auto p-6 my-3 rounded-md bg-slate-200 hover:bg-slate-300">
             <div>
               <p className="text-lg font-semibold">

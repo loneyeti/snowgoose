@@ -32,7 +32,7 @@ export default function AdminSubscriptionsPage() {
         setIsAdmin(adminStatus);
 
         if (!adminStatus) {
-          router.push("/settings"); // Redirect non-admins
+          router.push("/chat/settings"); // Redirect non-admins
           return;
         }
 

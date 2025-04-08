@@ -317,7 +317,7 @@ export async function upsertSubscriptionPlanAction(
     );
 
     // Revalidate the path to update the UI
-    revalidatePath("/settings/admin/subscriptions"); // Adjust path if needed
+    revalidatePath("/chat/settings/admin/subscriptions"); // Adjust path if needed
 
     return { success: true, message: "Subscription plan saved successfully." };
   } catch (error) {

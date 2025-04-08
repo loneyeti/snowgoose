@@ -42,8 +42,13 @@ export async function login(formData: FormData): Promise<ActionResult> {
     return { error: "Failed to sync user." };
   }
 
-  revalidatePath("/", "layout");
-  redirect("/");
+  // Read the redirect path from the form data
+  const redirectTo = formData.get("redirect_to") as string;
+  const redirectPath =
+    redirectTo && redirectTo.startsWith("/") ? redirectTo : "/chat";
+
+  revalidatePath(redirectPath, "layout"); // Revalidate the target path
+  redirect(redirectPath); // Redirect to the target path or default
 }
 
 export async function signup(formData: FormData): Promise<ActionResult> {

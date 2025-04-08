@@ -13,13 +13,13 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
   const isAdmin = await isCurrentUserAdmin();
 
   if (!isAdmin) {
-    redirect("/settings/profile");
+    redirect("/chat/settings/profile");
   }
 
   const user = await getUser(parseInt(params.id));
 
   if (!user) {
-    redirect("/settings/users");
+    redirect("/chat/settings/users");
   }
 
   return (

@@ -1,8 +1,10 @@
-import Link from "next/link"; // Assuming Next.js Link for CTAs
 import React from "react";
+import PurchaseButton from "@/app/_ui/marketing/PurchaseButton"; // Import the new button
 
 export default function PricingPage() {
   // Placeholder data - replace with actual data fetched from Stripe/DB later
+  // IMPORTANT: Replace 'price_basic_placeholder' and 'price_prof_placeholder'
+  // with actual Stripe Price IDs from your Stripe dashboard.
   const plans = [
     {
       name: "Basic",
@@ -16,7 +18,7 @@ export default function PricingPage() {
         "All Output Formats",
       ],
       cta: "Get Started Basic",
-      ctaLink: "/login?plan=basic", // Example link, adjust as needed
+      priceId: "price_basic_placeholder", // Placeholder Stripe Price ID
     },
     {
       name: "Professional",
@@ -30,7 +32,7 @@ export default function PricingPage() {
         "Priority access to new features",
       ],
       cta: "Choose Professional",
-      ctaLink: "/login?plan=professional", // Example link, adjust as needed
+      priceId: "price_prof_placeholder", // Placeholder Stripe Price ID
     },
     // Add Enterprise plan if needed
   ];
@@ -80,12 +82,8 @@ export default function PricingPage() {
                 <li key={index}>{feature}</li>
               ))}
             </ul>
-            <Link
-              href={plan.ctaLink}
-              className="block w-full bg-indigo-600 text-white text-center font-semibold py-3 rounded-lg hover:bg-indigo-500 transition duration-200" // Adjusted button color
-            >
-              {plan.cta}
-            </Link>
+            {/* Replace Link with PurchaseButton */}
+            <PurchaseButton priceId={plan.priceId} ctaText={plan.cta} />
           </div>
         ))}
       </div>

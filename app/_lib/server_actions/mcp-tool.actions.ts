@@ -34,10 +34,10 @@ export async function createMcpTool(formData: FormData) {
     console.error("Failed to create MCP Tool:", error); // Log detailed error
     throw new Error("Unable to create MCP Tool."); // Throw generic error
   }
-  revalidatePath("/settings/mcp-tools");
-  revalidatePath("/");
+  revalidatePath("/chat/settings/mcp-tools");
+  revalidatePath("/chat");
 
-  redirect("/settings/mcp-tools");
+  redirect("/chat/settings/mcp-tools");
 }
 
 export async function updateMcpTool(formData: FormData) {
@@ -56,10 +56,10 @@ export async function updateMcpTool(formData: FormData) {
     console.error("Failed to update MCP Tool:", error); // Log detailed error
     throw new Error("Unable to update MCP Tool."); // Throw generic error
   }
-  revalidatePath("/settings/mcp-tools");
-  revalidatePath("/");
+  revalidatePath("/chat/settings/mcp-tools");
+  revalidatePath("/chat");
 
-  redirect("/settings/mcp-tools");
+  redirect("/chat/settings/mcp-tools");
 }
 
 export async function deleteMcpTool(id: number) {
@@ -69,6 +69,6 @@ export async function deleteMcpTool(id: number) {
     console.error("Failed to delete MCP Tool:", error); // Log detailed error
     throw new Error("Unable to delete MCP Tool."); // Throw generic error
   }
-  revalidatePath("/settings/mcp-tools");
+  revalidatePath("/chat/settings/mcp-tools");
   // Consider if redirect is needed after delete failure
 }

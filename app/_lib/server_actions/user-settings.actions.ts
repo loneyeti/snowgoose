@@ -27,6 +27,6 @@ export async function updateUserSettings(formData: FormData) {
     console.error("Failed to update user preferences:", error); // Log detailed error
     throw new Error("Unable to update user preferences."); // Throw generic error
   }
-  revalidatePath("/settings/user-preferences");
-  redirect("/settings/profile"); // Redirects on success
+  revalidatePath("/chat/settings/user-preferences");
+  redirect("/chat/settings/profile"); // Redirects on success
 }

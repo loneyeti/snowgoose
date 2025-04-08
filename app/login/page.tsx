@@ -9,6 +9,7 @@ import { useSearchParams } from "next/navigation";
 function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect_to"); // Get redirect_to param
 
   // Check for error parameter in URL
   useEffect(() => {
@@ -53,6 +54,9 @@ function LoginForm() {
             {error}
           </div>
         )}
+
+        {/* Hidden input to pass the redirect path */}
+        <input type="hidden" name="redirect_to" value={redirectTo || ""} />
 
         <div className="flex flex-col mt-4">
           <label

@@ -6,7 +6,7 @@ export default async function UsersPage() {
   const isAdmin = await isCurrentUserAdmin();
 
   if (!isAdmin) {
-    redirect("/settings/profile");
+    redirect("/chat/settings/profile");
   }
 
   return (

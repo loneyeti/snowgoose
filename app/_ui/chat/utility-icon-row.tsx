@@ -35,7 +35,7 @@ export default function UtilityIconRow({
   return (
     <div className="flex flex-row justify-between align-middle">
       <Link
-        href="/"
+        href="/chat"
         onClick={resetChat}
         className="basis-1/5 text-slate-600 text-center p-3 rounded-l-lg self-center place-self-center align-middle"
       >
@@ -60,7 +60,7 @@ export default function UtilityIconRow({
         <MaterialSymbol className="align-middle" icon="history" size={24} />
       </button>
       <Link
-        href="/settings/profile"
+        href="/chat/settings/profile"
         className="basis-1/5 text-slate-600  text-center p-3 rounded-r-lg"
       >
         <MaterialSymbol className="align-middle" icon="settings" size={24} />
@@ -68,7 +68,7 @@ export default function UtilityIconRow({
       <div className="basis-1/5 place-self-center">
         <div className="pl-2">
           <Link
-            href="/settings/profile"
+            href="/chat/settings/profile"
             className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-600 text-white hover:bg-slate-700 transition-colors"
           >
             <span className="text-sm font-medium">{initial}</span>

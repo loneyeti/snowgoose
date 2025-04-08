@@ -132,6 +132,12 @@ Standalone Next.js application with Server Actions
    - Need to create UI/Action for managing `SubscriptionPlan` table records (DONE)
    - Need to populate `SubscriptionPlan` table (PENDING)
    - ~~Need to add webhook handling for other events (updates, cancellations)~~ (Now covered)
+7. **Marketing Site Development (`app/(marketing)/`)**
+   - Home page content (`/`) (IN PROGRESS)
+   - Features page content (`/features`) (IN PROGRESS)
+   - Pricing page content (`/pricing`) (IN PROGRESS)
+   - Shared marketing layout (`app/(marketing)/layout.tsx`) (IN PROGRESS)
+   - Styling (`app/marketing.css`, Tailwind) (IN PROGRESS)
 
 ## Known Issues
 

@@ -4,7 +4,7 @@ import { createClient } from "@/app/_utils/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const next = searchParams.get("next") ?? "/chat";
 
   if (!code) {
     console.error("No code received in callback");

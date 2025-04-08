@@ -128,7 +128,7 @@ export default function AdminSubscriptionLimitsPage() {
         setIsAdmin(adminStatus);
 
         if (!adminStatus) {
-          router.push("/settings");
+          router.push("/chat/settings");
           return;
         }
 

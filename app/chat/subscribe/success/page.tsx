@@ -7,7 +7,10 @@ interface SuccessPageProps {
 }
 
 // This is a Server Component
-export default async function SuccessPage({ searchParams }: SuccessPageProps) {
+export default async function SubscribeSuccessPage({
+  searchParams,
+}: SuccessPageProps) {
+  // Renamed component
   const sessionId = searchParams?.session_id;
 
   // Basic check for session ID
@@ -19,7 +22,8 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
           There was a problem confirming your subscription status. Session ID
           was missing or invalid.
         </p>
-        <Link href="/subscriptions">Return to Subscriptions</Link>
+        <Link href="/chat/subscribe">Return to Subscriptions</Link>{" "}
+        {/* Updated link */}
       </div>
     );
   }
@@ -43,7 +47,8 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
       <p>Session ID: {sessionId}</p> {/* Displaying for confirmation */}
       <Link href="/chat">Go to Snowgoose</Link>
       <br />
-      <Link href="/subscriptions">Manage Subscriptions</Link>
+      {/* Link to profile page where subscription management is now located */}
+      <Link href="/chat/settings/profile">Manage Subscription</Link>
     </div>
   );
 }

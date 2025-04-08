@@ -22,18 +22,30 @@ Snowgoose serves as a unified interface for AI interactions, simplifying the pro
 
 ## Core User Flows
 
-1. **Chat Interactions**
-   - Text-based conversations
-   - Vision/image analysis
-   - Image generation requests
-2. **Configuration Management**
-   - Provider settings
-   - Persona management
-   - Output format customization
-3. **History Management**
-   - Saving conversations
-   - Returning to previous contexts
-   - Managing conversation history
+### Main Application (`/chat`)
+
+1.  **Chat Interactions**
+    - Text-based conversations
+    - Vision/image analysis
+    - Image generation requests
+2.  **Configuration Management (`/chat/settings`)**
+    - Provider settings
+    - Persona management
+    - Output format customization
+    - Profile and subscription management
+3.  **History Management (`/chat/settings/history`)**
+    - Saving conversations
+    - Returning to previous contexts
+    - Managing conversation history
+
+### Marketing Site (`/`)
+
+1.  **Information Discovery**
+    - Learning about Snowgoose features (`/features`)
+    - Understanding pricing and subscription options (`/pricing`)
+    - Navigating the public-facing site
+2.  **User Acquisition**
+    - Signing up or logging into the application (leading to `/login` or `/chat`)
 
 ## Success Metrics
 

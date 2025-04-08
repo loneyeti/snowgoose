@@ -42,6 +42,22 @@ export default async function Profile() {
             />
           </div>
         )}
+
+        {/* Sign Out Section */}
+        <div className="bg-white rounded-lg shadow p-6 mt-4">
+          <h2 className="text-xl font-semibold mb-4">Sign Out</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Click the button below to sign out of your account.
+          </p>
+          <form action="/auth/signout" method="post">
+            <button
+              type="submit"
+              className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+            >
+              Sign Out
+            </button>
+          </form>
+        </div>
       </div>
     </main>
   );

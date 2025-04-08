@@ -25,7 +25,7 @@ export default async function GlobalPersonasPage() {
   return (
     <main>
       <SettingsHeadingWithButton
-        href="/settings/global-personas/new"
+        href="/chat/settings/global-personas/new"
         buttonTitle="Add Global Persona"
       >
         Global Personas

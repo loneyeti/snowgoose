@@ -1,10 +1,23 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRightIcon } from "@heroicons/react/24/outline"; // Using Heroicons for a modern look
+import { createClient } from "@/app/_utils/supabase/client"; // Import Supabase client
 
 export default function MarketingPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsLoggedIn(!!data.session);
+    };
+    checkSession();
+  }, [supabase]);
+
   // The outer div, header, and footer are removed as they are provided by the layout.tsx
   return (
     <>
@@ -37,13 +50,23 @@ export default function MarketingPage() {
             >
               See Pricing
             </Link>
-            <Link
-              href="/login?plan=basic" // Link to login/signup, potentially pre-selecting basic
-              className="rounded-md bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:from-purple-600 hover:to-pink-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition duration-150 ease-in-out transform hover:scale-105"
-            >
-              Get Started for $5
-              <ArrowRightIcon className="inline-block h-5 w-5 ml-2" />
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                href="/chat" // Link to the chat application
+                className="rounded-md bg-gradient-to-r from-green-500 to-teal-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:from-green-600 hover:to-teal-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 transition duration-150 ease-in-out transform hover:scale-105"
+              >
+                Start Chat
+                <ArrowRightIcon className="inline-block h-5 w-5 ml-2" />
+              </Link>
+            ) : (
+              <Link
+                href="/login?plan=basic" // Link to login/signup, potentially pre-selecting basic
+                className="rounded-md bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:from-purple-600 hover:to-pink-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition duration-150 ease-in-out transform hover:scale-105"
+              >
+                Get Started for $5
+                <ArrowRightIcon className="inline-block h-5 w-5 ml-2" />
+              </Link>
+            )}
           </div>
         </div>
       </main>

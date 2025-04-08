@@ -40,7 +40,7 @@ export async function createUser(formData: FormData) {
     console.error("Failed to create User:", error); // Log detailed error
     throw new Error("Unable to create User."); // Throw generic error
   }
-  revalidatePath("/settings/users");
+  revalidatePath("/chat/settings/users");
 }
 
 export async function updateUser(formData: FormData) {
@@ -65,7 +65,7 @@ export async function updateUser(formData: FormData) {
     console.error("Failed to update User:", error); // Log detailed error
     throw new Error("Unable to update User."); // Throw generic error
   }
-  revalidatePath("/settings/profile");
+  revalidatePath("/chat/settings/profile");
 }
 
 export async function updateUserPassword(
@@ -112,7 +112,7 @@ export async function updateUserPassword(
     return { error: "Failed to update password. Please try again." };
   }
 
-  revalidatePath("/settings/profile");
+  revalidatePath("/chat/settings/profile");
   return { success: true, message: "Password updated successfully." }; // Add success message
 }
 

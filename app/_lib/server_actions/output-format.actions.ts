@@ -35,10 +35,10 @@ export async function createOutputFormat(formData: FormData) {
     console.error("Failed to create Output Format:", error); // Log detailed error
     throw new Error("Unable to create Output Format."); // Throw generic error
   }
-  revalidatePath("/settings/output-formats");
-  revalidatePath("/");
+  revalidatePath("/chat/settings/output-formats");
+  revalidatePath("/chat");
 
-  redirect("/settings/output-formats");
+  redirect("/chat/settings/output-formats");
 }
 
 export async function updateOutputFormat(formData: FormData) {
@@ -63,10 +63,10 @@ export async function updateOutputFormat(formData: FormData) {
     console.error("Failed to update Output Format:", error); // Log detailed error
     throw new Error("Unable to update Output Format."); // Throw generic error
   }
-  revalidatePath("/settings/output-formats");
-  revalidatePath("/");
+  revalidatePath("/chat/settings/output-formats");
+  revalidatePath("/chat");
 
-  redirect("/settings/output-formats");
+  redirect("/chat/settings/output-formats");
 }
 
 export async function deleteOutputFormat(id: number) {
@@ -77,7 +77,7 @@ export async function deleteOutputFormat(id: number) {
     console.error("Failed to delete Output Format:", error); // Log detailed error
     throw new Error("Unable to delete Output Format."); // Throw generic error
   }
-  revalidatePath("/settings/output-formats");
-  revalidatePath("/");
+  revalidatePath("/chat/settings/output-formats");
+  revalidatePath("/chat");
   // Consider if redirect is needed after delete failure
 }

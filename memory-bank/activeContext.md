@@ -53,8 +53,9 @@
     - Added navigation link in `app/_ui/settings/settings-nav.tsx`.
     - **Added Admin Subscription Limits page (`/settings/admin/subscription-limits`):**
       - Created server action (`getSubscriptionLimitData`) to fetch Stripe Prices and merge with local `SubscriptionPlan` data.
-      - Created the page component (`app/settings/admin/subscription-limits/page.tsx`) with admin check, data fetching, and a form using `upsertSubscriptionPlanAction` to manage local plan name and usage limits per Stripe Price ID.
-      - Added navigation link in `app/_ui/settings/settings-nav.tsx`.
+        - Created the page component (`app/settings/admin/subscription-limits/page.tsx`) with admin check, data fetching, and a form using `upsertSubscriptionPlanAction` to manage local plan name and usage limits per Stripe Price ID.
+        - Added navigation link in `app/_ui/settings/settings-nav.tsx`.
+  - **Refactored site structure: Marketing pages (Home, Features, Pricing) are now served from the root (`/`) using the `(marketing)` route group, and the main application resides under `/chat`.**
 
 ## Active Decisions
 
@@ -166,15 +167,15 @@
    - **Implement usage limit checks based on `SubscriptionPlan` table (PENDING)**
    - **Create UI/Action for managing `SubscriptionPlan` table records (DONE)**
    - **Populate `SubscriptionPlan` table with actual plan data (PENDING)**
-7. **Marketing Site Development**
-   - **Create Home page content (`/`) (IN PROGRESS)**
-   - **Create Features page content (`/features`) (IN PROGRESS)**
-   - **Create Pricing page content (`/pricing`) (IN PROGRESS)**
-   - Create About page content (`/about`) (PENDING)
-   - Create Blog structure and initial posts (`/blog`) (PENDING)
-   - Create Contact page content (`/contact`) (PENDING)
-   - Implement shared marketing navigation/layout (PENDING)
-   - Refine styling and visuals (PENDING)
+7. **Marketing Site Development (`app/(marketing)/`)**
+   - **Home page content (`/`) (IN PROGRESS)**
+   - **Features page content (`/features`) (IN PROGRESS)**
+   - **Pricing page content (`/pricing`) (IN PROGRESS)**
+   - About page content (`/about`) (PENDING)
+   - Blog structure and initial posts (`/blog`) (PENDING)
+   - Contact page content (`/contact`) (PENDING)
+   - Shared marketing navigation/layout (`app/(marketing)/layout.tsx`) (IN PROGRESS)
+   - Styling and visuals (`app/marketing.css`, Tailwind) (IN PROGRESS)
 
 ## Current Considerations
 

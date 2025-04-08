@@ -8,9 +8,8 @@
   html {
     font-family: "Inter", sans-serif;
   }
-  body {
-    @apply bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-gray-100 antialiased;
-  }
+  /* Body styles removed from here to prevent global application. */
+  /* Base background/text color is handled by layout components. */
 }
 
 /* Add more marketing-specific styles here later if needed */

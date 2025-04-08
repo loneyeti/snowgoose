@@ -30,7 +30,7 @@ export default async function MCPTools() {
         >
           <MCPToolList />
         </Suspense>
-        <Link href="/settings/mcp-tools/new">
+        <Link href="/chat/settings/mcp-tools/new">
           <div className="w-3/4 mx-auto p-6 my-3 rounded-md bg-slate-200 hover:bg-slate-300">
             <div>
               <p className="text-lg font-semibold">

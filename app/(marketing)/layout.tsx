@@ -1,14 +1,47 @@
 "use client";
 
-import React from "react";
+import "../marketing.css"; // Import marketing styles specifically for this layout
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { createClient } from "@/app/_utils/supabase/client"; // Import client-side Supabase client
+import { User } from "@supabase/supabase-js"; // Import User type
 
 export default function MarketingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      setLoading(true);
+      const { data, error } = await supabase.auth.getUser();
+      if (!error) {
+        setUser(data.user);
+      } else {
+        console.error("Error fetching user:", error.message); // Log error for debugging
+      }
+      setLoading(false);
+    };
+    fetchUser();
+
+    // Optional: Listen for auth state changes if needed for real-time updates
+    // const { data: authListener } = supabase.auth.onAuthStateChange(
+    //   (_event, session) => {
+    //     setUser(session?.user ?? null);
+    //     setLoading(false); // Update loading state on change too
+    //   }
+    // );
+
+    // return () => {
+    //   authListener?.subscription.unsubscribe();
+    // };
+  }, [supabase.auth]); // Dependency array includes supabase.auth
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white">
       {" "}
@@ -49,18 +82,45 @@ export default function MarketingLayout({
             <div className="hidden md:flex items-center space-x-4">
               {" "}
               {/* Hide on small screens */}
-              <Link
-                href="/login"
-                className="text-sm font-medium text-gray-300 hover:text-white"
-              >
-                Log in
-              </Link>
-              <Link
-                href="/login?plan=basic" // Example link, adjust as needed
-                className="rounded-md bg-indigo-500 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-              >
-                Sign Up
-              </Link>
+              {loading ? (
+                <>
+                  {/* Placeholder for loading state */}
+                  <div className="h-5 w-12 animate-pulse rounded bg-gray-700"></div>
+                  <div className="h-8 w-20 animate-pulse rounded-md bg-gray-700"></div>
+                </>
+              ) : user ? (
+                <>
+                  {/* Links for logged-in users */}
+                  <Link
+                    href="/chat"
+                    className="rounded-md bg-indigo-500 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                  >
+                    Go to App
+                  </Link>
+                  {/* Optional: Add Sign Out button here if needed in marketing layout */}
+                  {/* <form action="/auth/signout" method="post">
+                    <button type="submit" className="text-sm font-medium text-gray-300 hover:text-white">
+                      Sign Out
+                    </button>
+                  </form> */}
+                </>
+              ) : (
+                <>
+                  {/* Links for logged-out users */}
+                  <Link
+                    href="/login"
+                    className="text-sm font-medium text-gray-300 hover:text-white"
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    href="/login?signup=true" // Generic signup indicator, login page should handle this
+                    className="rounded-md bg-indigo-500 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
             {/* TODO: Add mobile menu toggle button and functionality */}
           </div>
@@ -91,10 +151,7 @@ export default function MarketingLayout({
         .animate-gradient-x {
           animation: gradient-x 5s ease infinite;
         }
-        /* Ensure body background matches layout for seamless look */
-        body {
-          background-color: #111827; /* bg-gray-900 */
-        }
+        /* Body style removed to prevent leaking into other app sections */
       `}</style>
     </div>
   );
