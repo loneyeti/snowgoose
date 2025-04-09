@@ -384,19 +384,33 @@ export default function ChatWrapper({
               </div>
               {/* Credits Display & Utility icons */}
               <div className="flex items-center">
-                {/* Display Credits Remaining */}
+                {/* Subtle Credits Display */}
                 {userUsageLimits != null && (
-                  <span className="text-xs text-slate-500 ml-2 mr-1 hidden sm:inline">
-                    Credits:{" "}
-                    {Math.max(
-                      0,
-                      Math.round(
-                        (userUsageLimits.planUsageLimit -
-                          userUsageLimits.userPeriodUsage) *
-                          100
-                      )
-                    )}
-                  </span>
+                  <div className="flex items-center mr-2 group relative">
+                    <div className="flex items-center px-2 py-0.5 rounded-full bg-slate-50 border border-slate-100 shadow-sm">
+                      <MaterialSymbol
+                        icon="electric_bolt"
+                        size={14}
+                        className="text-slate-400 mr-1"
+                      />
+                      <span className="text-xs font-medium text-slate-400">
+                        {Math.max(
+                          0,
+                          Math.round(
+                            (userUsageLimits.planUsageLimit -
+                              userUsageLimits.userPeriodUsage) *
+                              100
+                          )
+                        )}
+                      </span>
+                    </div>
+                    {/* Tooltip on hover */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 w-auto hidden group-hover:block">
+                      <div className="bg-slate-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+                        Available credits
+                      </div>
+                    </div>
+                  </div>
                 )}
                 <UtilityIconRow
                   resetChat={resetChat}
