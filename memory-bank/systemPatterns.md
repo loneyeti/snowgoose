@@ -82,8 +82,11 @@ graph TD
   - Form schemas and validation
   # Note: AI vendor logic is now in the standalone 'snowgander' npm package (v0.0.17)
 - **mcp_servers/** Storage of MCP servers
-- **app/subscriptions/** Subscription management pages (`page.tsx`)
-- **app/success/** Subscription confirmation page (`page.tsx`)
+- **app/(marketing)/**: Public-facing marketing pages (Home, Features, Pricing) using a shared layout.
+- **app/chat/**: Main application interface, accessible after login.
+  - **/chat/settings/**: User settings, profile, history, etc.
+- **app/subscriptions/** Subscription management pages (`page.tsx`) - _Note: May need relocation or review under new structure._
+- **app/success/** Subscription confirmation page (`page.tsx`) - _Note: May need relocation or review under new structure._
 - **app/api/webhooks/stripe/** Stripe webhook handler (`route.ts`)
 
 ### 2. Data Flow
@@ -104,13 +107,15 @@ graph TD
   - Factory pattern for instantiation
   - Response standardization
 
-### 3. Feature Organization
+### 3. Feature Organization & Routing
 
-- Feature-based directory structure
-- Shared components in \_ui directory
-- Provider-specific logic isolated in adapters
-- Settings management separated by domain
-- API routes aligned with features
+- **Route Groups**: Utilizes Next.js route groups (`(marketing)`) to organize routes without affecting the URL path.
+  - `app/(marketing)/`: Contains public marketing pages (`/`, `/features`, `/pricing`) sharing `app/(marketing)/layout.tsx`.
+  - `app/chat/`: Contains the core application accessible after login, using `app/chat/layout.tsx`.
+- **Shared Components**: Located in `app/_ui/` for reuse across both marketing and application sections.
+- **Provider Logic**: Isolated in the `snowgander` package.
+- **Settings**: Grouped under `app/chat/settings/`.
+- **API Routes**: Located in `app/api/`.
 
 ### 4. State Management
 

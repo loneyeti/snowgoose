@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function Sidebar({ children }: { children: ReactNode }) {
   return (
     <div className="flex-none md:fixed md:top-0 md:left-0 md:w-80 p-6 md:h-screen w-screen bg-slate-50">
-      <Link href="/">
+      <Link href="/chat">
         <Image
           src="/snowgoose-logo.png"
           alt="Snowgoose logo"

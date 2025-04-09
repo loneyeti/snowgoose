@@ -135,8 +135,8 @@ model User {
 }
 
 model SubscriptionPlan {
-  id            Int    @id @default(autoincrement())
-  stripePriceId String @unique @map("stripe_price_id") // Links to Stripe Price
+  id            Int     @id @default(autoincrement())
+  stripePriceId String? @unique @map("stripe_price_id") // Links to Stripe Price (Optional for non-Stripe plans like Free Tier)
   name          String // e.g., "Pro Tier", "Free Tier"
   usageLimit    Float // The usage limit for the period
 

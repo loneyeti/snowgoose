@@ -1,0 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: "Inter", sans-serif;
+  }
+  /* Body styles removed from here to prevent global application. */
+  /* Base background/text color is handled by layout components. */
+}
+
+/* Add more marketing-specific styles here later if needed */

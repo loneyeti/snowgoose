@@ -1,12 +1,5 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
-import "./globals.css";
-import { Toaster } from "sonner";
-
-const montserrat = Montserrat({
-  weight: "variable",
-  subsets: ["latin"],
-});
+import "./marketing.css"; // Import marketing-specific styles
 
 export const metadata: Metadata = {
   title: "Snowgoose",
@@ -20,10 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={montserrat.className}>
-        {children}
-        <Toaster />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

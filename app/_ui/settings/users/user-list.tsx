@@ -62,7 +62,7 @@ export default async function UserList() {
                     {user.isAdmin ? "Admin" : "User"}
                   </span>
                   <Link
-                    href={`/settings/users/${user.id}/edit`}
+                    href={`/chat/settings/users/${user.id}/edit`}
                     className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
                   >
                     <MaterialSymbol icon="edit" size={20} />

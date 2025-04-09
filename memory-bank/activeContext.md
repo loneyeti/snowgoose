@@ -2,6 +2,7 @@
 
 ## Current Focus
 
+- **Build initial marketing pages (Home, Features, Pricing).**
 - Performance optimization of Server Actions
 - Enhanced error handling and recovery
 - Monitoring and logging implementation
@@ -52,8 +53,14 @@
     - Added navigation link in `app/_ui/settings/settings-nav.tsx`.
     - **Added Admin Subscription Limits page (`/settings/admin/subscription-limits`):**
       - Created server action (`getSubscriptionLimitData`) to fetch Stripe Prices and merge with local `SubscriptionPlan` data.
-      - Created the page component (`app/settings/admin/subscription-limits/page.tsx`) with admin check, data fetching, and a form using `upsertSubscriptionPlanAction` to manage local plan name and usage limits per Stripe Price ID.
-      - Added navigation link in `app/_ui/settings/settings-nav.tsx`.
+        - Created the page component (`app/settings/admin/subscription-limits/page.tsx`) with admin check, data fetching, and a form using `upsertSubscriptionPlanAction` to manage local plan name and usage limits per Stripe Price ID.
+        - Added navigation link in `app/_ui/settings/settings-nav.tsx`.
+  - **Refactored site structure: Marketing pages (Home, Features, Pricing) are now served from the root (`/`) using the `(marketing)` route group, and the main application resides under `/chat`.**
+  - **Implemented Free Tier & Usage Limits:**
+    - Modified `SubscriptionPlan` schema (`prisma/schema.prisma`) to make `stripePriceId` optional (`String?`) to accommodate non-Stripe plans. Applied migration `20250408140554_make_stripe_price_id_optional`.
+    - Updated seed script (`prisma/seed.ts`) to create/update a "Free Tier" `SubscriptionPlan` record with `stripePriceId = null` and `usageLimit = 0.5`.
+    - Added `checkUsageLimit` method to `UserRepository` (`app/_lib/db/repositories/user.repository.ts`) to verify user usage against their plan (paid or free tier).
+    - Integrated `checkUsageLimit` call into the main chat server action (`app/_lib/server_actions/chat-actions.ts`) before contacting the AI vendor.
 
 ## Active Decisions
 
@@ -112,6 +119,8 @@
    - **Logic added to `UserRepository` to reset `periodUsage` automatically on subscription renewal via webhook.**
    - **Admin UI (`/settings/admin/subscriptions`) created for viewing active Stripe subscriptions and associated local `SubscriptionPlan` records (read-only).**
    - **Admin UI (`/settings/admin/subscription-limits`) created for managing local `SubscriptionPlan` records (name, usageLimit) associated with Stripe Prices.**
+   - **Free Tier Implementation: A dedicated "Free Tier" record in the `SubscriptionPlan` table (with `stripePriceId = null` and `usageLimit = 0.5`) provides a usage allowance for non-subscribed users.**
+   - **Usage Limit Enforcement: The `UserRepository.checkUsageLimit` method centralizes the logic for checking a user's `periodUsage` against the `usageLimit` of their determined plan (paid or free). This check is performed in relevant server actions (e.g., `createChat`) before potentially billable operations.**
 
 ## Next Steps
 
@@ -162,9 +171,19 @@
    - **Integrate Stripe Customer Portal (DONE)**
    - **Add Admin UI for viewing active customer subscriptions (DONE)**
    - ~~Add webhook handling for other relevant events (`customer.subscription.updated`, `customer.subscription.deleted`, etc.)~~ (Now covered)
-   - **Implement usage limit checks based on `SubscriptionPlan` table (PENDING)**
+   - **Implement usage limit checks based on `SubscriptionPlan` table (DONE)**
    - **Create UI/Action for managing `SubscriptionPlan` table records (DONE)**
    - **Populate `SubscriptionPlan` table with actual plan data (PENDING)**
+7. **Marketing Site Development (`app/(marketing)/`)**
+
+- **Home page content (`/`) (IN PROGRESS)**
+- **Features page content (`/features`) (IN PROGRESS)**
+- **Pricing page content (`/pricing`) (IN PROGRESS)**
+- About page content (`/about`) (PENDING)
+- Blog structure and initial posts (`/blog`) (PENDING)
+- Contact page content (`/contact`) (PENDING)
+- Shared marketing navigation/layout (`app/(marketing)/layout.tsx`) (IN PROGRESS)
+- Styling and visuals (`app/marketing.css`, Tailwind) (IN PROGRESS)
 
 ## Current Considerations
 

@@ -14,16 +14,19 @@ import {
   ChatResponse,
   ChatUserSession,
   ChatWrapperProps,
+  UserUsageLimits,
 } from "../../_lib/model";
 import UtilityIconRow from "./utility-icon-row";
 import { getHistory } from "../../_lib/server_actions/history.actions";
-import { ConversationHistory } from "@prisma/client";
+import { ConversationHistory, User } from "@prisma/client"; // Import User type if needed, or adjust based on actual user prop type
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
 import { getUserID } from "@/app/_lib/auth";
 import { usePersonaState } from "./hooks/usePersonaState";
 import { useOutputFormatState } from "./hooks/useOutputFormatState";
 import { useMCPToolState } from "./hooks/useMCPToolState";
+// Import the server action instead of the repository
+import { getUserUsageLimitsAction } from "@/app/_lib/server_actions/user.actions";
 
 export default function ChatWrapper({
   userPersonas,
@@ -53,6 +56,10 @@ export default function ChatWrapper({
   const [hidePersonas] = useState(false);
   const [hideOutputFormats] = useState(false);
   const personas = [...(userPersonas || []), ...(globalPersonas || [])];
+  const [userUsageLimits, setUserUsageLimits] = useState<UserUsageLimits>({
+    userPeriodUsage: 0.0,
+    planUsageLimit: 0.0,
+  });
 
   // Custom hooks
   const {
@@ -97,6 +104,30 @@ export default function ChatWrapper({
     initialBudgetTokens: currentChat?.budgetTokens ?? null,
   });
 
+  // Define fetchUsageLimits function (moved earlier for updateMessage)
+  const fetchUsageLimits = async () => {
+    if (!user?.id) return; // Guard clause
+
+    try {
+      const fetchedUsageLimits = await getUserUsageLimitsAction(user.id);
+      if (fetchedUsageLimits) {
+        console.log(
+          `Fetched Limits via Action - Plan: ${fetchedUsageLimits.planUsageLimit}, Usage: ${fetchedUsageLimits.userPeriodUsage}`
+        );
+        setUserUsageLimits(fetchedUsageLimits);
+      } else {
+        console.error(
+          "Failed to fetch usage limits via server action (returned null)."
+        );
+        setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 });
+      }
+    } catch (error) {
+      console.error("Error calling getUserUsageLimitsAction:", error);
+      setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 });
+    }
+  };
+
+  // Define updateMessage before useFormSubmission
   const updateMessage = (chat: LocalChat | undefined) => {
     if (chat) {
       if (!chat.imageURL) {
@@ -109,6 +140,8 @@ export default function ChatWrapper({
     } else {
       setResponse([]);
     }
+    // Fetch updated usage limits after processing the message
+    fetchUsageLimits();
   };
 
   const resetChat = () => {
@@ -164,6 +197,50 @@ export default function ChatWrapper({
     };
     fetchData();
   }, [isHistoryShowing]);
+
+  // useEffect to fetch usage limits using the server action
+  useEffect(() => {
+    if (!user?.id) {
+      // Don't fetch if user ID isn't available
+      return;
+    }
+
+    const fetchUsage = async () => {
+      try {
+        // Call the server action
+        const fetchedUsageLimits = await getUserUsageLimitsAction(user.id);
+
+        if (fetchedUsageLimits) {
+          console.log(
+            `Fetched Limits via Action - Plan: ${fetchedUsageLimits.planUsageLimit}, Usage: ${fetchedUsageLimits.userPeriodUsage}`
+          );
+          setUserUsageLimits(fetchedUsageLimits);
+        } else {
+          // Handle the case where the action returns null (e.g., error on server)
+          console.error(
+            "Failed to fetch usage limits via server action (returned null)."
+          );
+          // Optionally set state to reflect error or default values
+          setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 });
+        }
+      } catch (error) {
+        // Catch errors specifically from the action call itself (network issues, etc.)
+        // Server-side errors within the action are handled there and return null here.
+        console.error("Error calling getUserUsageLimitsAction:", error);
+        setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 }); // Reset or set error state
+      }
+    };
+
+    fetchUsage();
+    // Depend only on user.id to refetch when the user changes
+  }, [user?.id]); // Keep existing dependency
+
+  // useEffect to fetch usage limits on initial load or user change
+  // Note: fetchUsageLimits is now defined earlier
+  useEffect(() => {
+    fetchUsageLimits();
+    // Depend only on user.id to refetch when the user changes
+  }, [user?.id]);
 
   const disableSelection = response.length > 0;
 
@@ -305,8 +382,22 @@ export default function ChatWrapper({
                   )}
                 </Popover>
               </div>
-              {/* Utility icons */}
-              <div>
+              {/* Credits Display & Utility icons */}
+              <div className="flex items-center">
+                {/* Display Credits Remaining */}
+                {userUsageLimits != null && (
+                  <span className="text-xs text-slate-500 ml-2 mr-1 hidden sm:inline">
+                    Credits:{" "}
+                    {Math.max(
+                      0,
+                      Math.round(
+                        (userUsageLimits.planUsageLimit -
+                          userUsageLimits.userPeriodUsage) *
+                          100
+                      )
+                    )}
+                  </span>
+                )}
                 <UtilityIconRow
                   resetChat={resetChat}
                   toggleHistory={toggleHistory}

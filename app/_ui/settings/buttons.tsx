@@ -72,8 +72,8 @@ export function EditButtonFactory({
 }) {
   const path =
     resourceType === "history"
-      ? `/settings/${resourceType}`
-      : `/settings/${resourceType}/${id}/edit`;
+      ? `/chat/settings/${resourceType}`
+      : `/chat/settings/${resourceType}/${id}/edit`;
 
   return (
     <div className="w-full flex justify-end">

@@ -4,7 +4,7 @@ import { userRepository } from "@/app/_lib/db/repositories/user.repository";
 import { revalidatePath } from "next/cache";
 import { CreateUserFormSchema, UpdateUserFormSchema } from "../form-schemas";
 import { User } from "@prisma/client";
-import { UserPost, UserSession } from "../model";
+import { UserPost, UserSession, UserUsageLimits } from "../model"; // Added UserUsageLimits
 import { createClient } from "@/app/_utils/supabase/server";
 import { FormState } from "../form-schemas";
 import { userSettingsRepository } from "@/app/_lib/db/repositories/user-settings.repository";
@@ -40,7 +40,7 @@ export async function createUser(formData: FormData) {
     console.error("Failed to create User:", error); // Log detailed error
     throw new Error("Unable to create User."); // Throw generic error
   }
-  revalidatePath("/settings/users");
+  revalidatePath("/chat/settings/users");
 }
 
 export async function updateUser(formData: FormData) {
@@ -65,7 +65,7 @@ export async function updateUser(formData: FormData) {
     console.error("Failed to update User:", error); // Log detailed error
     throw new Error("Unable to update User."); // Throw generic error
   }
-  revalidatePath("/settings/profile");
+  revalidatePath("/chat/settings/profile");
 }
 
 export async function updateUserPassword(
@@ -112,7 +112,7 @@ export async function updateUserPassword(
     return { error: "Failed to update password. Please try again." };
   }
 
-  revalidatePath("/settings/profile");
+  revalidatePath("/chat/settings/profile");
   return { success: true, message: "Password updated successfully." }; // Add success message
 }
 
@@ -205,5 +205,24 @@ export async function updateUserUsage(userId: number, usage: number) {
     console.error(`Failed to update usage for user ${userId}:`, error); // Log detailed error
     // Throw generic error for the client
     throw new Error("Unable to update user usage statistics.");
+  }
+}
+
+/**
+ * Server action to get user usage limits.
+ * @param userId The ID of the user.
+ * @returns UserUsageLimits object or null if an error occurs.
+ */
+export async function getUserUsageLimitsAction(
+  userId: number
+): Promise<UserUsageLimits | null> {
+  try {
+    // Directly call the repository method on the server
+    const limits = await userRepository.getUsageLimit(userId);
+    return limits;
+  } catch (error) {
+    console.error(`Failed to get usage limits for user ${userId}:`, error);
+    // Return null or throw a more specific error if needed upstream
+    return null;
   }
 }

@@ -39,17 +39,33 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  // Define public paths that don't require authentication
+  const publicPaths = [
+    "/", // Root marketing page
+    "/features",
+    "/pricing",
+    "/login",
+    "/auth", // Includes /auth/callback, /auth/confirm, etc.
+    // Add any other specific public paths or API routes here if needed
+    // Note: /api/webhooks/stripe is already excluded by the main middleware matcher
+  ];
+
+  const isPublicPath = publicPaths.some((path) =>
+    request.nextUrl.pathname.startsWith(path)
+  );
+
+  // Redirect to login if:
+  // 1. User is not logged in
+  // 2. The path is NOT a public path
+  if (!user && !isPublicPath) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    // Optionally, add the original path as a redirect query param
+    // url.searchParams.set('redirect_to', request.nextUrl.pathname);
     return NextResponse.redirect(url);
   }
 
+  // If user is logged in OR it's a public path, continue
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
   // If you're creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:

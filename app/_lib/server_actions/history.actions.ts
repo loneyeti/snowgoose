@@ -97,7 +97,7 @@ export async function getHistory(userId: number) {
 
 export async function deleteHistory(id: number) {
   await historyRepository.delete(id);
-  revalidatePath("/settings/history");
+  revalidatePath("/chat/settings/history");
 }
 
 export async function saveChat(chat: Chat): Promise<string> {
@@ -117,8 +117,8 @@ export async function saveChat(chat: Chat): Promise<string> {
     console.info(`Saved chat with ID: ${savedChat.id} and title: "${title}"`); // Replaced logger.info
 
     // Revalidate the history path to update UI lists
-    revalidatePath("/settings/history");
-    revalidatePath("/"); // Also revalidate the main page if history is shown there
+    revalidatePath("/chat/settings/history");
+    revalidatePath("/chat"); // Also revalidate the main page if history is shown there
 
     return title; // Return the generated/saved title
   } catch (error) {

@@ -95,10 +95,10 @@ export async function createModel(formData: FormData) {
     console.error("Failed to create Model:", error); // Log detailed error
     throw new Error("Unable to create Model."); // Throw generic error
   }
-  revalidatePath("/settings/models"); // Corrected path
-  revalidatePath("/");
+  revalidatePath("/chat/settings/models"); // Corrected path
+  revalidatePath("/chat");
 
-  redirect("/settings/models");
+  redirect("/chat/settings/models");
 }
 
 export async function updateModel(formData: FormData) {
@@ -140,10 +140,10 @@ export async function updateModel(formData: FormData) {
     console.error("Failed to update Model:", error); // Log detailed error
     throw new Error("Unable to update Model."); // Throw generic error
   }
-  revalidatePath("/settings/models"); // Corrected path
-  revalidatePath("/");
+  revalidatePath("/chat/settings/models"); // Corrected path
+  revalidatePath("/chat");
 
-  redirect("/settings/models");
+  redirect("/chat/settings/models");
 }
 
 export async function deleteModel(id: number) {
@@ -153,7 +153,7 @@ export async function deleteModel(id: number) {
     console.error("Failed to delete Model:", error); // Log detailed error
     throw new Error("Unable to delete Model."); // Throw generic error
   }
-  revalidatePath("/settings/models"); // Corrected path
-  revalidatePath("/");
+  revalidatePath("/chat/settings/models"); // Corrected path
+  revalidatePath("/chat");
   // Consider if redirect is needed after delete failure
 }

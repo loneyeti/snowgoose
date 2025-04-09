@@ -216,3 +216,8 @@ export interface SettingListProps {
   resourceType: ResourceType;
   hideEdit: boolean | undefined;
 }
+
+export interface UserUsageLimits {
+  userPeriodUsage: number;
+  planUsageLimit: number;
+}

@@ -41,7 +41,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
         subscription is now active.
       </p>
       <p>Session ID: {sessionId}</p> {/* Displaying for confirmation */}
-      <Link href="/">Go to Homepage</Link>
+      <Link href="/chat">Go to Snowgoose</Link>
       <br />
       <Link href="/subscriptions">Manage Subscriptions</Link>
     </div>
