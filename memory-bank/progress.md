@@ -60,15 +60,21 @@ Standalone Next.js application with Server Actions
        - Updated `UserRepository` to reset `periodUsage` on renewal via webhook
        - **Added Admin Active Subscriptions page (`/settings/admin/subscriptions`) for viewing active customer subscriptions and associated local plan data (read-only).**
        - **Added Admin Subscription Limits page (`/settings/admin/subscription-limits`) for managing local plan name and usage limits per Stripe Price ID.**
+     - **Implemented Free Tier & Usage Limits:**
+       - Modified `SubscriptionPlan` schema to make `stripePriceId` optional.
+       - Seeded "Free Tier" plan (`stripePriceId = null`, `usageLimit = 0.5`).
+       - Added `UserRepository.checkUsageLimit` method.
+       - Integrated usage check into `createChat` server action.
 
 5. AI Integration
-   - **AI vendor logic moved to standalone `snowgander` npm package (v0.0.17)**
-   - OpenAI adapter
-   - Anthropic adapter
-   - Google AI adapter
-   - Vendor factory pattern
-   - Message standardization
-   - Thinking mode support
+
+- **AI vendor logic moved to standalone `snowgander` npm package (v0.0.17)**
+- OpenAI adapter
+- Anthropic adapter
+- Google AI adapter
+- Vendor factory pattern
+- Message standardization
+- Thinking mode support
 
 ## In Progress
 
@@ -128,7 +134,7 @@ Standalone Next.js application with Server Actions
    - **Admin UI for viewing active customer subscriptions (DONE)**
    - Need to implement subscription status checks (using new DB fields)
    - Need to add subscription management UI (beyond portal and admin page)
-   - Need to implement usage limit checks based on `SubscriptionPlan` table (PENDING)
+   - Need to implement usage limit checks based on `SubscriptionPlan` table (DONE)
    - Need to create UI/Action for managing `SubscriptionPlan` table records (DONE)
    - Need to populate `SubscriptionPlan` table (PENDING)
    - ~~Need to add webhook handling for other events (updates, cancellations)~~ (Now covered)
@@ -253,3 +259,4 @@ Standalone Next.js application with Server Actions
 19. **Subscription Usage Limit Foundation**: Added `SubscriptionPlan` table to database schema and updated `UserRepository` to reset `periodUsage` on subscription renewal via webhook.
 20. **Admin Active Subscriptions View**: Created page (`/settings/admin/subscriptions`) allowing admins to view active Stripe subscriptions and associated local `SubscriptionPlan` data (read-only).
 21. **Admin Subscription Limits Management**: Created page (`/settings/admin/subscription-limits`) allowing admins to manage local `SubscriptionPlan` records (name, usageLimit) associated with Stripe Prices.
+22. **Free Tier & Usage Limit Implementation**: Added a "Free Tier" plan, made `stripePriceId` optional in `SubscriptionPlan`, and integrated usage limit checks into the chat action.

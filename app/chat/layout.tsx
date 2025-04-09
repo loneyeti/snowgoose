@@ -10,7 +10,7 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: "Snowgoose",
-  description: "GPT Frontend",
+  description: "A Unified AI Chat Engine",
 };
 
 export default function RootLayout({

@@ -275,6 +275,34 @@ async function main() {
       apiVendorId: openRouterVendor.id,
     },
   });
+
+  // Subscription Plans
+  const freeTierPlan = await prisma.subscriptionPlan.findFirst({
+    where: { stripePriceId: null },
+  });
+
+  if (!freeTierPlan) {
+    await prisma.subscriptionPlan.create({
+      data: {
+        name: "Free Tier",
+        usageLimit: 0.5,
+        stripePriceId: null, // Explicitly set to null
+      },
+    });
+    console.log("Created Free Tier subscription plan.");
+  } else {
+    // Optional: Update existing free tier if needed (e.g., ensure limit is correct)
+    await prisma.subscriptionPlan.update({
+      where: { id: freeTierPlan.id }, // Use the primary key 'id' for update
+      data: {
+        name: "Free Tier", // Ensure name is correct
+        usageLimit: 0.5, // Ensure limit is correct
+      },
+    });
+    console.log(
+      "Found existing Free Tier subscription plan, ensured values are correct."
+    );
+  }
 }
 
 main()

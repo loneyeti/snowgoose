@@ -193,13 +193,19 @@ export async function getSubscriptionLimitData(): Promise<
     });
 
     // 2. Fetch all local subscription plans from the database
-    const localPlans = await subscriptionPlanRepository.findAll();
+    const allLocalPlans = await subscriptionPlanRepository.findAll();
+
+    // Separate the Free Tier plan (stripePriceId is null)
+    const freeTierPlan = allLocalPlans.find((plan) => !plan.stripePriceId);
+    const paidLocalPlans = allLocalPlans.filter((plan) => plan.stripePriceId);
+
+    // Create a map only for plans linked to Stripe Prices
     const localPlansMap = new Map(
-      localPlans.map((plan) => [plan.stripePriceId, plan])
+      paidLocalPlans.map((plan) => [plan.stripePriceId, plan]) // Use filtered list
     );
 
-    // 3. Merge Stripe Price data with local data
-    const combinedData = stripePrices.data
+    // 3. Merge Stripe Price data with local data (for paid plans)
+    let combinedData = stripePrices.data // Changed const to let
       .map((price): SubscriptionLimitViewData | null => {
         // Ensure product is expanded and is an object with an ID and name
         const product = price.product;
@@ -233,7 +239,7 @@ export async function getSubscriptionLimitData(): Promise<
       })
       .filter((item): item is SubscriptionLimitViewData => item !== null); // Filter out nulls
 
-    // Optional: Sort data, e.g., by product name then price nickname
+    // 4. Sort the Stripe-based plans
     combinedData.sort((a, b) => {
       const nameCompare = a.stripeProductName.localeCompare(
         b.stripeProductName
@@ -244,6 +250,20 @@ export async function getSubscriptionLimitData(): Promise<
       const nickB = b.stripePriceNickname ?? "";
       return nickA.localeCompare(nickB);
     });
+
+    // 5. Prepend the Free Tier plan if it exists
+    if (freeTierPlan) {
+      const freeTierViewData: SubscriptionLimitViewData = {
+        stripePriceId: "free-tier", // Use a special identifier
+        stripeProductName: freeTierPlan.name || "Free Tier", // Use local name or default
+        stripePriceNickname: null,
+        stripePriceActive: true, // Assume free tier is always active
+        localPlanId: freeTierPlan.id,
+        localPlanName: freeTierPlan.name,
+        localUsageLimit: freeTierPlan.usageLimit,
+      };
+      combinedData.unshift(freeTierViewData); // Add to the beginning
+    }
 
     return combinedData;
   } catch (error) {

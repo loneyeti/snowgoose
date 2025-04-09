@@ -62,10 +62,10 @@ export async function createPersona(
     console.error("Failed to create Persona:", error); // Log detailed error
     throw new Error("Unable to create Persona."); // Throw generic error
   }
-  revalidatePath(`/settings/${type}-personas`);
+  revalidatePath(`/chat/settings/${type}-personas`);
   revalidatePath("/chat");
 
-  redirect(`/settings/${type}-personas`);
+  redirect(`/chat/settings/${type}-personas`);
 }
 
 export async function createUserPersona(formData: FormData) {
@@ -98,14 +98,14 @@ export async function updatePersona(formData: FormData) {
   if (!persona.ownerId) {
     appendPath = "global";
   }
-  revalidatePath(`/settings/${appendPath}-personas`);
+  revalidatePath(`/chat/settings/${appendPath}-personas`);
   revalidatePath("/chat");
 
-  redirect(`/settings/${appendPath}-personas`);
+  redirect(`/chat/settings/${appendPath}-personas`);
 }
 
 export async function deletePersona(id: number) {
   await personaRepository.delete(id);
-  revalidatePath("/personas");
+  revalidatePath("/chat/settings/personas");
   revalidatePath("/chat");
 }

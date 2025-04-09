@@ -7,12 +7,12 @@ import { getRenderTypeName } from "./render-type.actions";
 import { getMcpTool } from "./mcp-tool.actions";
 import { getApiVendor } from "./api_vendor.actions";
 import { getPersona } from "./persona.actions";
-// Removed unused getMcpTool import
 import { supabaseUploadFile } from "../storage";
 import { generateUniqueFilename } from "../utils";
 import { FormSchema } from "../form-schemas";
 import { getOutputFormat } from "./output-format.actions";
-// Removed unused getApiVendor import
+import { getCurrentAPIUser } from "../auth"; // Import correct auth helper
+import { userRepository } from "../db/repositories/user.repository"; // Import user repository
 
 export async function createChat(
   formData: FormData,
@@ -118,9 +118,32 @@ export async function createChat(
     }
   }
 
+  // --- Usage Limit Check ---
+  try {
+    // Get the full user object from our DB using the helper
+    const user = await getCurrentAPIUser();
+    if (!user) {
+      // getCurrentAPIUser returns null if not authenticated or user doesn't exist in DB yet
+      throw new Error("Authentication required or user not found.");
+    }
+    // Check usage limit before proceeding using the user's DB ID
+    await userRepository.checkUsageLimit(user.id);
+  } catch (error) {
+    console.error("Usage limit check failed:", error);
+    // Re-throw the specific error message if it's the usage limit one
+    if (
+      error instanceof Error &&
+      error.message.startsWith("Usage limit exceeded")
+    ) {
+      throw error; // Let the calling code handle this specific error
+    }
+    // Otherwise, throw a generic error
+    throw new Error("Failed to verify user usage limits.");
+  }
+  // --- End Usage Limit Check ---
+
   // Send chat request
   try {
-    // Remove the old logic for fetching mcpToolData and apiVendor here
     // The repository now handles fetching the tool based on chat.mcpToolId
 
     // Call sendChat with only the chat object
@@ -142,12 +165,8 @@ export async function createChat(
     }
   } catch (error) {
     console.error("Failed to send Chat:", error); // Log detailed error
-    // Check if it's the specific usage limit error code
-    if (error instanceof Error && error.message === "USAGE_LIMIT_EXCEEDED") {
-      // Re-throw the specific error code so the client hook can catch it
-      throw error; // Re-throw the original error object
-    }
-    // Otherwise, throw a generic error for the client
+    // Note: The specific "Usage limit exceeded" error is now caught *before* this block.
+    // This block catches errors from chatRepository.sendChat itself.
     throw new Error("Failed to process chat request. Please try again.");
   }
   return chat;

@@ -1,5 +1,6 @@
 import { User } from "@prisma/client";
 import { BaseRepository } from "./base.repository";
+import { UserUsageLimits } from "../../model";
 
 export class UserRepository extends BaseRepository {
   async findAll(): Promise<User[]> {
@@ -232,6 +233,94 @@ export class UserRepository extends BaseRepository {
       });
     } catch (error) {
       this.handleError(error);
+    }
+  }
+
+  async getUsageLimit(userId: number): Promise<UserUsageLimits> {
+    let userUsageLimits: UserUsageLimits = {
+      userPeriodUsage: 0.0,
+      planUsageLimit: 0.0,
+    };
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { periodUsage: true, stripePriceId: true }, // Select only needed fields
+      });
+
+      userUsageLimits.userPeriodUsage = user?.periodUsage ?? 0.0;
+
+      if (!user) {
+        throw new Error(`User with ID ${userId} not found.`);
+      }
+
+      // Determine which plan to fetch
+      let subscriptionPlan;
+      if (user.stripePriceId) {
+        // User has a Stripe subscription, find their specific plan
+        subscriptionPlan = await this.prisma.subscriptionPlan.findUnique({
+          where: { stripePriceId: user.stripePriceId },
+        });
+        if (!subscriptionPlan) {
+          // This case is problematic: user has a stripePriceId but no matching plan in DB.
+          // Could happen if Stripe plans change and DB isn't updated.
+          // Fallback to free tier or throw a specific error? For now, let's log and fallback to free.
+          console.warn(
+            `No SubscriptionPlan found for stripePriceId: ${user.stripePriceId}. Falling back to Free Tier check for user ${userId}.`
+          );
+          subscriptionPlan = await this.prisma.subscriptionPlan.findFirst({
+            where: { stripePriceId: null }, // Find the Free Tier plan
+          });
+        }
+      } else {
+        // User does not have a Stripe subscription, use the Free Tier plan
+        subscriptionPlan = await this.prisma.subscriptionPlan.findFirst({
+          where: { stripePriceId: null }, // Find the Free Tier plan
+        });
+      }
+
+      // If even the free tier plan isn't found (shouldn't happen after seeding)
+      if (!subscriptionPlan) {
+        throw new Error(
+          "Default subscription plan (Free Tier) not found in the database."
+        );
+      }
+      userUsageLimits.planUsageLimit = subscriptionPlan.usageLimit;
+    } catch (error) {
+      // Log the original error for better debugging
+      console.error("Original error in getUsageLimit:", error);
+      // Re-throw a more informative error or the original one
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      throw new Error(
+        `Error getting user plan for user ${userId}: ${errorMessage}`
+      );
+    }
+    return userUsageLimits;
+  }
+
+  /**
+   * Checks if a user is within their usage limit based on their subscription plan.
+   * Throws an error if the limit is exceeded.
+   * @param userId The ID of the user to check.
+   */
+  async checkUsageLimit(userId: number): Promise<void> {
+    try {
+      const userUsageLimits = await this.getUsageLimit(userId);
+
+      if (userUsageLimits.userPeriodUsage >= userUsageLimits.planUsageLimit) {
+        // Consider creating a custom error class for better handling upstream
+        throw new Error(
+          `Usage limit exceeded. Current usage: ${userUsageLimits.userPeriodUsage}, Limit: ${userUsageLimits.planUsageLimit}`
+        );
+      }
+
+      // If usage is within limits, the method completes successfully (returns void)
+      console.log(
+        `User ${userId} usage check passed. Usage: ${userUsageLimits.userPeriodUsage}, Limit: ${userUsageLimits.planUsageLimit}`
+      );
+    } catch (error) {
+      // Re-throw specific errors or handle generic ones
+      this.handleError(error); // Use existing handler or re-throw
     }
   }
 }
