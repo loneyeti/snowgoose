@@ -32,8 +32,8 @@ export default function FeaturesPage() {
             {/* Lighter text */}
             Tired of juggling multiple AI subscriptions and APIs? Snowgoose
             brings the power of leading models like OpenAI&apos;s GPT-4o,
-            Anthropic&apos;s Claude 3.5, and Google&apos;s Gemini into one
-            seamless interface. Access the latest capabilities without the
+            Anthropic&apos;s Claude 3.7, Google&apos;s Gemini, and DeepSeek into
+            one seamless interface. Access the latest capabilities without the
             complexity.
           </p>
           <ul className="list-disc list-inside text-lg text-gray-300 space-y-1">
