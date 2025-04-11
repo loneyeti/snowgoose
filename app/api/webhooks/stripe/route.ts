@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { headers } from "next/headers";
-import { buffer } from "node:stream/consumers";
+// Removed: import { buffer } from "node:stream/consumers";
 import { userRepository } from "@/app/_lib/db/repositories/user.repository"; // Import the user repository
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -12,6 +12,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: NextRequest) {
+  console.log("Stripe webhook started");
   if (!webhookSecret) {
     console.error("Stripe webhook secret is not set.");
     return NextResponse.json(
@@ -29,14 +30,18 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Read the raw body for signature verification
-  const rawBody = await buffer(req.body! as any); // Cast to any to resolve stream type mismatch
+  // Read the raw body using req.text() for signature verification
+  // Removed: const rawBody = await buffer(req.body! as any);
 
   let event: Stripe.Event;
+  let rawBody: string; // Define rawBody to store the text
 
   try {
+    rawBody = await req.text(); // Get the raw body as text
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
   } catch (err: any) {
+    // Log the raw body on error for debugging (optional, consider security implications)
+    // console.error("Raw body received:", rawBody);
     console.error(`Webhook signature verification failed: ${err.message}`);
     return NextResponse.json(
       { error: `Webhook Error: ${err.message}` },
@@ -58,6 +63,8 @@ export async function POST(req: NextRequest) {
 
       const userAuthId = clientReferenceId || userId;
 
+      console.log(`Stripe returned local user id: ${userAuthId}`);
+
       if (!userAuthId) {
         console.error(
           "Webhook Error: Missing user identifier (client_reference_id or metadata.userId) in checkout session:",
@@ -73,6 +80,7 @@ export async function POST(req: NextRequest) {
           "Webhook Error: Checkout session completed event is missing subscription ID:",
           session.id
         );
+        console.log(`Subscription: ${session.subscription}`);
         return NextResponse.json({ received: true }); // Acknowledge receipt
       }
 
@@ -90,6 +98,7 @@ export async function POST(req: NextRequest) {
 
         // --- Database Update Logic ---
         // Use the repository method to update user subscription details
+        console.log("Updating user record");
         const updatedUser = await userRepository.updateSubscriptionByAuthId(
           userAuthId,
           {
@@ -110,7 +119,7 @@ export async function POST(req: NextRequest) {
               subscription.start_date * 1000 // start_date is still on the Subscription object
             ),
             // Reset usage counters if applicable based on your logic
-            // periodUsage: 0, // Example if resetting usage
+            periodUsage: 0, // Example if resetting usage
           }
         );
         console.log(

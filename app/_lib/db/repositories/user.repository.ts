@@ -105,7 +105,7 @@ export class UserRepository extends BaseRepository {
       stripeCurrentPeriodEnd: Date;
       stripeSubscriptionStartDate: Date;
       // Optionally reset usage here if needed
-      // periodUsage?: number;
+      periodUsage?: number;
     }
   ): Promise<User> {
     try {

@@ -101,8 +101,8 @@ export async function createCheckoutSessionAction(formData: FormData) {
       // Pass the user's Supabase auth ID to link the session to the user
       client_reference_id: userAuthId,
       // Construct full URLs using the origin
-      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/subscriptions`,
+      success_url: `${origin}/chat/subscribe/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/pricing`,
     });
 
     // Check if session URL exists before redirecting

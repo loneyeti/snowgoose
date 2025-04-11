@@ -18,7 +18,7 @@ export default function PricingPage() {
         "All Output Formats",
       ],
       cta: "Get Started Basic",
-      priceId: "price_basic_placeholder", // Placeholder Stripe Price ID
+      priceId: "price_1RAgrgFvZDHSY7hV2WZpbk7a", // Placeholder Stripe Price ID
     },
     {
       name: "Professional",
@@ -32,7 +32,7 @@ export default function PricingPage() {
         "Priority access to new features",
       ],
       cta: "Choose Professional",
-      priceId: "price_prof_placeholder", // Placeholder Stripe Price ID
+      priceId: "price_1RAgrgFvZDHSY7hV2WZpbk7a", // Placeholder Stripe Price ID
     },
     // Add Enterprise plan if needed
   ];
