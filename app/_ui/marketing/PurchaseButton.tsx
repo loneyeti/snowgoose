@@ -9,11 +9,13 @@ import { User } from "@supabase/supabase-js";
 interface PurchaseButtonProps {
   priceId: string; // Stripe Price ID
   ctaText: string;
+  highlight?: boolean; // Optional prop to change styling
 }
 
 export default function PurchaseButton({
   priceId,
   ctaText,
+  highlight = false, // Default to false if not provided
 }: PurchaseButtonProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -72,8 +74,12 @@ export default function PurchaseButton({
     <button
       onClick={handlePurchase}
       disabled={isProcessing}
-      className={`block w-full bg-indigo-600 text-white text-center font-semibold py-3 rounded-lg transition duration-200 ${
-        isProcessing ? "opacity-50 cursor-not-allowed" : "hover:bg-indigo-500"
+      className={`block w-full text-center font-semibold py-3 rounded-md shadow-sm transition duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+        isProcessing
+          ? "opacity-50 cursor-not-allowed"
+          : highlight
+            ? "bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600" // Highlighted style
+            : "bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white" // Standard style
       }`}
     >
       {isProcessing ? "Processing..." : ctaText}
