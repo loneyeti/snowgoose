@@ -146,9 +146,9 @@ export default function MarketingPage() {
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Access OpenAI's GPT-4o, Anthropic's Claude 3.5, Google's
-                    Gemini, and more through one seamless interface. No more API
-                    juggling.
+                    Access OpenAI&apos;s GPT-4o, Anthropic&apos;s Claude 3.5,
+                    Google&apos;s Gemini, and more through one seamless
+                    interface. No more API juggling.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
                     Ideal for Developers, Writers, Researchers.
@@ -209,7 +209,7 @@ export default function MarketingPage() {
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Powerful technology shouldn't be complicated. Enjoy a
+                    Powerful technology shouldn&apos;t be complicated. Enjoy a
                     brilliant, clean UI and typography focused on ease of use.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">

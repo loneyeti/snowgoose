@@ -130,9 +130,20 @@ export default function MarketingLayout({
       <main className="flex-grow">{children}</main>
       {/* Footer */}
       <footer className="py-8 border-t border-gray-700">
-        <div className="container mx-auto px-4 text-center text-sm text-gray-500">
-          {/* Add more footer links later if needed */}
-          &copy; {new Date().getFullYear()} Snowgoose. All rights reserved.
+        <div className="container mx-auto px-4 text-center text-sm text-gray-400 flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4">
+          <span>
+            &copy; {new Date().getFullYear()} Snowgoose. All rights reserved.
+          </span>
+          <span className="hidden sm:inline text-gray-600">|</span>{" "}
+          {/* Separator for wider screens */}
+          <Link href="/terms" className="hover:text-white transition-colors">
+            Terms of Service
+          </Link>
+          <span className="hidden sm:inline text-gray-600">|</span>{" "}
+          {/* Separator */}
+          <Link href="/privacy" className="hover:text-white transition-colors">
+            Privacy Policy
+          </Link>
         </div>
       </footer>
       {/* Gradient Animation Style - applied globally via layout */}

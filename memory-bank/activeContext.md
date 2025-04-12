@@ -61,14 +61,16 @@
     - Updated seed script (`prisma/seed.ts`) to create/update a "Free Tier" `SubscriptionPlan` record with `stripePriceId = null` and `usageLimit = 0.5`.
     - Added `checkUsageLimit` method to `UserRepository` (`app/_lib/db/repositories/user.repository.ts`) to verify user usage against their plan (paid or free tier).
     - Integrated `checkUsageLimit` call into the main chat server action (`app/_lib/server_actions/chat-actions.ts`) before contacting the AI vendor.
+  - **Added Terms of Service page (`app/(marketing)/terms/page.tsx`) and linked it in the marketing site footer (`app/(marketing)/layout.tsx`).**
+  - **Added Privacy Policy page (`app/(marketing)/privacy/page.tsx`) and linked it in the marketing site footer (`app/(marketing)/layout.tsx`).**
 
 ## Active Decisions
 
-1. **Deployment Strategy**:
+1.  **Deployment Strategy**:
 
-   - Utilize Docker for containerization in both development and production.
-   - Employ Fly.io for hosting the production application, leveraging its Docker deployment capabilities.
-   - Manage environment variables securely through Fly.io secrets and `.env.production` (not committed).
+- Utilize Docker for containerization in both development and production.
+- Employ Fly.io for hosting the production application, leveraging its Docker deployment capabilities.
+- Manage environment variables securely through Fly.io secrets and `.env.production` (not committed).
 
 2. Server Actions Architecture
 
@@ -183,17 +185,23 @@
 - Blog structure and initial posts (`/blog`) (PENDING)
 - Contact page content (`/contact`) (PENDING)
 - Shared marketing navigation/layout (`app/(marketing)/layout.tsx`) (IN PROGRESS)
+- Terms of Service page (`/terms`) (DONE)
+- Privacy Policy page (`/privacy`) (DONE)
+- About page content (`/about`) (PENDING)
+- Blog structure and initial posts (`/blog`) (PENDING)
+- Contact page content (`/contact`) (PENDING)
+- Shared marketing navigation/layout (`app/(marketing)/layout.tsx`) (IN PROGRESS - Footer updated)
 - Styling and visuals (`app/marketing.css`, Tailwind) (IN PROGRESS)
 
 ## Current Considerations
 
-1. Technical Implementation
+1.  Technical Implementation
 
-   - Server Action performance
-   - Database optimization
-   - Memory management
-   - Error handling
-   - Caching strategies
+- Server Action performance
+- Database optimization
+- Memory management
+- Error handling
+- Caching strategies
 
 2. Project Management
 

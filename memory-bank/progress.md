@@ -65,6 +65,10 @@ Standalone Next.js application with Server Actions
        - Seeded "Free Tier" plan (`stripePriceId = null`, `usageLimit = 0.5`).
        - Added `UserRepository.checkUsageLimit` method.
        - Integrated usage check into `createChat` server action.
+     - **Marketing Site:**
+       - Terms of Service page (`app/(marketing)/terms/page.tsx`) created.
+       - Privacy Policy page (`app/(marketing)/privacy/page.tsx`) created.
+       - Footer links added in `app/(marketing)/layout.tsx`.
 
 5. AI Integration
 
@@ -142,7 +146,9 @@ Standalone Next.js application with Server Actions
    - Home page content (`/`) (IN PROGRESS)
    - Features page content (`/features`) (IN PROGRESS)
    - Pricing page content (`/pricing`) (IN PROGRESS)
-   - Shared marketing layout (`app/(marketing)/layout.tsx`) (IN PROGRESS)
+   - Terms of Service page (`/terms`) (DONE)
+   - Privacy Policy page (`/privacy`) (DONE)
+   - Shared marketing layout (`app/(marketing)/layout.tsx`) (IN PROGRESS - Footer updated)
    - Styling (`app/marketing.css`, Tailwind) (IN PROGRESS)
 
 ## Known Issues
@@ -260,3 +266,5 @@ Standalone Next.js application with Server Actions
 20. **Admin Active Subscriptions View**: Created page (`/settings/admin/subscriptions`) allowing admins to view active Stripe subscriptions and associated local `SubscriptionPlan` data (read-only).
 21. **Admin Subscription Limits Management**: Created page (`/settings/admin/subscription-limits`) allowing admins to manage local `SubscriptionPlan` records (name, usageLimit) associated with Stripe Prices.
 22. **Free Tier & Usage Limit Implementation**: Added a "Free Tier" plan, made `stripePriceId` optional in `SubscriptionPlan`, and integrated usage limit checks into the chat action.
+23. **Terms of Service Page**: Created the Terms of Service page (`/terms`) and linked it in the marketing site footer.
+24. **Privacy Policy Page**: Created the Privacy Policy page (`/privacy`) and linked it in the marketing site footer.
