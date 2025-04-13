@@ -423,6 +423,36 @@ export default function ChatWrapper({
           </div>
         </div>
 
+        {/* Free Tier Upgrade Banner */}
+        {user && user.stripePriceId === null && (
+          <div
+            className="bg-blue-100 border-t border-b border-blue-200 text-blue-800 px-4 py-3 shadow-sm"
+            role="alert"
+          >
+            <div className="flex items-center justify-between max-w-3xl mx-auto">
+              <div className="flex items-center">
+                <MaterialSymbol icon="campaign" size={24} className="mr-2" />
+                <p className="font-medium">
+                  You&apos;re currently on the Free Demo Plan.
+                </p>
+                <p className="text-sm ml-2 hidden sm:block">
+                  Unlock more usage by subscribing!
+                </p>
+              </div>
+              <a
+                href="/pricing"
+                className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-1.5 px-4 rounded-md text-sm transition-colors duration-150"
+              >
+                Subscribe Now
+              </a>
+            </div>
+            <p className="text-sm mt-1 text-center sm:hidden">
+              Unlock unlimited features by subscribing!
+            </p>{" "}
+            {/* Mobile text */}
+          </div>
+        )}
+
         {/* Conversation area - fills space and scrolls internally */}
         <div className="flex-grow flex overflow-hidden">
           <div className="max-w-3xl w-full mx-auto overflow-y-auto p-4 rounded-2xl bg-white m-3 shadow-[0_0_0_2px_rgba(255,255,255,0.95)] border flex-1">
