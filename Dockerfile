@@ -25,6 +25,11 @@ WORKDIR /app
 ARG DATABASE_URL_SECRET_ID="DATABASE_URL"
 ARG NEXT_PUBLIC_SUPABASE_URL_SECRET_ID="NEXT_PUBLIC_SUPABASE_URL"
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY_SECRET_ID="NEXT_PUBLIC_SUPABASE_ANON_KEY"
+ARG NEXT_PUBLIC_GITHUB_CLIENT_ID_SECRET_ID="NEXT_PUBLIC_GITHUB_CLIENT_ID" # Added
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID_SECRET_ID="NEXT_PUBLIC_GOOGLE_CLIENT_ID"
+ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_SECRET_ID="NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
+ARG STRIPE_SECRET_KEY_SECRET_ID="STRIPE_SECRET_KEY"
+ARG STRIPE_WEBHOOK_SECRET_SECRET_ID="STRIPE_WEBHOOK_SECRET"
 
 # Copy dependencies from the 'deps' stage
 COPY --from=deps /app/node_modules ./node_modules
@@ -44,12 +49,22 @@ RUN npx prisma generate
 RUN --mount=type=secret,id=${DATABASE_URL_SECRET_ID} \
     --mount=type=secret,id=${NEXT_PUBLIC_SUPABASE_URL_SECRET_ID} \
     --mount=type=secret,id=${NEXT_PUBLIC_SUPABASE_ANON_KEY_SECRET_ID} \
+    --mount=type=secret,id=${NEXT_PUBLIC_GITHUB_CLIENT_ID_SECRET_ID} \
+    --mount=type=secret,id=${NEXT_PUBLIC_GOOGLE_CLIENT_ID_SECRET_ID} \
+    --mount=type=secret,id=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_SECRET_ID} \
+    --mount=type=secret,id=${STRIPE_SECRET_KEY_SECRET_ID} \
+    --mount=type=secret,id=${STRIPE_WEBHOOK_SECRET_SECRET_ID} \
     # Add more --mount lines for each secret
     echo "Exporting build secrets..." && \
     # Read each secret file and export it as an environment variable
     export DATABASE_URL=$(cat /run/secrets/${DATABASE_URL_SECRET_ID}) && \
-    export NEXT_PUBLIC_SUPABASE=$(cat /run/secrets/${NEXT_PUBLIC_SUPABASE_URL_SECRET_ID}) && \
+    export NEXT_PUBLIC_SUPABASE_URL=$(cat /run/secrets/${NEXT_PUBLIC_SUPABASE_URL_SECRET_ID}) && \
     export NEXT_PUBLIC_SUPABASE_ANON_KEY=$(cat /run/secrets/${NEXT_PUBLIC_SUPABASE_ANON_KEY_SECRET_ID}) && \
+    export NEXT_PUBLIC_GITHUB_CLIENT_ID=$(cat /run/secrets/${NEXT_PUBLIC_GITHUB_CLIENT_ID_SECRET_ID}) && \
+    export NEXT_PUBLIC_GOOGLE_CLIENT_ID=$(cat /run/secrets/${NEXT_PUBLIC_GOOGLE_CLIENT_ID_SECRET_ID}) && \
+    export NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$(cat /run/secrets/${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_SECRET_ID}) && \
+    export STRIPE_SECRET_KEY=$(cat /run/secrets/${STRIPE_SECRET_KEY_SECRET_ID}) && \
+    export STRIPE_WEBHOOK_SECRET=$(cat /run/secrets/${STRIPE_WEBHOOK_SECRET_SECRET_ID}) && \
     echo "Running npm run build..." && \
     npm run build && \
     # Build the MCP server

@@ -15,7 +15,11 @@ export async function POST(req: NextRequest) {
   }
 
   revalidatePath("/chat", "layout");
-  return NextResponse.redirect(new URL("/login", req.url), {
+
+  // Construct the redirect URL using the reliable base URL
+  const redirectUrl = new URL("/login", process.env.NEXT_PUBLIC_BASE_URL);
+
+  return NextResponse.redirect(redirectUrl, {
     status: 302,
   });
 }
