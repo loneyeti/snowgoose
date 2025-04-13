@@ -63,6 +63,17 @@
     - Integrated `checkUsageLimit` call into the main chat server action (`app/_lib/server_actions/chat-actions.ts`) before contacting the AI vendor.
   - **Added Terms of Service page (`app/(marketing)/terms/page.tsx`) and linked it in the marketing site footer (`app/(marketing)/layout.tsx`).**
   - **Added Privacy Policy page (`app/(marketing)/privacy/page.tsx`) and linked it in the marketing site footer (`app/(marketing)/layout.tsx`).**
+  - **Implemented Google OAuth Sign-In (Pre-built Button):**
+    - Added `NEXT_PUBLIC_GOOGLE_CLIENT_ID` to `.env.local`.
+    - Modified `app/login/page.tsx` to include the Google GSI client script, nonce generation, button rendering, and the `handleSignInWithGoogle` callback using `supabase.auth.signInWithIdToken`.
+  - **Implemented GitHub OAuth Sign-In:**
+    - Added `NEXT_PUBLIC_GITHUB_CLIENT_ID` to `.env.local`.
+    - Modified `app/login/page.tsx` to include a GitHub sign-in button and the `signInWithGithub` handler using `supabase.auth.signInWithOAuth`.
+  - **Refactored authentication to use Supabase Magic Links:**
+    - Removed password input and related logic from `app/login/page.tsx`.
+    - Updated `app/login/actions.ts` to use `supabase.auth.signInWithOtp` instead of `signInWithPassword`.
+    - Removed the `signup` and `requestPasswordReset` server actions from `app/login/actions.ts`.
+    - Deleted the password reset page and related files (`app/auth/reset-password/`).
 
 ## Active Decisions
 

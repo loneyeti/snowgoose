@@ -69,6 +69,17 @@ Standalone Next.js application with Server Actions
        - Terms of Service page (`app/(marketing)/terms/page.tsx`) created.
        - Privacy Policy page (`app/(marketing)/privacy/page.tsx`) created.
        - Footer links added in `app/(marketing)/layout.tsx`.
+     - **Google OAuth Sign-In (Pre-built Button):**
+       - Added `NEXT_PUBLIC_GOOGLE_CLIENT_ID` environment variable.
+       - Integrated Google GSI client script, nonce handling, button rendering, and Supabase `signInWithIdToken` callback into `app/login/page.tsx`.
+     - **GitHub OAuth Sign-In:**
+       - Added `NEXT_PUBLIC_GITHUB_CLIENT_ID` environment variable.
+       - Integrated GitHub sign-in button and `signInWithGithub` handler using `supabase.auth.signInWithOAuth` into `app/login/page.tsx`.
+     - **Passwordless Authentication (Magic Link):**
+       - Removed password fields/logic from login page (`app/login/page.tsx`).
+       - Updated login server action (`app/login/actions.ts`) to use `supabase.auth.signInWithOtp`.
+       - Removed signup and password reset server actions.
+       - Removed password reset page (`app/auth/reset-password/`).
 
 5. AI Integration
 
@@ -268,3 +279,6 @@ Standalone Next.js application with Server Actions
 22. **Free Tier & Usage Limit Implementation**: Added a "Free Tier" plan, made `stripePriceId` optional in `SubscriptionPlan`, and integrated usage limit checks into the chat action.
 23. **Terms of Service Page**: Created the Terms of Service page (`/terms`) and linked it in the marketing site footer.
 24. **Privacy Policy Page**: Created the Privacy Policy page (`/privacy`) and linked it in the marketing site footer.
+25. **Google OAuth Sign-In (Pre-built Button)**: Integrated Google Sign-In via the GSI client library and Supabase `signInWithIdToken` on the login page.
+26. **GitHub OAuth Sign-In**: Integrated GitHub Sign-In via `supabase.auth.signInWithOAuth` on the login page and added the necessary environment variable.
+27. **Passwordless Authentication Refactor**: Replaced email/password login with Supabase Magic Links (`signInWithOtp`), removing password fields, signup, and password reset functionality.

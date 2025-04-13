@@ -4,14 +4,15 @@ import { headers } from "next/headers";
 // Removed: import { buffer } from "node:stream/consumers";
 import { userRepository } from "@/app/_lib/db/repositories/user.repository"; // Import the user repository
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-03-31.basil", // Corrected API version
-  typescript: true,
-});
-
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: NextRequest) {
+  // Initialize Stripe SDK inside the handler
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: "2025-03-31.basil", // Corrected API version
+    typescript: true,
+  });
+
   console.log("Stripe webhook started");
   if (!webhookSecret) {
     console.error("Stripe webhook secret is not set.");

@@ -1,10 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { createClient } from "@/app/_utils/supabase/server";
-import { ensureUserExists } from "../_lib/server_actions/user.actions";
-import { getUserSession } from "../_lib/auth";
+// Removed unused imports: revalidatePath, redirect, ensureUserExists, getUserSession
 
 // Return type for actions to work with client-side error handling
 type ActionResult = {
@@ -13,93 +10,46 @@ type ActionResult = {
 };
 
 export async function login(formData: FormData): Promise<ActionResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(); // Add await back
 
   // Validate inputs
   const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
 
-  if (!email || !password) {
-    return { error: "Email and password are required" };
-  }
-
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    // Return the error message for client-side handling
-    return { error: error.message };
-  }
-
-  // Ensure user exists in our database after successful Supabase auth
-  try {
-    const userSession = await getUserSession();
-    await ensureUserExists(userSession);
-  } catch (user_error) {
-    console.error("Failed to sync user with database:", user_error);
-    return { error: "Failed to sync user." };
-  }
-
-  // Read the redirect path from the form data
-  const redirectTo = formData.get("redirect_to") as string;
-  const redirectPath =
-    redirectTo && redirectTo.startsWith("/") ? redirectTo : "/chat";
-
-  revalidatePath(redirectPath, "layout"); // Revalidate the target path
-  redirect(redirectPath); // Redirect to the target path or default
-}
-
-export async function signup(formData: FormData): Promise<ActionResult> {
-  const supabase = await createClient();
-
-  // Validate inputs
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-
-  if (!email || !password) {
-    return { error: "Email and password are required" };
-  }
-
-  // Basic password validation
-  if (password.length < 6) {
-    return { error: "Password must be at least 6 characters long" };
-  }
-
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-  });
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  // For signup, let's show a success message
-  return {
-    success: true,
-    error: "Please check your email to confirm your account",
-  };
-}
-
-export async function requestPasswordReset(
-  formData: FormData
-): Promise<ActionResult> {
-  const supabase = await createClient();
-
-  const email = formData.get("email") as string;
   if (!email) {
     return { error: "Email is required" };
   }
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/reset-password/confirm`,
+  // Read the redirect path from the form data to potentially use in emailRedirectTo
+  const redirectTo = formData.get("redirect_to") as string;
+  const finalRedirectPath =
+    redirectTo && redirectTo.startsWith("/") ? redirectTo : "/chat"; // Default to /chat if not specified or invalid
+
+  // Construct the callback URL, passing the final destination as 'next'
+  const callbackUrl = new URL(
+    "/auth/callback",
+    process.env.NEXT_PUBLIC_BASE_URL
+  );
+  callbackUrl.searchParams.set("next", finalRedirectPath);
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      // shouldCreateUser: true, // Default is true, creates user if they don't exist
+      // Redirect the user to our /auth/callback route after they click the magic link
+      emailRedirectTo: callbackUrl.toString(),
+    },
   });
 
   if (error) {
-    return { error: error.message };
+    // Return the error message for client-side handling
+    console.error("Supabase signInWithOtp Error:", error);
+    return { error: `Failed to send magic link: ${error.message}` };
   }
 
-  return { success: true };
+  // No redirection here. The client-side will show a message.
+  // User creation/sync and final redirection happen after clicking the link via the /auth/callback route.
+  return { success: true }; // Indicate the link was sent (or attempted)
 }
+
+// signup function removed
+// requestPasswordReset function removed
