@@ -75,6 +75,11 @@ Standalone Next.js application with Server Actions
      - **GitHub OAuth Sign-In:**
        - Added `NEXT_PUBLIC_GITHUB_CLIENT_ID` environment variable.
        - Integrated GitHub sign-in button and `signInWithGithub` handler using `supabase.auth.signInWithOAuth` into `app/login/page.tsx`.
+     - **Passwordless Authentication (Magic Link):**
+       - Removed password fields/logic from login page (`app/login/page.tsx`).
+       - Updated login server action (`app/login/actions.ts`) to use `supabase.auth.signInWithOtp`.
+       - Removed signup and password reset server actions.
+       - Removed password reset page (`app/auth/reset-password/`).
 
 5. AI Integration
 
@@ -276,3 +281,4 @@ Standalone Next.js application with Server Actions
 24. **Privacy Policy Page**: Created the Privacy Policy page (`/privacy`) and linked it in the marketing site footer.
 25. **Google OAuth Sign-In (Pre-built Button)**: Integrated Google Sign-In via the GSI client library and Supabase `signInWithIdToken` on the login page.
 26. **GitHub OAuth Sign-In**: Integrated GitHub Sign-In via `supabase.auth.signInWithOAuth` on the login page and added the necessary environment variable.
+27. **Passwordless Authentication Refactor**: Replaced email/password login with Supabase Magic Links (`signInWithOtp`), removing password fields, signup, and password reset functionality.

@@ -303,7 +303,7 @@ export default function ChatWrapper({
           {/* Logo section with improved styling */}
           <div className="pl-5 pr-2 py-3 flex items-center">
             <img
-              src="/snowgoose-logo.png"
+              src="/snowgoose-logo-2025-black.png"
               alt="Snowgoose Logo"
               className="h-10 w-auto transition-all hover:opacity-90"
             />

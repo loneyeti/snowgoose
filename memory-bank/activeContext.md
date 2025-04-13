@@ -69,6 +69,11 @@
   - **Implemented GitHub OAuth Sign-In:**
     - Added `NEXT_PUBLIC_GITHUB_CLIENT_ID` to `.env.local`.
     - Modified `app/login/page.tsx` to include a GitHub sign-in button and the `signInWithGithub` handler using `supabase.auth.signInWithOAuth`.
+  - **Refactored authentication to use Supabase Magic Links:**
+    - Removed password input and related logic from `app/login/page.tsx`.
+    - Updated `app/login/actions.ts` to use `supabase.auth.signInWithOtp` instead of `signInWithPassword`.
+    - Removed the `signup` and `requestPasswordReset` server actions from `app/login/actions.ts`.
+    - Deleted the password reset page and related files (`app/auth/reset-password/`).
 
 ## Active Decisions
 
