@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "@/app/globals.css";
 import { Toaster } from "sonner";
+import { AxiomWebVitals } from "next-axiom";
 
 const montserrat = Montserrat({
   weight: "variable",
@@ -20,6 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <AxiomWebVitals />
       <body className={montserrat.className}>
         {children}
         <Toaster />

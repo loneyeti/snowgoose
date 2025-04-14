@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/app/_utils/supabase/client"; // Import client-side Supabase client
 import { User } from "@supabase/supabase-js"; // Import User type
+import { useLogger } from "next-axiom";
 
 export default function MarketingLayout({
   children,
@@ -15,6 +16,7 @@ export default function MarketingLayout({
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+  const log = useLogger();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -23,7 +25,7 @@ export default function MarketingLayout({
       if (!error) {
         setUser(data.user);
       } else {
-        console.error("Error fetching user:", error.message); // Log error for debugging
+        log.error(`Error fetching user ${error.message}`); // Log error for debugging
       }
       setLoading(false);
     };

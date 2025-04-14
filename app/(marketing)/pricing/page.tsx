@@ -13,26 +13,25 @@ export default function PricingPage() {
       description: "Explore the power of frontier AI affordably.",
       features: [
         "Access to leading models (GPT-4o, Claude 3.5, Gemini)",
-        "Includes [$X value] of API usage*", // TODO: Replace with actual value
+        "Includes [$5 value] of API usage*", // TODO: Replace with actual value
         "Standard Persona library",
         "All Output Formats",
       ],
       cta: "Get Started Basic",
-      priceId: "price_1RAgrgFvZDHSY7hV2WZpbk7a", // Placeholder Stripe Price ID
+      priceId: "price_1RDaeGCDpyWvUPu8lOlP4xMZ", // Placeholder Stripe Price ID
     },
     {
-      name: "Professional",
-      price: "$29", // Example price
+      name: "Premium",
+      price: "$20", // Example price
       frequency: "/ month",
-      description: "For professionals and creators needing more power.",
+      description: "Five times the AI access per month",
       features: [
         "Everything in Basic, plus:",
-        "Higher API usage allowance [$Y value]*", // TODO: Replace with actual value
-        "Create Custom Personas",
+        "5x more API usage allowance [$25 value]*", // TODO: Replace with actual value
         "Priority access to new features",
       ],
-      cta: "Choose Professional",
-      priceId: "price_1RAgrgFvZDHSY7hV2WZpbk7a", // Placeholder Stripe Price ID
+      cta: "Choose Premium",
+      priceId: "price_1RDeNkCDpyWvUPu8FPHKaPMF", // Placeholder Stripe Price ID
     },
     // Add Enterprise plan if needed
   ];
