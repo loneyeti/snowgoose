@@ -1,11 +1,11 @@
-import { Model, Persona } from "@prisma/client";
-import { OutputFormat } from "../../_lib/model";
+import { Persona } from "@prisma/client";
+import { OutputFormat, ModelWithVendorName } from "../../_lib/model"; // Import ModelWithVendorName
 import { MaterialSymbol } from "react-material-symbols";
 import React, { Fragment, useState, useEffect } from "react";
 import { Popover, Transition } from "@headlessui/react";
 
 interface OptionsBarProps {
-  models: Model[];
+  models: ModelWithVendorName[]; // Use ModelWithVendorName
   personas: Persona[];
   userPersonas?: Persona[];
   globalPersonas?: Persona[];
@@ -115,6 +115,28 @@ export default function OptionsBar({
       onOutputFormatChange(event);
     }
   }, [currentOutputFormat, onOutputFormatChange]);
+
+  // Group models by vendor using apiVendorName
+  const groupedModels: { [vendor: string]: ModelWithVendorName[] } = {};
+  models.forEach((model) => {
+    // Access vendor name directly from the prepared property
+    const vendorName = model.apiVendorName || "Unknown Vendor";
+    if (!groupedModels[vendorName]) {
+      groupedModels[vendorName] = [];
+    }
+    groupedModels[vendorName].push(model);
+  });
+
+  // Sort vendors alphabetically
+  const sortedVendors = Object.keys(groupedModels).sort((a, b) =>
+    a.localeCompare(b)
+  );
+
+  // Sort models within each vendor group alphabetically
+  sortedVendors.forEach((vendor) => {
+    groupedModels[vendor].sort((a, b) => a.name.localeCompare(b.name));
+  });
+
   return (
     <div className="py-3">
       <div className="flex items-center gap-3">
@@ -160,30 +182,40 @@ export default function OptionsBar({
                       Select Model
                     </div>
                     <div className="max-h-60 overflow-y-auto">
-                      {models.map((model: Model) => (
-                        <div
-                          key={model.id}
-                          className={`flex items-center px-3 py-2 rounded-md cursor-pointer hover:bg-slate-100 ${model.id === currentModel ? "bg-blue-50 text-blue-700" : "text-slate-700"}`}
-                          onClick={() => {
-                            setSelectedModel(model.id);
-                            const event = {
-                              target: {
-                                name: "model",
-                                value: model.id,
-                              },
-                            } as unknown as React.ChangeEvent;
-                            onModelChange(event);
-                          }}
-                        >
-                          <span className="text-sm">{model.name}</span>
-                          {model.id === selectedModel && (
-                            <MaterialSymbol
-                              icon="check"
-                              size={18}
-                              className="ml-auto text-blue-600"
-                            />
+                      {/* Render grouped and sorted models */}
+                      {sortedVendors.map((vendor) => (
+                        <Fragment key={vendor}>
+                          <div className="px-3 py-1 text-xs font-medium text-slate-400 mt-1">
+                            {vendor}
+                          </div>
+                          {groupedModels[vendor].map(
+                            (model: ModelWithVendorName) => (
+                              <div
+                                key={model.id}
+                                className={`flex items-center px-3 py-2 rounded-md cursor-pointer hover:bg-slate-100 ${model.id === selectedModel ? "bg-blue-50 text-blue-700" : "text-slate-700"}`}
+                                onClick={() => {
+                                  setSelectedModel(model.id);
+                                  const event = {
+                                    target: {
+                                      name: "model",
+                                      value: model.id,
+                                    },
+                                  } as unknown as React.ChangeEvent;
+                                  onModelChange(event);
+                                }}
+                              >
+                                <span className="text-sm">{model.name}</span>
+                                {model.id === selectedModel && (
+                                  <MaterialSymbol
+                                    icon="check"
+                                    size={18}
+                                    className="ml-auto text-blue-600"
+                                  />
+                                )}
+                              </div>
+                            )
                           )}
-                        </div>
+                        </Fragment>
                       ))}
                     </div>
                   </div>

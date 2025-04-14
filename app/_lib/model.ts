@@ -26,6 +26,11 @@ export type {
   ImageBlock,
 };
 
+// Define a new type that includes the vendor name
+export interface ModelWithVendorName extends Model {
+  apiVendorName?: string; // Add the optional vendor name property
+}
+
 export interface LocalChat extends Chat {
   modelId: number;
   mcpToolId?: number;
@@ -140,7 +145,7 @@ export type FormProps = {
 export type ChatWrapperProps = {
   userPersonas: Persona[];
   globalPersonas: Persona[];
-  models: Model[];
+  models: ModelWithVendorName[]; // Use the new type here
   outputFormats: OutputFormat[];
   mcpTools: MCPTool[];
   apiVendors: APIVendor[];

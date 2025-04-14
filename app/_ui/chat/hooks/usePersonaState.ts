@@ -22,6 +22,7 @@ export function usePersonaState({
   );
 
   const updateSelectedPersona = (personaId: string) => {
+    console.log(`[usePersonaState] Updating selected persona to: ${personaId}`); // Added for debugging
     setSelectedPersona(personaId);
   };
 
