@@ -376,9 +376,9 @@ export default function MarketingPage() {
             <p>
               * API usage allowance details are based on underlying model costs
               (e.g., tokens). We aim for transparency and provide generous
-              starting amounts. Don't worry, we will never charge more than your
-              monthly payment, and will give clear feedback on how many credits
-              you have remaining.
+              starting amounts. Don&apos;t worry, we will never charge more than
+              your monthly payment, and will give clear feedback on how many
+              credits you have remaining.
             </p>
           </div>
 
