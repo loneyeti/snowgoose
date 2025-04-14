@@ -38,7 +38,9 @@ export default function Conversation({
     );
   } else {
     return (
-      <div className="grid w-full h-full">
+      <div className="w-full">
+        {" "}
+        {/* Removed grid and h-full */}
         {/* Ensure the prose container respects parent width */}
         <div className="prose w-full lg:w-[65ch] mx-auto">
           {chats && chats.length > 0 ? (
@@ -104,7 +106,11 @@ export default function Conversation({
             <p>&nbsp;</p>
           )}
         </div>
-        {showSpinner === true && <Spinner spinnerSize={SpinnerSize.md} />}
+        {showSpinner === true && (
+          <div className="flex justify-center items-center w-full py-4">
+            <Spinner spinnerSize={SpinnerSize.md} />
+          </div>
+        )}
       </div>
     );
   }
