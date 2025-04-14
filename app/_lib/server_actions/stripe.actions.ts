@@ -98,6 +98,7 @@ export async function createCheckoutSessionAction(formData: FormData) {
           quantity: 1,
         },
       ],
+      allow_promotion_codes: true,
       // Pass the user's Supabase auth ID to link the session to the user
       client_reference_id: userAuthId,
       // Construct full URLs using the origin
