@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { headers } from "next/headers";
-// Removed: import { buffer } from "node:stream/consumers";
 import { userRepository } from "@/app/_lib/db/repositories/user.repository"; // Import the user repository
+import { Logger } from "next-axiom"; // Import Axiom Logger
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: NextRequest) {
+  const log = new Logger(); // Instantiate Axiom Logger
+
   // Initialize Stripe SDK inside the handler
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: "2025-03-31.basil", // Corrected API version
     typescript: true,
   });
 
-  console.log("Stripe webhook started");
+  log.info("Stripe webhook processing started");
   if (!webhookSecret) {
-    console.error("Stripe webhook secret is not set.");
+    log.error("Stripe webhook secret is not set.");
     return NextResponse.json(
       { error: "Webhook secret not configured." },
       { status: 500 }
@@ -24,7 +26,7 @@ export async function POST(req: NextRequest) {
 
   const signature = headers().get("stripe-signature");
   if (!signature) {
-    console.error("Missing stripe-signature header");
+    log.error("Missing stripe-signature header");
     return NextResponse.json(
       { error: "Missing stripe-signature header" },
       { status: 400 }
@@ -42,21 +44,23 @@ export async function POST(req: NextRequest) {
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
   } catch (err: any) {
     // Log the raw body on error for debugging (optional, consider security implications)
-    // console.error("Raw body received:", rawBody);
-    console.error(`Webhook signature verification failed: ${err.message}`);
+    // log.error("Raw body received:", rawBody);
+    log.error(`Webhook signature verification failed: ${err.message}`);
     return NextResponse.json(
       { error: `Webhook Error: ${err.message}` },
       { status: 400 }
     );
   }
 
-  console.log(`Received Stripe event: ${event.type}`);
+  log.info(`Received Stripe event: ${event.type}`, { eventType: event.type });
 
   // Handle the event
   switch (event.type) {
-    case "checkout.session.completed":
+    case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
-      console.log("Checkout session completed:", session.id);
+      log.info("Processing checkout.session.completed", {
+        sessionId: session.id,
+      });
 
       // Metadata or client_reference_id should contain our internal user ID
       const clientReferenceId = session.client_reference_id; // Recommended way
@@ -64,24 +68,27 @@ export async function POST(req: NextRequest) {
 
       const userAuthId = clientReferenceId || userId;
 
-      console.log(`Stripe returned local user id: ${userAuthId}`);
+      log.info("Extracted userAuthId from session", {
+        userAuthId,
+        sessionId: session.id,
+      });
 
       if (!userAuthId) {
-        console.error(
-          "Webhook Error: Missing user identifier (client_reference_id or metadata.userId) in checkout session:",
-          session.id
+        log.error(
+          "Webhook Error: Missing user identifier (client_reference_id or metadata.userId) in checkout session",
+          { sessionId: session.id }
         );
-        // Don't return error to Stripe, as it might retry unnecessarily. Log it and investigate.
+        // Permanent error: Cannot link session to user. Acknowledge receipt (200).
         return NextResponse.json({ received: true });
       }
 
       // Retrieve the subscription details
       if (!session.subscription) {
-        console.error(
-          "Webhook Error: Checkout session completed event is missing subscription ID:",
-          session.id
+        log.error(
+          "Webhook Error: Checkout session completed event is missing subscription ID",
+          { sessionId: session.id, subscriptionId: session.subscription }
         );
-        console.log(`Subscription: ${session.subscription}`);
+        // Permanent error: Cannot retrieve subscription. Acknowledge receipt (200).
         return NextResponse.json({ received: true }); // Acknowledge receipt
       }
 
@@ -90,16 +97,14 @@ export async function POST(req: NextRequest) {
           session.subscription as string
         );
 
-        console.log(
-          "Retrieved subscription:",
-          subscription.id,
-          "for userAuthId:",
-          userAuthId
-        );
+        log.info("Retrieved subscription details from Stripe", {
+          subscriptionId: subscription.id,
+          userAuthId: userAuthId,
+          sessionId: session.id,
+        });
 
         // --- Database Update Logic ---
-        // Use the repository method to update user subscription details
-        console.log("Updating user record");
+        log.info("Attempting to update user record in DB", { userAuthId });
         const updatedUser = await userRepository.updateSubscriptionByAuthId(
           userAuthId,
           {
@@ -119,33 +124,55 @@ export async function POST(req: NextRequest) {
             stripeSubscriptionStartDate: new Date(
               subscription.start_date * 1000 // start_date is still on the Subscription object
             ),
+            stripeSubscriptionStatus: subscription.status, // Pass the status
             // Reset usage counters if applicable based on your logic
-            periodUsage: 0, // Example if resetting usage
+            periodUsage: 0, // Example if resetting usage - Handled by repo now
           }
         );
-        console.log(
-          "Successfully updated user subscription details in DB via repository for userAuthId:",
-          userAuthId
-        );
+
+        // Check if user was found and updated
+        if (updatedUser) {
+          log.info(
+            "Successfully updated user subscription details in DB via repository",
+            { userAuthId: userAuthId, subscriptionId: subscription.id }
+          );
+        } else {
+          // This case should ideally be caught by the repo throwing an error if user not found by authId
+          log.error(
+            "Webhook Error: User not found by authId during checkout.session.completed update",
+            { userAuthId: userAuthId, sessionId: session.id }
+          );
+          // Permanent error: User doesn't exist. Acknowledge receipt (200).
+          return NextResponse.json({ received: true });
+        }
       } catch (error: any) {
-        // The repository's handleError will re-throw, so we catch it here.
-        console.error(
-          `Webhook Error: Failed to retrieve subscription or update user DB for session ${session.id}:`,
-          error
+        // Log the error from DB operation (potentially transient)
+        log.error(
+          `Webhook Error: Database operation failed during checkout.session.completed for session ${session.id}`,
+          {
+            error: error.message || error,
+            userAuthId: userAuthId,
+            sessionId: session.id,
+          }
         );
-        // Don't return 500 to Stripe unless it's a temporary issue you want retried.
-        // If it's a permanent issue (e.g., user not found), log and return 200.
+        // Return 500 to indicate a potential transient issue for retry.
         return NextResponse.json(
-          { error: "Failed to process subscription update." },
+          {
+            error:
+              "Failed to process subscription update due to database error.",
+          },
           { status: 500 }
-        ); // Or 200 depending on error
+        );
       }
       break;
+    } // End checkout.session.completed
 
     case "customer.subscription.updated": {
       // Fired on plan changes, status changes, renewals, etc.
       const subscription = event.data.object as Stripe.Subscription;
-      console.log("Subscription updated:", subscription.id);
+      log.info("Processing customer.subscription.updated", {
+        subscriptionId: subscription.id,
+      });
       const customerId =
         typeof subscription.customer === "string"
           ? subscription.customer
@@ -155,6 +182,7 @@ export async function POST(req: NextRequest) {
         const updatedUser = await userRepository.updateSubscriptionByCustomerId(
           customerId,
           {
+            // Pass necessary fields to the repository method
             stripeSubscriptionId: subscription.id,
             stripePriceId: subscription.items.data[0]?.price.id,
             // Access period dates from the first subscription item for consistency
@@ -164,38 +192,55 @@ export async function POST(req: NextRequest) {
             stripeCurrentPeriodEnd: new Date(
               subscription.items.data[0].current_period_end * 1000
             ),
+            stripeSubscriptionStatus: subscription.status, // Pass the status
+            stripeCancelAtPeriodEnd: subscription.cancel_at_period_end, // Pass the cancel flag
             // Optionally reset usage counters here based on status or plan change
           }
         );
 
+        // Check if user was found and updated (repo returns null if not found)
         if (updatedUser) {
-          console.log(
-            "Successfully updated user subscription details in DB via repository for customerId:",
-            customerId
+          log.info(
+            "Successfully updated user subscription details in DB via repository",
+            { customerId: customerId, subscriptionId: subscription.id }
           );
         } else {
-          console.warn(
-            `Webhook: User with customerId ${customerId} not found during subscription update.`
+          // User not found by customerId - this is a permanent issue for this event.
+          log.warn(
+            `Webhook: User with customerId ${customerId} not found during customer.subscription.updated.`,
+            { customerId: customerId, subscriptionId: subscription.id }
           );
+          // Acknowledge receipt (200) as retrying won't help.
+          return NextResponse.json({ received: true });
         }
       } catch (error: any) {
-        console.error(
-          `Webhook Error: Failed to update user DB for subscription ${subscription.id} (customer ${customerId}):`,
-          error
+        // Log the error from DB operation (potentially transient)
+        log.error(
+          `Webhook Error: Database operation failed during customer.subscription.updated for subscription ${subscription.id}`,
+          {
+            error: error.message || error,
+            customerId: customerId,
+            subscriptionId: subscription.id,
+          }
         );
-        // Return 500 only if it's a temporary issue you want retried
+        // Return 500 to indicate a potential transient issue for retry.
         return NextResponse.json(
-          { error: "Failed to process subscription update." },
+          {
+            error:
+              "Failed to process subscription update due to database error.",
+          },
           { status: 500 }
         );
       }
       break;
-    }
+    } // End customer.subscription.updated
 
     case "customer.subscription.deleted": {
       // Fired when a subscription is canceled (immediately or at period end)
       const subscription = event.data.object as Stripe.Subscription;
-      console.log("Subscription deleted:", subscription.id);
+      log.info("Processing customer.subscription.deleted", {
+        subscriptionId: subscription.id,
+      });
       const customerId =
         typeof subscription.customer === "string"
           ? subscription.customer
@@ -204,37 +249,53 @@ export async function POST(req: NextRequest) {
       try {
         const updatedUser =
           await userRepository.clearSubscriptionByCustomerId(customerId);
+
+        // Check if user was found and updated (repo returns null if not found)
         if (updatedUser) {
-          console.log(
-            "Successfully cleared user subscription details in DB via repository for customerId:",
-            customerId
+          log.info(
+            "Successfully cleared user subscription details in DB via repository",
+            { customerId: customerId, subscriptionId: subscription.id }
           );
         } else {
-          console.warn(
-            `Webhook: User with customerId ${customerId} not found during subscription deletion.`
+          // User not found by customerId - this is a permanent issue for this event.
+          log.warn(
+            `Webhook: User with customerId ${customerId} not found during customer.subscription.deleted.`,
+            { customerId: customerId, subscriptionId: subscription.id }
           );
+          // Acknowledge receipt (200) as retrying won't help.
+          return NextResponse.json({ received: true });
         }
       } catch (error: any) {
-        console.error(
-          `Webhook Error: Failed to clear user subscription in DB for subscription ${subscription.id} (customer ${customerId}):`,
-          error
+        // Log the error from DB operation (potentially transient)
+        log.error(
+          `Webhook Error: Database operation failed during customer.subscription.deleted for subscription ${subscription.id}`,
+          {
+            error: error.message || error,
+            customerId: customerId,
+            subscriptionId: subscription.id,
+          }
         );
-        // Return 500 only if it's a temporary issue you want retried
+        // Return 500 to indicate a potential transient issue for retry.
         return NextResponse.json(
-          { error: "Failed to process subscription deletion." },
+          {
+            error:
+              "Failed to process subscription deletion due to database error.",
+          },
           { status: 500 }
         );
       }
       break;
-    }
+    } // End customer.subscription.deleted
 
     case "invoice.payment_failed": {
       const invoice = event.data.object as Stripe.Invoice;
       // Use type assertion to bypass potential type mismatch for logging
       const subscriptionId = (invoice as any).subscription;
-      console.log(
-        `Invoice payment failed for invoice ${invoice.id}, customer ${invoice.customer}, subscription ${subscriptionId ?? "N/A"}`
-      );
+      log.warn(`Invoice payment failed`, {
+        invoiceId: invoice.id,
+        customerId: invoice.customer,
+        subscriptionId: subscriptionId ?? "N/A",
+      });
       // Optional: Notify user, update internal status, restrict access, etc.
       // For now, just logging.
       // You might want to check the subscription status via 'customer.subscription.updated'
@@ -243,18 +304,23 @@ export async function POST(req: NextRequest) {
     }
 
     // Optional: Handle successful payments if needed for specific actions beyond renewal updates
-    // case 'invoice.payment_succeeded': {
+    // case 'invoice.payment_succeeded': { // Example if needed
     //   const invoice = event.data.object as Stripe.Invoice;
-    //   console.log(`Invoice payment succeeded for invoice ${invoice.id}, customer ${invoice.customer}`);
+    //   log.info(`Invoice payment succeeded`, { invoiceId: invoice.id, customerId: invoice.customer });
     //   // Often handled by 'customer.subscription.updated' for renewals,
     //   // but useful if you need to trigger actions specifically on payment success.
     //   break;
     // }
 
     default:
-      console.log(`Webhook: Unhandled event type ${event.type}`);
+      log.info(`Webhook: Received unhandled event type`, {
+        eventType: event.type,
+      });
   }
 
-  // Return a 200 response to acknowledge receipt of the event
+  // Return a 200 response to acknowledge receipt of the event if processing reached this point
+  log.info("Stripe webhook processing finished successfully", {
+    eventType: event.type,
+  });
   return NextResponse.json({ received: true });
 }

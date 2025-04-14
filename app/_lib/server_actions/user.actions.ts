@@ -218,8 +218,15 @@ export async function getUserUsageLimitsAction(
 ): Promise<UserUsageLimits | null> {
   try {
     // Directly call the repository method on the server
-    const limits = await userRepository.getUsageLimit(userId);
-    return limits;
+    const limits = await userRepository.getUserPlanAndUsage(userId);
+    if (!limits.user || !limits.plan) {
+      throw new Error("No usage limits found");
+    }
+    const userUsageLimits: UserUsageLimits = {
+      planUsageLimit: limits.plan.usageLimit,
+      userPeriodUsage: limits.user.periodUsage || 0,
+    };
+    return userUsageLimits;
   } catch (error) {
     console.error(`Failed to get usage limits for user ${userId}:`, error);
     // Return null or throw a more specific error if needed upstream

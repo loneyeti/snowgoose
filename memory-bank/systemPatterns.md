@@ -214,12 +214,12 @@ flowchart TD
         WebhookRoute -- Verifies & Parses --> StripeAPI
         WebhookRoute -- Updates User --> UserRepo["user.repository.ts <br> (updateSubscriptionByAuthId, <br> updateSubscriptionByCustomerId, <br> clearSubscriptionByCustomerId)"]
         UserRepo -- Reads/Writes --> PrismaClient[Prisma Client]
-        PrismaClient --> UserTable[(Database: User Table <br> incl. periodUsage)]
+        PrismaClient --> UserTable[(Database: User Table <br> incl. periodUsage, <br> stripeSubscriptionStatus)] %% Added status %%
         PrismaClient --> PlanTable[(Database: SubscriptionPlan Table <br> incl. usageLimit)]
 
         %% Usage Check Logic (Conceptual - happens before billable actions) %%
         style UsageCheck fill:#f9f,stroke:#333,stroke-width:1px
-        BillableAction["Server Action <br> (e.g., Chat)"] -- Needs Limit Check --> UserRepo
+        BillableAction["Server Action <br> (e.g., Chat)"] -- Needs Limit & Status Check --> UserRepo["user.repository.ts <br> (checkUsageLimit)"] %% Updated check %%
         UserRepo -- Reads --> UserTable
         UserRepo -- Reads --> PlanTable
         BillableAction -- Proceeds or Blocks --> User

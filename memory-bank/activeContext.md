@@ -74,6 +74,15 @@
     - Updated `app/login/actions.ts` to use `supabase.auth.signInWithOtp` instead of `signInWithPassword`.
     - Removed the `signup` and `requestPasswordReset` server actions from `app/login/actions.ts`.
     - Deleted the password reset page and related files (`app/auth/reset-password/`).
+  - **Added explicit Stripe subscription status tracking:**
+    - Added `stripeSubscriptionStatus` field to `User` model (`prisma/schema.prisma`). Applied migration `20250414181014_add_subscription_status`.
+    - Updated `UserRepository` methods (`updateSubscriptionByAuthId`, `updateSubscriptionByCustomerId`, `clearSubscriptionByCustomerId`) to handle the status field.
+    - Modified `UserRepository.checkUsageLimit` to verify `stripeSubscriptionStatus` is 'active' for subscribed users before granting access.
+    - Updated Stripe webhook handler (`app/api/webhooks/stripe/route.ts`) to pass `subscription.status` to repository methods.
+  - **Handled Stripe `cancel_at_period_end` flag:**
+    - Added `stripeCancelAtPeriodEnd` field (Boolean) to `User` model (`prisma/schema.prisma`). Applied migration `add_stripe_cancel_at_period_end`.
+    - Updated `UserRepository.updateSubscriptionByCustomerId` to accept and store the `stripeCancelAtPeriodEnd` value.
+    - Modified Stripe webhook handler (`app/api/webhooks/stripe/route.ts`) to extract `cancel_at_period_end` from the `customer.subscription.updated` event and pass it to the repository method.
 
 ## Active Decisions
 
@@ -133,7 +142,7 @@
    - **Admin UI (`/settings/admin/subscriptions`) created for viewing active Stripe subscriptions and associated local `SubscriptionPlan` records (read-only).**
    - **Admin UI (`/settings/admin/subscription-limits`) created for managing local `SubscriptionPlan` records (name, usageLimit) associated with Stripe Prices.**
    - **Free Tier Implementation: A dedicated "Free Tier" record in the `SubscriptionPlan` table (with `stripePriceId = null` and `usageLimit = 0.5`) provides a usage allowance for non-subscribed users.**
-   - **Usage Limit Enforcement: The `UserRepository.checkUsageLimit` method centralizes the logic for checking a user's `periodUsage` against the `usageLimit` of their determined plan (paid or free). This check is performed in relevant server actions (e.g., `createChat`) before potentially billable operations.**
+   - **Usage Limit Enforcement: The `UserRepository.checkUsageLimit` method centralizes the logic for checking a user's `periodUsage` against the `usageLimit` of their determined plan (paid or free) AND verifies that the `stripeSubscriptionStatus` is 'active' if a subscription exists. This check is performed in relevant server actions (e.g., `createChat`) before potentially billable operations.**
 
 ## Next Steps
 
@@ -177,7 +186,7 @@
    - Troubleshooting guides
 6. **Subscription System Enhancement**
    - **Database schema updated for subscription tracking (DONE)**
-   - Add subscription status checks (using new DB fields)
+   - **Add subscription status checks (using new DB fields) (DONE)**
    - Create subscription management UI
    - Implement usage limits based on subscription tier
    - **Add webhook handling for subscription events (DONE for `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`)**
