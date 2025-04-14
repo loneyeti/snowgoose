@@ -27,30 +27,28 @@ const plans = [
     frequency: "/ month",
     description: "Explore the power of frontier AI affordably.",
     features: [
-      "Access to leading models (GPT-4o, Claude 3.5, Gemini & more)",
+      "Access to leading models (GPT-4o, Claude 3.7, Deepseek, Gemini & more)",
       "Generous starting API usage included*",
       "Standard Persona library",
       "All Output Formats (Markdown, JSON, HTML, CSV)",
-      "Community Support",
     ],
     cta: "Get Started Basic",
-    priceId: "price_1RAgrgFvZDHSY7hV2WZpbk7a", // Replace if necessary
+    priceId: "price_1RDaeGCDpyWvUPu8lOlP4xMZ", // Replace if necessary
     highlight: false,
   },
   {
-    name: "Professional",
-    price: "$29",
+    name: "Premium",
+    price: "$20",
     frequency: "/ month",
-    description: "For professionals and creators needing more power.",
+    description: "5x the usage for 4x the price",
     features: [
       "Everything in Basic, plus:",
-      "Significantly higher API usage allowance*",
-      "Create & Share Custom Personas",
+      "5x More API usage allowance*",
+      "Create Custom Personas",
       "Priority access to new features & models",
-      "Priority Support",
     ],
-    cta: "Choose Professional",
-    priceId: "price_1RAgrgFvZDHSY7hV2WZpbk7a", // Replace if necessary - MAKE SURE THIS IS THE CORRECT PRO PRICE ID
+    cta: "Choose Premium",
+    priceId: "price_1RDeNkCDpyWvUPu8FPHKaPMF", // Replace if necessary - MAKE SURE THIS IS THE CORRECT PRO PRICE ID
     highlight: true, // Example: Highlight the Pro plan
   },
 ];
@@ -78,13 +76,15 @@ export default function MarketingPage() {
 
         <div className="mx-auto max-w-4xl px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 animate-gradient-x">
-            All Frontier AI Models.
-            <br className="hidden sm:inline" /> One Simple Subscription.
+            Premium AI Models.
+            <br className="hidden sm:inline" /> One Simple Interface.
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-300 sm:text-xl max-w-3xl mx-auto">
-            Stop juggling complex APIs and unpredictable bills. Snowgoose
-            provides unified access to leading AI like GPT-4o, Claude 3.5, and
-            Gemini Pro with predictable pricing starting at just $5/month.
+            Snowgoose simplifies your AI experience with unified access to
+            industry-leading models like GPT-4o, Claude 3.7, and Gemini Pro—all
+            through one intuitive platform. Enjoy transparent, predictable
+            pricing starting at just $5/month, without juggling multiple APIs or
+            facing unexpected bills.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
             <Link
@@ -146,7 +146,7 @@ export default function MarketingPage() {
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Access OpenAI&apos;s GPT-4o, Anthropic&apos;s Claude 3.5,
+                    Access OpenAI&apos;s GPT-4o, Anthropic&apos;s Claude 3.7,
                     Google&apos;s Gemini, and more through one seamless
                     interface. No more API juggling.
                   </p>
@@ -309,8 +309,9 @@ export default function MarketingPage() {
             </p>
           </div>
           <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-gray-300">
-            Stop guessing your AI costs. Snowgoose offers simple, fixed monthly
-            pricing, including generous API usage to get you started.
+            Stop guessing your AI costs, and stop paying multiple monthly bills.
+            Snowgoose offers simple, fixed monthly pricing, including generous
+            API usage to get you started.
           </p>
 
           {/* Pricing Grid */}
@@ -375,8 +376,9 @@ export default function MarketingPage() {
             <p>
               * API usage allowance details are based on underlying model costs
               (e.g., tokens). We aim for transparency and provide generous
-              starting amounts. Usage beyond the included amount may incur
-              additional charges.
+              starting amounts. Don&apos;t worry, we will never charge more than
+              your monthly payment, and will give clear feedback on how many
+              credits you have remaining.
             </p>
           </div>
 
@@ -386,12 +388,16 @@ export default function MarketingPage() {
               Why Snowgoose Pricing Makes Sense
             </h3>
             <p className="text-lg text-gray-300 text-center max-w-3xl mx-auto">
-              Directly using models like GPT-4o or Claude 3.5 involves complex
-              token-based billing that can fluctuate wildly. A few large
-              requests could significantly impact your monthly bill. Snowgoose
-              provides a predictable cost structure, letting you leverage
-              powerful AI without budget surprises. Our $5 Basic plan offers
-              incredible value for accessing multiple frontier models.
+              Unlike paid access to ChatGPT or Anthropic which requires separate
+              subscriptions to OpenAI ($20/month) and Anthropic ($20/month),
+              Snowgoose gives you access to all elite AI models through a single
+              $5 subscription. No need to maintain multiple accounts or pay
+              separate platform fees. Your $5 also converts directly into API
+              credits, giving you the flexibility to use any model while
+              maintaining a straightforward, predictable billing experience.
+              Experience the full spectrum of cutting-edge AI without the
+              complexity and added costs of managing multiple provider
+              relationships.
             </p>
           </div>
         </div>

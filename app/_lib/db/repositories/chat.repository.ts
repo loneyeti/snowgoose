@@ -27,6 +27,7 @@ import { uploadBase64Image } from "../../storage"; // Import the new helper func
 import { getCurrentAPIUser } from "../../auth";
 import { SubscriptionPlanRepository } from "./subscription-plan.repository"; // Import SubscriptionPlan Repository class
 import { updateUserUsage } from "../../server_actions/user.actions";
+import { Logger } from "next-axiom";
 
 // Initialize AI vendors using the imported factory
 if (process.env.OPENAI_API_KEY) {
@@ -63,6 +64,7 @@ export class ChatRepository extends BaseRepository {
     content: ContentBlock[]
   ): Promise<ContentBlock[]> {
     const processedContent: ContentBlock[] = [];
+    const log = new Logger();
     for (const block of content) {
       if (block.type === "image_data") {
         // Type guard for ImageDataBlock
@@ -79,7 +81,7 @@ export class ChatRepository extends BaseRepository {
           processedContent.push(imageBlock);
           console.log(`Image uploaded successfully: ${imageUrl}`);
         } catch (error) {
-          console.error("Failed to upload image from ImageDataBlock:", error);
+          log.error(`Failed to upload image from ImageDataBlock: ${error}`);
           // Optionally push an error message block or skip the block
           // For now, skipping the block if upload fails
         }
@@ -133,17 +135,13 @@ export class ChatRepository extends BaseRepository {
     if (response.usage) {
       await updateUserUsage(user.id, response.usage.totalCost);
     }
-    /*
-    console.log(
-      `${user.email}: Period Usage now: ${user.periodUsage} == ${response.usage?.totalCost}`
-    );
-    */
     return response;
   }
 
   async sendChat(chat: LocalChat): Promise<ChatResponse | string> {
     // --- Usage Limit Check ---
     const user = await getCurrentAPIUser();
+    const log = new Logger();
     if (!user) {
       throw new Error("Unauthorized: User not found for usage check.");
     }
@@ -161,7 +159,7 @@ export class ChatRepository extends BaseRepository {
           // Compare usage (ensure periodUsage is not null, default to 0 if it is)
           const currentUsage = user.periodUsage ?? 0;
           if (currentUsage >= plan.usageLimit) {
-            console.warn(
+            log.warn(
               `User ${user.email} exceeded usage limit. Usage: ${currentUsage}, Limit: ${plan.usageLimit}`
             );
             // Throw a specific, unique error string
@@ -169,7 +167,7 @@ export class ChatRepository extends BaseRepository {
           }
         }
       } catch (error) {
-        console.error("Error checking usage limit:", error);
+        log.error(`Error checking usage limit: ${error}`);
         // Decide how to handle errors during the check (e.g., allow request, throw error)
         // For safety, let's throw an error to prevent potential over-usage if check fails
         throw new Error(
@@ -215,19 +213,18 @@ export class ChatRepository extends BaseRepository {
           if (formattedTools) {
             chat.mcpAvailableTools = formattedTools;
           } else {
-            console.warn(
+            log.warn(
               `Tool definition not found via mcpManager for tool: ${selectedMCPToolRecord.name}`
             );
           }
         } catch (error) {
-          console.error(
-            `Error fetching tool definitions for ${selectedMCPToolRecord.name}:`,
-            error
+          log.error(
+            `Error fetching tool definitions for ${selectedMCPToolRecord.name}: ${error}`
           );
           // Proceed without the tool if definition fetch fails
         }
       } else {
-        console.warn(`MCPTool record not found for ID: ${chat.mcpToolId}`);
+        log.warn(`MCPTool record not found for ID: ${chat.mcpToolId}`);
       }
     }
     // --- End MCP Tool Handling ---
@@ -266,7 +263,7 @@ export class ChatRepository extends BaseRepository {
         typeof toolUseBlock.id !== "string" ||
         toolUseBlock.id.trim() === ""
       ) {
-        console.error(
+        log.error(
           "ToolUseBlock received from AI is missing the required 'id' field for tool processing flow."
         );
         // Throw an error because the subsequent ToolResultBlock requires a valid string ID.
@@ -341,7 +338,7 @@ export class ChatRepository extends BaseRepository {
 
         return finalResponse;
       } catch (error) {
-        console.error("Error processing tool use:", error);
+        log.error(`Error processing tool use: ${error}`);
         // Optionally, return an error message or the initial response
         // For now, return the initial response (already processed for images)
         return initialResponse;

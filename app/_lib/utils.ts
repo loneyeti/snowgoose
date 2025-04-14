@@ -2,6 +2,7 @@ import { nanoid } from "nanoid";
 import { ZodError } from "zod";
 import { ChatResponse, TextBlock, ThinkingBlock, ContentBlock } from "./model";
 import { FormState } from "./form-schemas";
+import { Logger } from "next-axiom";
 
 export function generateUniqueFilename(filename: string) {
   // Extract the file extension from the input filename
@@ -87,8 +88,9 @@ export function handleServerError(
   error: unknown,
   genericMessage = "An unexpected error occurred. Please try again."
 ): FormState {
+  const log = new Logger();
   // Log the full error server-side for debugging
-  console.error("Server Action Error:", error);
+  log.error(`Server Action Error: ${error}`);
 
   // Handle Zod validation errors
   if (error instanceof ZodError) {

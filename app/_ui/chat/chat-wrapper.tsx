@@ -27,6 +27,7 @@ import { useOutputFormatState } from "./hooks/useOutputFormatState";
 import { useMCPToolState } from "./hooks/useMCPToolState";
 // Import the server action instead of the repository
 import { getUserUsageLimitsAction } from "@/app/_lib/server_actions/user.actions";
+import { useLogger } from "next-axiom";
 
 export default function ChatWrapper({
   userPersonas,
@@ -41,6 +42,7 @@ export default function ChatWrapper({
   usageLimit,
   isOverLimit: initialIsOverLimit = false, // Rename prop for clarity, default false
 }: ChatWrapperProps) {
+  const log = useLogger().with({ userId: user.id });
   const [showMoreOptions, setShowMoreOptions] = useState(false);
   const toggleMoreOptions = () => setShowMoreOptions(!showMoreOptions);
   const [response, setResponse] = useState<ChatResponse[]>([]);
@@ -111,18 +113,15 @@ export default function ChatWrapper({
     try {
       const fetchedUsageLimits = await getUserUsageLimitsAction(user.id);
       if (fetchedUsageLimits) {
-        console.log(
-          `Fetched Limits via Action - Plan: ${fetchedUsageLimits.planUsageLimit}, Usage: ${fetchedUsageLimits.userPeriodUsage}`
-        );
         setUserUsageLimits(fetchedUsageLimits);
       } else {
-        console.error(
+        log.error(
           "Failed to fetch usage limits via server action (returned null)."
         );
         setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 });
       }
     } catch (error) {
-      console.error("Error calling getUserUsageLimitsAction:", error);
+      log.error(`Error calling getUserUsageLimitsAction: ${error}`);
       setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 });
     }
   };
@@ -192,7 +191,7 @@ export default function ChatWrapper({
           setHistory(historyData);
         }
       } catch (error) {
-        console.error("Error fetching history", error);
+        log.error(`Error fetching history: ${error}`);
       }
     };
     fetchData();
@@ -211,13 +210,10 @@ export default function ChatWrapper({
         const fetchedUsageLimits = await getUserUsageLimitsAction(user.id);
 
         if (fetchedUsageLimits) {
-          console.log(
-            `Fetched Limits via Action - Plan: ${fetchedUsageLimits.planUsageLimit}, Usage: ${fetchedUsageLimits.userPeriodUsage}`
-          );
           setUserUsageLimits(fetchedUsageLimits);
         } else {
           // Handle the case where the action returns null (e.g., error on server)
-          console.error(
+          log.error(
             "Failed to fetch usage limits via server action (returned null)."
           );
           // Optionally set state to reflect error or default values
@@ -226,7 +222,7 @@ export default function ChatWrapper({
       } catch (error) {
         // Catch errors specifically from the action call itself (network issues, etc.)
         // Server-side errors within the action are handled there and return null here.
-        console.error("Error calling getUserUsageLimitsAction:", error);
+        log.error(`Error calling getUserUsageLimitsAction: ${error}`);
         setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 }); // Reset or set error state
       }
     };
