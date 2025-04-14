@@ -2,6 +2,15 @@ import { User } from "@prisma/client";
 import { BaseRepository } from "./base.repository";
 import { UserUsageLimits } from "../../model";
 
+// Define a type for the selected user fields used in usage checks
+type SelectedUserForUsageCheck = {
+  id: number;
+  periodUsage: number | null;
+  stripePriceId: string | null;
+  stripeSubscriptionId: string | null;
+  stripeSubscriptionStatus: string | null;
+};
+
 export class UserRepository extends BaseRepository {
   async findAll(): Promise<User[]> {
     try {
@@ -104,6 +113,7 @@ export class UserRepository extends BaseRepository {
       stripeCurrentPeriodBegin: Date;
       stripeCurrentPeriodEnd: Date;
       stripeSubscriptionStartDate: Date;
+      stripeSubscriptionStatus: string; // Add status
       // Optionally reset usage here if needed
       periodUsage?: number;
     }
@@ -118,6 +128,7 @@ export class UserRepository extends BaseRepository {
           stripeCurrentPeriodBegin: data.stripeCurrentPeriodBegin,
           stripeCurrentPeriodEnd: data.stripeCurrentPeriodEnd,
           stripeSubscriptionStartDate: data.stripeSubscriptionStartDate,
+          stripeSubscriptionStatus: data.stripeSubscriptionStatus, // Add status
           // periodUsage: data.periodUsage !== undefined ? data.periodUsage : undefined, // Example if resetting usage
         },
       });
@@ -137,6 +148,8 @@ export class UserRepository extends BaseRepository {
       stripePriceId?: string | null;
       stripeCurrentPeriodBegin: Date;
       stripeCurrentPeriodEnd: Date;
+      stripeSubscriptionStatus: string; // Add status
+      stripeCancelAtPeriodEnd?: boolean | null; // Add cancel flag
       // stripeSubscriptionStartDate is usually set only on creation,
       // but could be updated if needed, though less common.
       // periodUsage?: number; // Optionally reset usage here if needed - Handled internally now
@@ -184,6 +197,8 @@ export class UserRepository extends BaseRepository {
       stripePriceId: data.stripePriceId,
       stripeCurrentPeriodBegin: data.stripeCurrentPeriodBegin,
       stripeCurrentPeriodEnd: data.stripeCurrentPeriodEnd,
+      stripeSubscriptionStatus: data.stripeSubscriptionStatus, // Add status
+      stripeCancelAtPeriodEnd: data.stripeCancelAtPeriodEnd, // Add cancel flag
     };
 
     if (shouldResetUsage) {
@@ -227,6 +242,7 @@ export class UserRepository extends BaseRepository {
           stripePriceId: null,
           stripeCurrentPeriodBegin: null,
           stripeCurrentPeriodEnd: null,
+          stripeSubscriptionStatus: null, // Clear status as well
           // Keep stripeCustomerId? Maybe, depends on if you want to retain the link
           // Keep stripeSubscriptionStartDate? Maybe for historical reference
         },
@@ -236,43 +252,60 @@ export class UserRepository extends BaseRepository {
     }
   }
 
-  async getUsageLimit(userId: number): Promise<UserUsageLimits> {
-    let userUsageLimits: UserUsageLimits = {
-      userPeriodUsage: 0.0,
-      planUsageLimit: 0.0,
-    };
+  // Renamed from getUsageLimit to avoid confusion, as it now also checks status
+  async getUserPlanAndUsage(userId: number): Promise<{
+    user: SelectedUserForUsageCheck | null; // Use the selected type here (defined outside class)
+    plan: { usageLimit: number } | null;
+  }> {
     try {
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { periodUsage: true, stripePriceId: true }, // Select only needed fields
-      });
-
-      userUsageLimits.userPeriodUsage = user?.periodUsage ?? 0.0;
+      const user: SelectedUserForUsageCheck | null =
+        await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true, // Include id for logging/errors
+            periodUsage: true,
+            stripePriceId: true,
+            stripeSubscriptionId: true, // Need this to know if they *should* have a status
+            stripeSubscriptionStatus: true, // Fetch the status
+          },
+        });
 
       if (!user) {
-        throw new Error(`User with ID ${userId} not found.`);
+        // Return null user, let caller handle 'user not found'
+        return { user: null, plan: null };
       }
 
       // Determine which plan to fetch
       let subscriptionPlan;
-      if (user.stripePriceId) {
-        // User has a Stripe subscription, find their specific plan
-        subscriptionPlan = await this.prisma.subscriptionPlan.findUnique({
-          where: { stripePriceId: user.stripePriceId },
-        });
+      // Use stripeSubscriptionId as the primary indicator of a paid plan
+      if (user.stripeSubscriptionId) {
+        // User has a Stripe subscription, find their specific plan using stripePriceId
+        if (!user.stripePriceId) {
+          // This is an edge case: subscribed but no price ID? Log and treat as free tier.
+          console.warn(
+            `User ${userId} has stripeSubscriptionId but no stripePriceId. Falling back to Free Tier check.`
+          );
+          subscriptionPlan = await this.prisma.subscriptionPlan.findFirst({
+            where: { stripePriceId: null }, // Find the Free Tier plan
+          });
+        } else {
+          subscriptionPlan = await this.prisma.subscriptionPlan.findUnique({
+            where: { stripePriceId: user.stripePriceId },
+          });
+        }
+
         if (!subscriptionPlan) {
           // This case is problematic: user has a stripePriceId but no matching plan in DB.
-          // Could happen if Stripe plans change and DB isn't updated.
-          // Fallback to free tier or throw a specific error? For now, let's log and fallback to free.
           console.warn(
             `No SubscriptionPlan found for stripePriceId: ${user.stripePriceId}. Falling back to Free Tier check for user ${userId}.`
           );
+          // If the specific plan isn't found, fall back to free tier
           subscriptionPlan = await this.prisma.subscriptionPlan.findFirst({
             where: { stripePriceId: null }, // Find the Free Tier plan
           });
         }
       } else {
-        // User does not have a Stripe subscription, use the Free Tier plan
+        // User does not have a Stripe subscription ID, use the Free Tier plan
         subscriptionPlan = await this.prisma.subscriptionPlan.findFirst({
           where: { stripePriceId: null }, // Find the Free Tier plan
         });
@@ -281,42 +314,67 @@ export class UserRepository extends BaseRepository {
       // If even the free tier plan isn't found (shouldn't happen after seeding)
       if (!subscriptionPlan) {
         throw new Error(
-          "Default subscription plan (Free Tier) not found in the database."
+          `Default subscription plan (Free Tier) not found in the database for user ${userId}.`
         );
       }
-      userUsageLimits.planUsageLimit = subscriptionPlan.usageLimit;
+
+      return { user, plan: { usageLimit: subscriptionPlan.usageLimit } };
     } catch (error) {
       // Log the original error for better debugging
-      console.error("Original error in getUsageLimit:", error);
+      console.error("Original error in getUserPlanAndUsage:", error);
       // Re-throw a more informative error or the original one
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       throw new Error(
-        `Error getting user plan for user ${userId}: ${errorMessage}`
+        `Error getting user plan/usage for user ${userId}: ${errorMessage}`
       );
     }
-    return userUsageLimits;
   }
 
   /**
-   * Checks if a user is within their usage limit based on their subscription plan.
-   * Throws an error if the limit is exceeded.
+   * Checks if a user has an active subscription and is within their usage limit.
+   * Throws an error if access should be denied (inactive sub, limit exceeded, user not found).
    * @param userId The ID of the user to check.
    */
   async checkUsageLimit(userId: number): Promise<void> {
     try {
-      const userUsageLimits = await this.getUsageLimit(userId);
+      const { user, plan } = await this.getUserPlanAndUsage(userId);
 
-      if (userUsageLimits.userPeriodUsage >= userUsageLimits.planUsageLimit) {
-        // Consider creating a custom error class for better handling upstream
+      if (!user) {
+        throw new Error(`User with ID ${userId} not found.`);
+      }
+      if (!plan) {
+        // This should theoretically be caught by getUserPlanAndUsage, but double-check
         throw new Error(
-          `Usage limit exceeded. Current usage: ${userUsageLimits.userPeriodUsage}, Limit: ${userUsageLimits.planUsageLimit}`
+          `Could not determine subscription plan for user ${userId}.`
         );
       }
 
-      // If usage is within limits, the method completes successfully (returns void)
+      // --- Status Check ---
+      // If user has a subscription ID, they must have an 'active' status to proceed
+      if (
+        user.stripeSubscriptionId &&
+        user.stripeSubscriptionStatus !== "active"
+      ) {
+        throw new Error(
+          `Subscription is not active. Current status: ${user.stripeSubscriptionStatus}`
+        );
+      }
+      // --- End Status Check ---
+
+      // --- Usage Limit Check ---
+      const userPeriodUsage = user.periodUsage ?? 0.0;
+      if (userPeriodUsage >= plan.usageLimit) {
+        // Consider creating a custom error class for better handling upstream
+        throw new Error(
+          `Usage limit exceeded. Current usage: ${userPeriodUsage}, Limit: ${plan.usageLimit}`
+        );
+      }
+      // --- End Usage Limit Check ---
+
+      // If all checks pass, the method completes successfully (returns void)
       console.log(
-        `User ${userId} usage check passed. Usage: ${userUsageLimits.userPeriodUsage}, Limit: ${userUsageLimits.planUsageLimit}`
+        `User ${userId} access check passed. Status: ${user.stripeSubscriptionStatus ?? "N/A (Free Tier)"}, Usage: ${userPeriodUsage}, Limit: ${plan.usageLimit}`
       );
     } catch (error) {
       // Re-throw specific errors or handle generic ones

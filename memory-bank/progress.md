@@ -80,6 +80,11 @@ Standalone Next.js application with Server Actions
        - Updated login server action (`app/login/actions.ts`) to use `supabase.auth.signInWithOtp`.
        - Removed signup and password reset server actions.
        - Removed password reset page (`app/auth/reset-password/`).
+     - **Explicit Subscription Status Tracking:**
+       - Added `stripeSubscriptionStatus` field to `User` model.
+       - Updated `UserRepository` methods to handle status.
+       - Updated `UserRepository.checkUsageLimit` to enforce 'active' status.
+       - Updated Stripe webhook handler to pass status.
 
 5. AI Integration
 
@@ -147,9 +152,9 @@ Standalone Next.js application with Server Actions
    - **Stripe Customer Portal integration (DONE)**
    - **Foundation for usage limits and reset (DONE - `SubscriptionPlan` table added, `UserRepository` updated to reset usage on renewal)**
    - **Admin UI for viewing active customer subscriptions (DONE)**
-   - Need to implement subscription status checks (using new DB fields)
+   - **Implement subscription status checks (using new DB fields) (DONE)**
    - Need to add subscription management UI (beyond portal and admin page)
-   - Need to implement usage limit checks based on `SubscriptionPlan` table (DONE)
+   - **Implement usage limit checks based on `SubscriptionPlan` table and active status (DONE)**
    - Need to create UI/Action for managing `SubscriptionPlan` table records (DONE)
    - Need to populate `SubscriptionPlan` table (PENDING)
    - ~~Need to add webhook handling for other events (updates, cancellations)~~ (Now covered)
@@ -282,3 +287,5 @@ Standalone Next.js application with Server Actions
 25. **Google OAuth Sign-In (Pre-built Button)**: Integrated Google Sign-In via the GSI client library and Supabase `signInWithIdToken` on the login page.
 26. **GitHub OAuth Sign-In**: Integrated GitHub Sign-In via `supabase.auth.signInWithOAuth` on the login page and added the necessary environment variable.
 27. **Passwordless Authentication Refactor**: Replaced email/password login with Supabase Magic Links (`signInWithOtp`), removing password fields, signup, and password reset functionality.
+28. **Explicit Stripe Subscription Status Tracking**: Added status field to DB, updated repository methods and webhook handler, and integrated status check into usage limit logic.
+29. **Stripe `cancel_at_period_end` Handling**: Added `stripeCancelAtPeriodEnd` field to `User` model, updated repository, and modified webhook handler to store this flag from `customer.subscription.updated` events.

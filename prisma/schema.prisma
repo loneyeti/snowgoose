@@ -124,6 +124,8 @@ model User {
   stripeCurrentPeriodBegin    DateTime? @map("stripe_current_period_begin")
   stripeCurrentPeriodEnd      DateTime? @map("stripe_current_period_end")
   stripeSubscriptionStartDate DateTime? @map("stripe_subscription_start_date")
+  stripeSubscriptionStatus    String?   @map("stripe_subscription_status") // Tracks the current status from Stripe (e.g., active, past_due, canceled)
+  stripeCancelAtPeriodEnd     Boolean?  @map("stripe_cancel_at_period_end") // Tracks if cancellation is scheduled at period end
 
   // Relations (Existing)
   conversations ConversationHistory[]
