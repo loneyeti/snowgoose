@@ -27,7 +27,7 @@ const plans = [
     frequency: "/ month",
     description: "Explore the power of frontier AI affordably.",
     features: [
-      "Access to leading models (GPT-4o, Claude 3.7, Deepseek, Gemini & more)",
+      "Access to leading models (GPT-4.1, Claude 3.7, Deepseek, Gemini & more)",
       "Generous starting API usage included*",
       "Standard Persona library",
       "All Output Formats (Markdown, JSON, HTML, CSV)",
@@ -82,7 +82,7 @@ export default function MarketingClientPage() {
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-300 sm:text-xl max-w-3xl mx-auto">
             Snowgoose simplifies your AI experience with unified access to
-            leading frontier AI models like GPT-4o, Claude 3.7, and Gemini
+            leading frontier AI models like GPT-4.1, Claude 3.7, and Gemini
             Pro—all through one intuitive platform. Escape complex token billing
             with transparent, predictable pricing starting at just $5/month,
             without juggling multiple APIs or facing unexpected costs.
@@ -148,7 +148,7 @@ export default function MarketingClientPage() {
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Access OpenAI&apos;s GPT-4o, Anthropic&apos;s Claude 3.7,
+                    Access OpenAI&apos;s GPT-4.1, Anthropic&apos;s Claude 3.7,
                     Google&apos;s Gemini, and more through one seamless
                     interface. No more API juggling.
                   </p>
