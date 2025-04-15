@@ -315,13 +315,20 @@ export default function ChatWrapper({
         )}
         <input type="hidden" name="mcpTool" value={selectedMCPTool || "0"} />
         {/* Enhanced top bar */}
-        <div className="flex-none sm:flex items-center bg-gradient-to-r from-white to-slate-100 border-b shadow-sm">
+        {/* Dark mode: Adjust background, border */}
+        <div className="flex-none sm:flex items-center bg-gradient-to-r from-white to-slate-100 border-b border-slate-200 dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 shadow-sm">
           {/* Logo section with improved styling */}
           <div className="pl-5 pr-2 py-3 flex items-center">
+            {/* Dark mode: Swap logo */}
             <img
               src="/snowgoose-logo-2025-black.png"
               alt="Snowgoose Logo"
-              className="h-10 w-auto transition-all hover:opacity-90"
+              className="h-10 w-auto transition-all hover:opacity-90 dark:hidden" // Hide black logo in dark mode
+            />
+            <img
+              src="/snowgoose-logo-2025-white.png"
+              alt="Snowgoose Logo"
+              className="h-10 w-auto transition-all hover:opacity-90 hidden dark:block" // Show white logo in dark mode
             />
           </div>
 
@@ -354,7 +361,8 @@ export default function ChatWrapper({
                 <Popover className="relative ml-3">
                   {({ open }) => (
                     <>
-                      <Popover.Button className="py-1 px-2.5 rounded-full text-slate-600 hover:text-slate-900 hover:bg-slate-200 focus:outline-none transition-colors">
+                      {/* Dark mode: Adjust button colors */}
+                      <Popover.Button className="py-1 px-2.5 rounded-full text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700 focus:outline-none transition-colors">
                         <MaterialSymbol
                           className="mt-1.5"
                           icon="tune"
@@ -371,8 +379,10 @@ export default function ChatWrapper({
                         leaveFrom="opacity-100 translate-y-0"
                         leaveTo="opacity-0 translate-y-1"
                       >
-                        <Popover.Panel className="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        {/* Dark mode: Adjust panel colors */}
+                        <Popover.Panel className="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10 focus:outline-none">
                           <div className="p-4">
+                            {/* MoreOptions component likely needs internal dark mode styles */}
                             <MoreOptions
                               outputFormats={outputFormats}
                               mcpTools={mcpTools}
@@ -403,13 +413,14 @@ export default function ChatWrapper({
                 {/* Subtle Credits Display */}
                 {userUsageLimits != null && (
                   <div className="flex items-center mr-2 group relative">
-                    <div className="flex items-center px-2 py-0.5 rounded-full bg-slate-50 border border-slate-100 shadow-sm">
+                    {/* Dark mode: Adjust credits display colors */}
+                    <div className="flex items-center px-2 py-0.5 rounded-full bg-slate-50 border border-slate-100 dark:bg-slate-700 dark:border-slate-600 shadow-sm">
                       <MaterialSymbol
                         icon="electric_bolt"
                         size={14}
-                        className="text-slate-400 mr-1"
+                        className="text-slate-400 dark:text-slate-500 mr-1"
                       />
-                      <span className="text-xs font-medium text-slate-400">
+                      <span className="text-xs font-medium text-slate-400 dark:text-slate-300">
                         {user.hasUnlimitedCredits
                           ? "unlimited"
                           : Math.max(
@@ -423,8 +434,9 @@ export default function ChatWrapper({
                       </span>
                     </div>
                     {/* Tooltip on hover */}
+                    {/* Dark mode: Adjust tooltip colors */}
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 w-auto hidden group-hover:block">
-                      <div className="bg-slate-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+                      <div className="bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 text-xs rounded py-1 px-2 whitespace-nowrap">
                         Available credits
                       </div>
                     </div>
@@ -445,23 +457,27 @@ export default function ChatWrapper({
         {user &&
           user.stripePriceId === null &&
           user.hasUnlimitedCredits !== true && (
+            // Dark mode: Adjust banner colors
             <div
-              className="bg-blue-100 border-t border-b border-blue-200 text-blue-800 px-4 py-3 shadow-sm"
+              className="bg-blue-100 border-t border-b border-blue-200 text-blue-800 dark:bg-blue-900 dark:border-blue-700 dark:text-blue-100 px-4 py-3 shadow-sm"
               role="alert"
             >
               <div className="flex items-center justify-between max-w-3xl mx-auto">
                 <div className="flex items-center">
-                  <MaterialSymbol icon="campaign" size={24} className="mr-2" />
+                  <MaterialSymbol icon="campaign" size={24} className="mr-2" />{" "}
+                  {/* Icon color might need dark:text-blue-300 */}
                   <p className="font-medium">
-                    You&apos;re currently on the Free Demo Plan.
+                    You&apos;re currently on the Free Demo Plan.{" "}
+                    {/* Escaped apostrophe */}
                   </p>
                   <p className="text-sm ml-2 hidden sm:block">
                     Unlock more usage by subscribing!
                   </p>
                 </div>
+                {/* Dark mode: Adjust button colors */}
                 <a
                   href="/pricing"
-                  className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-1.5 px-4 rounded-md text-sm transition-colors duration-150"
+                  className="inline-block bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold py-1.5 px-4 rounded-md text-sm transition-colors duration-150"
                 >
                   Subscribe Now
                 </a>
@@ -475,7 +491,9 @@ export default function ChatWrapper({
 
         {/* Conversation area - fills space and scrolls internally */}
         <div className="flex-grow flex overflow-hidden">
-          <div className="max-w-3xl w-full mx-auto overflow-y-auto p-4 rounded-2xl bg-white m-3 shadow-[0_0_0_2px_rgba(255,255,255,0.95)] border flex-1">
+          {/* Dark mode: Adjust conversation container colors */}
+          <div className="max-w-3xl w-full mx-auto overflow-y-auto p-4 rounded-2xl bg-white dark:bg-slate-800 m-3 shadow-[0_0_0_2px_rgba(255,255,255,0.95)] dark:shadow-[0_0_0_2px_rgba(51,65,85,0.95)] border dark:border-slate-700 flex-1">
+            {/* Conversation component likely needs internal dark mode styles */}
             <Conversation
               chats={response}
               showSpinner={showConversationSpinner}
@@ -489,7 +507,8 @@ export default function ChatWrapper({
         <div className="max-w-3xl mx-auto w-full pb-2 px-2">
           {/* Usage Limit Warning - Use local state */}
           {localIsOverLimit && usageLimit && usageLimit > 0 && (
-            <div className="mb-2 p-2 text-center text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">
+            // Dark mode: Adjust warning colors
+            <div className="mb-2 p-2 text-center text-sm text-red-700 bg-red-100 border border-red-300 dark:bg-red-900 dark:border-red-700 dark:text-red-200 rounded-md">
               You have reached your usage limit ({periodUsage?.toFixed(2) ?? 0}{" "}
               / {usageLimit.toFixed(2)}) for the current billing period. Please
               upgrade your plan or wait for the next cycle to continue.
@@ -514,25 +533,31 @@ export default function ChatWrapper({
         leaveFrom="translate-x-0"
         leaveTo="translate-x-full"
       >
-        <div className="absolute right-0 top-0 bottom-0 w-1/2 border-l-2 bg-slate-100 p-6 overflow-y-auto z-20">
-          <div className="p-2 border-b-2">
+        {/* Dark mode: Adjust history panel colors */}
+        <div className="absolute right-0 top-0 bottom-0 w-1/2 border-l-2 border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 p-6 overflow-y-auto z-20">
+          <div className="p-2 border-b-2 border-slate-200 dark:border-slate-700">
             <button onClick={toggleHistory}>
               <MaterialSymbol
                 icon="arrow_right_alt"
                 size={24}
-                className="text-slate-500"
+                className="text-slate-500 dark:text-slate-400" // Adjust icon color
               />
             </button>
-            <h1 className="text-xl">History</h1>
+            {/* Dark mode: Adjust history title color */}
+            <h1 className="text-xl text-slate-900 dark:text-slate-100">
+              History
+            </h1>
           </div>
           {history.map((h: ConversationHistory) => {
             return (
+              // Dark mode: Adjust history item colors
               <div
                 key={h.id}
-                className="w-full p-3 text-sm bg-slate-50 mt-3 rounded-md"
+                className="w-full p-3 text-sm bg-slate-50 dark:bg-slate-700 mt-3 rounded-md"
               >
+                {/* Dark mode: Adjust history button text color */}
                 <button
-                  className="text-left"
+                  className="text-left text-slate-800 dark:text-slate-200"
                   onClick={(e) => {
                     e.preventDefault;
                     populateHistory(h);

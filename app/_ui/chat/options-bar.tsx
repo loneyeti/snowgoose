@@ -144,26 +144,31 @@ export default function OptionsBar({
         <Popover className="relative">
           {({ open }) => (
             <>
+              {/* Dark mode: Adjust Popover button styles */}
               <Popover.Button
-                className={`relative flex items-center gap-2 px-3 py-2 bg-white rounded-md border border-slate-200 shadow-sm hover:border-slate-300 transition-colors ${open ? "border-blue-300 ring-1 ring-blue-200" : ""} ${disableSelection ? "opacity-75 cursor-not-allowed" : "cursor-pointer"}`}
+                className={`relative flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-700 rounded-md border border-slate-200 dark:border-slate-600 shadow-sm hover:border-slate-300 dark:hover:border-slate-500 transition-colors ${open ? "border-blue-300 dark:border-blue-500 ring-1 ring-blue-200 dark:ring-blue-600" : ""} ${disableSelection ? "opacity-75 cursor-not-allowed" : "cursor-pointer"}`}
                 disabled={disableSelection}
               >
-                <div className="absolute -top-2 left-2 px-1 text-xs font-medium text-slate-500 bg-white group-hover:text-slate-700 transition-colors z-10">
+                {/* Dark mode: Adjust label styles */}
+                <div className="absolute -top-2 left-2 px-1 text-xs font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-700 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors z-10">
                   Model
                 </div>
+                {/* Dark mode: Adjust icon colors */}
                 <MaterialSymbol
                   icon="tune"
                   size={18}
-                  className="text-slate-600"
+                  className="text-slate-600 dark:text-slate-300"
                 />
-                <span className="text-sm font-medium whitespace-nowrap text-slate-700">
+                {/* Dark mode: Adjust text color */}
+                <span className="text-sm font-medium whitespace-nowrap text-slate-700 dark:text-slate-100">
                   {models.find((m) => m.id === selectedModel)?.name ||
                     (models.length > 0 ? models[0].name : "Default")}
                 </span>
+                {/* Dark mode: Adjust icon colors */}
                 <MaterialSymbol
                   icon={open ? "expand_less" : "expand_more"}
                   size={18}
-                  className="text-slate-500 ml-1"
+                  className="text-slate-500 dark:text-slate-400 ml-1"
                 />
               </Popover.Button>
 
@@ -176,23 +181,27 @@ export default function OptionsBar({
                 leaveFrom="opacity-100 translate-y-0"
                 leaveTo="opacity-0 translate-y-1"
               >
-                <Popover.Panel className="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                {/* Dark mode: Adjust Panel styles */}
+                <Popover.Panel className="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10 focus:outline-none">
                   <div className="p-2">
-                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 border-b mb-1">
+                    {/* Dark mode: Adjust header styles */}
+                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 mb-1">
                       Select Model
                     </div>
                     <div className="max-h-60 overflow-y-auto">
                       {/* Render grouped and sorted models */}
                       {sortedVendors.map((vendor) => (
                         <Fragment key={vendor}>
-                          <div className="px-3 py-1 text-xs font-medium text-slate-400 mt-1">
+                          {/* Dark mode: Adjust vendor group header */}
+                          <div className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500 mt-1">
                             {vendor}
                           </div>
                           {groupedModels[vendor].map(
                             (model: ModelWithVendorName) => (
+                              // Dark mode: Adjust item styles (hover, selected, text)
                               <div
                                 key={model.id}
-                                className={`flex items-center px-3 py-2 rounded-md cursor-pointer hover:bg-slate-100 ${model.id === selectedModel ? "bg-blue-50 text-blue-700" : "text-slate-700"}`}
+                                className={`flex items-center px-3 py-2 rounded-md cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 ${model.id === selectedModel ? "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200" : "text-slate-700 dark:text-slate-200"}`}
                                 onClick={() => {
                                   setSelectedModel(model.id);
                                   const event = {
@@ -206,10 +215,11 @@ export default function OptionsBar({
                               >
                                 <span className="text-sm">{model.name}</span>
                                 {model.id === selectedModel && (
+                                  // Dark mode: Adjust checkmark color
                                   <MaterialSymbol
                                     icon="check"
                                     size={18}
-                                    className="ml-auto text-blue-600"
+                                    className="ml-auto text-blue-600 dark:text-blue-400"
                                   />
                                 )}
                               </div>
@@ -229,19 +239,23 @@ export default function OptionsBar({
         <Popover className="relative">
           {({ open }) => (
             <>
+              {/* Dark mode: Adjust Popover button styles */}
               <Popover.Button
-                className={`relative flex items-center gap-2 px-3 py-2 bg-white rounded-md border border-slate-200 shadow-sm hover:border-slate-300 transition-colors ${open ? "border-blue-300 ring-1 ring-blue-200" : ""} ${disableSelection ? "opacity-75 cursor-not-allowed" : "cursor-pointer"}`}
+                className={`relative flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-700 rounded-md border border-slate-200 dark:border-slate-600 shadow-sm hover:border-slate-300 dark:hover:border-slate-500 transition-colors ${open ? "border-blue-300 dark:border-blue-500 ring-1 ring-blue-200 dark:ring-blue-600" : ""} ${disableSelection ? "opacity-75 cursor-not-allowed" : "cursor-pointer"}`}
                 disabled={disableSelection}
               >
-                <div className="absolute -top-2 left-2 px-1 text-xs font-medium text-slate-500 bg-white group-hover:text-slate-700 transition-colors z-10">
+                {/* Dark mode: Adjust label styles */}
+                <div className="absolute -top-2 left-2 px-1 text-xs font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-700 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors z-10">
                   Persona
                 </div>
+                {/* Dark mode: Adjust icon colors */}
                 <MaterialSymbol
                   icon="person"
                   size={18}
-                  className="text-slate-600"
+                  className="text-slate-600 dark:text-slate-300"
                 />
-                <span className="text-sm font-medium whitespace-nowrap text-slate-700">
+                {/* Dark mode: Adjust text color */}
+                <span className="text-sm font-medium whitespace-nowrap text-slate-700 dark:text-slate-100">
                   {[...allUserPersonas, ...allGlobalPersonas].find(
                     (p) => p.id === selectedPersona
                   )?.name ||
@@ -251,10 +265,11 @@ export default function OptionsBar({
                         ? allGlobalPersonas[0].name
                         : "Default")}
                 </span>
+                {/* Dark mode: Adjust icon colors */}
                 <MaterialSymbol
                   icon={open ? "expand_less" : "expand_more"}
                   size={18}
-                  className="text-slate-500 ml-1"
+                  className="text-slate-500 dark:text-slate-400 ml-1"
                 />
               </Popover.Button>
 
@@ -267,9 +282,11 @@ export default function OptionsBar({
                 leaveFrom="opacity-100 translate-y-0"
                 leaveTo="opacity-0 translate-y-1"
               >
-                <Popover.Panel className="absolute left-0 z-10 mt-2 w-64 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                {/* Dark mode: Adjust Panel styles */}
+                <Popover.Panel className="absolute left-0 z-10 mt-2 w-64 origin-top-left rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10 focus:outline-none">
                   <div className="p-2">
-                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 border-b mb-1">
+                    {/* Dark mode: Adjust header styles */}
+                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 mb-1">
                       Select Persona
                     </div>
 
@@ -277,13 +294,15 @@ export default function OptionsBar({
                       {/* User Personas Section */}
                       {allUserPersonas.length > 0 && (
                         <>
-                          <div className="px-3 py-1 text-xs font-medium text-slate-400 mt-1">
+                          {/* Dark mode: Adjust group header */}
+                          <div className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500 mt-1">
                             Your Personas
                           </div>
                           {allUserPersonas.map((persona: Persona) => (
+                            // Dark mode: Adjust item styles (hover, selected, text)
                             <div
                               key={persona.id}
-                              className={`flex items-center px-3 py-2 rounded-md cursor-pointer hover:bg-slate-100 ${persona.id === selectedPersona ? "bg-blue-50 text-blue-700" : "text-slate-700"}`}
+                              className={`flex items-center px-3 py-2 rounded-md cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 ${persona.id === selectedPersona ? "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200" : "text-slate-700 dark:text-slate-200"}`}
                               onClick={() => {
                                 setSelectedPersona(persona.id);
                                 const event = {
@@ -297,10 +316,11 @@ export default function OptionsBar({
                             >
                               <span className="text-sm">{persona.name}</span>
                               {persona.id === selectedPersona && (
+                                // Dark mode: Adjust checkmark color
                                 <MaterialSymbol
                                   icon="check"
                                   size={18}
-                                  className="ml-auto text-blue-600"
+                                  className="ml-auto text-blue-600 dark:text-blue-400"
                                 />
                               )}
                             </div>
@@ -311,13 +331,15 @@ export default function OptionsBar({
                       {/* Global Personas Section */}
                       {allGlobalPersonas.length > 0 && (
                         <>
-                          <div className="px-3 py-1 text-xs font-medium text-slate-400 mt-2">
+                          {/* Dark mode: Adjust group header */}
+                          <div className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500 mt-2">
                             Global Personas
                           </div>
                           {allGlobalPersonas.map((persona: Persona) => (
+                            // Dark mode: Adjust item styles (hover, selected, text)
                             <div
                               key={persona.id}
-                              className={`flex items-center px-3 py-2 rounded-md cursor-pointer hover:bg-slate-100 ${persona.id === selectedPersona ? "bg-blue-50 text-blue-700" : "text-slate-700"}`}
+                              className={`flex items-center px-3 py-2 rounded-md cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 ${persona.id === selectedPersona ? "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200" : "text-slate-700 dark:text-slate-200"}`}
                               onClick={() => {
                                 setSelectedPersona(persona.id);
                                 const event = {
@@ -331,10 +353,11 @@ export default function OptionsBar({
                             >
                               <span className="text-sm">{persona.name}</span>
                               {persona.id === selectedPersona && (
+                                // Dark mode: Adjust checkmark color
                                 <MaterialSymbol
                                   icon="check"
                                   size={18}
-                                  className="ml-auto text-blue-600"
+                                  className="ml-auto text-blue-600 dark:text-blue-400"
                                 />
                               )}
                             </div>
@@ -347,13 +370,15 @@ export default function OptionsBar({
                         allGlobalPersonas.length === 0 &&
                         personas.length > 0 && (
                           <>
-                            <div className="px-3 py-1 text-xs font-medium text-slate-400 mt-1">
+                            {/* Dark mode: Adjust group header */}
+                            <div className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500 mt-1">
                               Available Personas
                             </div>
                             {personas.map((persona: Persona) => (
+                              // Dark mode: Adjust item styles (hover, selected, text)
                               <div
                                 key={persona.id}
-                                className={`flex items-center px-3 py-2 rounded-md cursor-pointer hover:bg-slate-100 ${persona.id === selectedPersona ? "bg-blue-50 text-blue-700" : "text-slate-700"}`}
+                                className={`flex items-center px-3 py-2 rounded-md cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 ${persona.id === selectedPersona ? "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200" : "text-slate-700 dark:text-slate-200"}`}
                                 onClick={() => {
                                   setSelectedPersona(persona.id);
                                   const event = {
@@ -367,10 +392,11 @@ export default function OptionsBar({
                               >
                                 <span className="text-sm">{persona.name}</span>
                                 {persona.id === selectedPersona && (
+                                  // Dark mode: Adjust checkmark color
                                   <MaterialSymbol
                                     icon="check"
                                     size={18}
-                                    className="ml-auto text-blue-600"
+                                    className="ml-auto text-blue-600 dark:text-blue-400"
                                   />
                                 )}
                               </div>

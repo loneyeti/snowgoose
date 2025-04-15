@@ -6,6 +6,7 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  darkMode: "class", // Enable class-based dark mode
   safelist: ["h-8", "w-8", "h-4", "w-4", "h-6", "w-6"],
   theme: {
     extend: {

@@ -38,7 +38,8 @@ export default async function SettingsNav() {
         {/* Admin Settings Section */}
         {isUserAdmin && (
           <li className="pt-4">
-            <div className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            {/* Dark mode: Adjust admin section header text color */}
+            <div className="px-3 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Admin
             </div>
             <ul className="mt-1 space-y-1">

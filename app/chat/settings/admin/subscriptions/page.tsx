@@ -50,24 +50,27 @@ export default function AdminSubscriptionsPage() {
   }, [router]); // Add router to dependency array
 
   if (loading || isAdmin === null) {
-    return <p>Loading...</p>; // Use standard <p> tag
+    // Dark mode: Adjust loading text color
+    return <p className="text-slate-700 dark:text-slate-300">Loading...</p>;
   }
 
   if (!isAdmin) {
     // This might be brief due to redirect, but good practice
-    return <p>Access Denied.</p>; // Use standard <p> tag
+    // Dark mode: Adjust access denied text color
+    return <p className="text-slate-700 dark:text-slate-300">Access Denied.</p>;
   }
 
   if (error) {
-    return <p className="text-red-600">Error: {error}</p>; // Use standard <p> tag
+    // Error text color already handles light/dark contrast
+    return <p className="text-red-600">Error: {error}</p>;
   }
 
   return (
     <div className="space-y-6">
       {/* Use SettingsHeading for the main title */}
       <SettingsHeading>Active Customer Subscriptions</SettingsHeading>
-      {/* Use standard <p> tag for paragraph */}
-      <p>
+      {/* Dark mode: Adjust paragraph text color */}
+      <p className="text-slate-700 dark:text-slate-300">
         This page lists all currently active subscriptions from Stripe, along
         with any associated local plan settings found in the database.
       </p>

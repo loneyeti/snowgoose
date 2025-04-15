@@ -127,7 +127,8 @@ export default function TextInputArea({
   return (
     <div className="w-full">
       <div className="">
-        <div className="overflow-hidden [&:has(textarea:focus)]:border-token-border-xheavy [&:has(textarea:focus)]:shadow-[0_2px_6px_rgba(0,0,0,.05)] flex items-center w-full flex-grow relative border border-token-border-heavy bg-white rounded-2xl shadow-[0_0_0_2px_rgba(255,255,255,0.95)]">
+        {/* Dark mode: Adjust container background, border, shadow */}
+        <div className="overflow-hidden [&:has(textarea:focus)]:border-token-border-xheavy dark:[&:has(textarea:focus)]:border-blue-500 [&:has(textarea:focus)]:shadow-[0_2px_6px_rgba(0,0,0,.05)] dark:[&:has(textarea:focus)]:shadow-[0_2px_6px_rgba(0,0,0,0.15)] flex items-center w-full flex-grow relative border border-token-border-heavy dark:border-slate-600 bg-white dark:bg-slate-700 rounded-2xl shadow-[0_0_0_2px_rgba(255,255,255,0.95)] dark:shadow-[0_0_0_2px_rgba(51,65,85,0.95)]">
           {/* Hidden file input that gets triggered by the image button */}
           <input
             type="file"
@@ -146,17 +147,19 @@ export default function TextInputArea({
               type="button"
               onClick={handleImageButtonClick}
             >
+              {/* Dark mode: Adjust image button icon color */}
               <MaterialSymbol
-                className={`align-middle ${selectedFile ? "text-blue-500" : "text-slate-400 hover:text-slate-500"}`}
+                className={`align-middle ${selectedFile ? "text-blue-500 dark:text-blue-400" : "text-slate-400 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-400"}`}
                 icon="image"
                 size={32}
               />
             </button>
           )}
 
+          {/* Dark mode: Adjust textarea text color, placeholder color */}
           <textarea
             // Use text-base (16px) on small screens to prevent iOS zoom, text-sm on medium and up
-            className="m-0 w-full text-[16px] resize-none border-0 bg-transparent py-[10px] pr-10 focus:ring-0 focus-visible:ring-0 placeholder-black/50 pl-3 md:pl-4 text-base md:text-sm md:py-3.5 md:pr-12"
+            className="m-0 w-full text-[16px] resize-none border-0 bg-transparent dark:text-slate-100 py-[10px] pr-10 focus:ring-0 focus-visible:ring-0 placeholder-black/50 dark:placeholder-white/50 pl-3 md:pl-4 text-base md:text-sm md:py-3.5 md:pr-12"
             id="prompt"
             name="prompt"
             ref={textAreaRef}
@@ -175,8 +178,9 @@ export default function TextInputArea({
             type="button"
             onClick={handleButtonClick}
           >
+            {/* Dark mode: Adjust submit button colors (bg, text, hover, disabled) */}
             <MaterialSymbol
-              className="align-middle text-slate-50 bg-slate-400 hover:bg-slate-500 transition-colors rounded-full p-1"
+              className="align-middle text-slate-50 dark:text-slate-800 bg-slate-400 dark:bg-slate-500 hover:bg-slate-500 dark:hover:bg-slate-400 transition-colors rounded-full p-1 disabled:bg-slate-300 dark:disabled:bg-slate-600"
               icon="arrow_upward"
               size={24}
             />
@@ -185,12 +189,13 @@ export default function TextInputArea({
 
         {/* Display selected file name if a file is selected */}
         {selectedFile && (
-          <div className="text-xs text-slate-500 mt-1 ml-3 flex items-center">
+          // Dark mode: Adjust selected file text, icon, button colors
+          <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 ml-3 flex items-center">
             <MaterialSymbol icon="attach_file" size={14} className="mr-1" />
             {selectedFile.name}
             <button
               type="button"
-              className="ml-2 text-slate-400 hover:text-slate-600"
+              className="ml-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
               onClick={() => setSelectedFile(null)}
             >
               <MaterialSymbol icon="close" size={14} />

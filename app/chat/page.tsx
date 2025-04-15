@@ -83,7 +83,8 @@ export default async function Home() {
   // --- End Usage Limit Status Calculation ---
 
   return (
-    <main className="bg-slate-50">
+    // Remove bg-slate-50 to inherit background from body in layout
+    <main>
       <div className="">
         <ChatWrapper
           userPersonas={userPersonas}

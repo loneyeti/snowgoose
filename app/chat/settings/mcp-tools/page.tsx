@@ -31,7 +31,8 @@ export default async function MCPTools() {
           <MCPToolList />
         </Suspense>
         <Link href="/chat/settings/mcp-tools/new">
-          <div className="w-3/4 mx-auto p-6 my-3 rounded-md bg-slate-200 hover:bg-slate-300">
+          {/* Dark mode: Adjust "Add new" button styles */}
+          <div className="w-3/4 mx-auto p-6 my-3 rounded-md bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 transition-colors">
             <div>
               <p className="text-lg font-semibold">
                 <MaterialSymbol
