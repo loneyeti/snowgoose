@@ -1,5 +1,12 @@
 import React from "react";
 import PurchaseButton from "@/app/_ui/marketing/PurchaseButton"; // Import the new button
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Snowgoose Pricing | Affordable AI Access from $5/Month",
+  description:
+    "Simple, predictable pricing for unified access to frontier AI models like GPT-4.1 and Claude 3.7. Plans start at just $5/month. Compare Basic and Premium.",
+};
 
 export default function PricingPage() {
   // Placeholder data - replace with actual data fetched from Stripe/DB later
@@ -10,12 +17,12 @@ export default function PricingPage() {
       name: "Basic",
       price: "$5",
       frequency: "/ month",
-      description: "Explore the power of frontier AI affordably.",
+      description: "Explore the power of frontier AI models affordably.",
       features: [
-        "Access to leading models (GPT-4o, Claude 3.5, Gemini)",
-        "Includes [$5 value] of API usage*", // TODO: Replace with actual value
-        "Standard Persona library",
-        "All Output Formats",
+        "Access leading models (OpenAI GPT-4.1, Anthropic Claude 3.5, Google Gemini & more)",
+        "Includes generous API usage credits* ([$5 value])", // Clarified value
+        "Standard AI Persona library",
+        "All Output Formats (Markdown, JSON, HTML, CSV)", // Explicit formats
       ],
       cta: "Get Started Basic",
       priceId: "price_1RDaeGCDpyWvUPu8lOlP4xMZ", // Placeholder Stripe Price ID
@@ -24,11 +31,13 @@ export default function PricingPage() {
       name: "Premium",
       price: "$20", // Example price
       frequency: "/ month",
-      description: "Five times the AI access per month",
+      description:
+        "Maximize your AI power with significantly more usage and exclusive features.",
       features: [
         "Everything in Basic, plus:",
-        "5x more API usage allowance [$25 value]*", // TODO: Replace with actual value
-        "Priority access to new features",
+        "5x More API usage credits* ([$25 value])", // Clarified value
+        "Create & manage Custom AI Personas", // Added custom personas
+        "Priority access to new features & models", // Added models
       ],
       cta: "Choose Premium",
       priceId: "price_1RDeNkCDpyWvUPu8FPHKaPMF", // Placeholder Stripe Price ID
@@ -44,10 +53,9 @@ export default function PricingPage() {
         Predictable AI Power. Unbeatable Value.
       </h1>
       <p className="text-xl text-gray-300 text-center mb-12">
-        {" "}
-        {/* Lighter text */}
-        Stop guessing your AI costs. Snowgoose offers simple, fixed monthly
-        pricing.
+        Stop guessing your AI costs with complex token billing. Snowgoose offers
+        simple, fixed monthly pricing for unified access to frontier AI models,
+        starting at just $5.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -107,14 +115,14 @@ export default function PricingPage() {
           Why Snowgoose Pricing Makes Sense
         </h3>
         <p className="text-lg text-gray-300 text-center max-w-3xl mx-auto">
-          {" "}
-          {/* Lighter text */}
-          Directly using models like GPT-4o or Claude 3.5 involves complex
-          token-based billing that can fluctuate wildly. A few large requests
-          could significantly impact your monthly bill. Snowgoose provides a
-          predictable cost structure, letting you leverage powerful AI without
-          budget surprises. Our $5 Basic plan offers incredible value for
-          accessing multiple frontier models.
+          Accessing top models like GPT-4.1 and Claude 3.7 directly often
+          requires separate $20/month subscriptions to each provider (OpenAI,
+          Anthropic, etc.) plus managing complex, unpredictable token-based
+          billing. Snowgoose eliminates this hassle. Get unified access to
+          multiple frontier AI models through a single, affordable subscription
+          starting at just $5. Your plan includes generous API usage credits,
+          offering a straightforward, predictable billing experience without
+          budget surprises or the need to manage multiple accounts.
         </p>
         {/* Add more detailed comparison if possible */}
       </section>
