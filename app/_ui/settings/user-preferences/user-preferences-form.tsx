@@ -31,6 +31,7 @@ export default async function UserSettingsForm() {
               defaultValue={settings?.appearanceMode}
               className="block w-full mt-0 px-3 text-sm border-0 border-b-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-0 focus:border-gray-400 dark:focus:border-blue-500 rounded-md disabled:bg-slate-200 dark:disabled:bg-slate-700 disabled:text-slate-500 dark:disabled:text-slate-400"
             >
+              <option value="system">System</option>
               <option value="light">Light</option>
               <option value="dark">Dark</option>
             </select>
