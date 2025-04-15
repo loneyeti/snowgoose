@@ -64,7 +64,8 @@ function PlanEditForm({ plan }: { plan: SubscriptionLimitViewData }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Local Plan Name (e.g., Pro)"
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          // Dark mode: Adjust input styles (already partially done, ensure consistency)
+          className="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           aria-describedby={`name-error-${plan.stripePriceId}`}
         />
         {state?.errors?.name && (
@@ -90,7 +91,8 @@ function PlanEditForm({ plan }: { plan: SubscriptionLimitViewData }) {
           value={limit}
           onChange={(e) => setLimit(e.target.value)}
           placeholder="Limit"
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          // Dark mode: Adjust input styles (already partially done, ensure consistency)
+          className="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           aria-describedby={`limit-error-${plan.stripePriceId}`}
         />
         {state?.errors?.usageLimit && (
@@ -154,21 +156,25 @@ export default function AdminSubscriptionLimitsPage() {
   // For simplicity now, we rely on `revalidatePath`.
 
   if (loading || isAdmin === null) {
-    return <p>Loading...</p>;
+    // Dark mode: Adjust loading text color
+    return <p className="text-slate-700 dark:text-slate-300">Loading...</p>;
   }
 
   if (!isAdmin) {
-    return <p>Access Denied.</p>;
+    // Dark mode: Adjust access denied text color
+    return <p className="text-slate-700 dark:text-slate-300">Access Denied.</p>;
   }
 
   if (error) {
+    // Error text color already handles light/dark contrast
     return <p className="text-red-600">Error: {error}</p>;
   }
 
   return (
     <div className="space-y-6">
       <SettingsHeading>Subscription Plan Limits</SettingsHeading>
-      <p>
+      {/* Dark mode: Adjust paragraph text color */}
+      <p className="text-slate-700 dark:text-slate-300">
         Manage the local name and usage limits associated with each active
         Stripe Price ID. These limits are used internally by the application.
       </p>

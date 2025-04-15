@@ -34,10 +34,11 @@ export default function UtilityIconRow({
   const initial = user.username.charAt(0).toUpperCase() ?? "";
   return (
     <div className="flex flex-row justify-between align-middle">
+      {/* Dark mode: Adjust icon colors and hover states */}
       <Link
         href="/chat"
         onClick={resetChat}
-        className="basis-1/5 text-slate-600 text-center p-3 rounded-l-lg self-center place-self-center align-middle"
+        className="basis-1/5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 text-center p-3 rounded-l-lg self-center place-self-center align-middle transition-colors"
       >
         <MaterialSymbol className="align-middle" icon="add" size={24} />
       </Link>
@@ -46,7 +47,7 @@ export default function UtilityIconRow({
           e.preventDefault();
           saveChatAction();
         }}
-        className="basis-1/5 text-slate-600 text-center p-3 hover:bg-slate-100 rounded"
+        className="basis-1/5 text-slate-600 dark:text-slate-400 text-center p-3 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
       >
         <MaterialSymbol className="align-middle" icon="save" size={24} />
       </button>
@@ -55,21 +56,22 @@ export default function UtilityIconRow({
           e.preventDefault();
           toggleHistory();
         }}
-        className="basis-1/5 text-slate-600 text-center p-3"
+        className="basis-1/5 text-slate-600 dark:text-slate-400 text-center p-3 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
       >
         <MaterialSymbol className="align-middle" icon="history" size={24} />
       </button>
       <Link
         href="/chat/settings/profile"
-        className="basis-1/5 text-slate-600  text-center p-3 rounded-r-lg"
+        className="basis-1/5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 text-center p-3 rounded-r-lg transition-colors"
       >
         <MaterialSymbol className="align-middle" icon="settings" size={24} />
       </Link>
       <div className="basis-1/5 place-self-center">
         <div className="pl-2">
+          {/* Dark mode: Adjust profile icon colors */}
           <Link
             href="/chat/settings/profile"
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-600 text-white hover:bg-slate-700 transition-colors"
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-600 dark:bg-slate-500 text-white dark:text-slate-100 hover:bg-slate-700 dark:hover:bg-slate-400 transition-colors"
           >
             <span className="text-sm font-medium">{initial}</span>
           </Link>

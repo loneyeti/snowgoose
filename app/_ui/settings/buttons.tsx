@@ -51,11 +51,11 @@ export function DeleteButtonFactory({
     <div className="w-full flex justify-end">
       <form action={deleteWithId}>
         <button>
-          {" "}
+          {/* Dark mode: Adjust icon color and hover styles */}
           <MaterialSymbol
             icon="delete"
             size={18}
-            className="text-slate-500 hover:text-slate-700 transition-colors p-3 hover:rounded-md hover:bg-slate-100"
+            className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-3 hover:rounded-md hover:bg-slate-100 dark:hover:bg-slate-700"
           />
         </button>
       </form>
@@ -79,11 +79,11 @@ export function EditButtonFactory({
     <div className="w-full flex justify-end">
       <Link href={path}>
         <button>
-          {" "}
+          {/* Dark mode: Adjust icon color and hover styles */}
           <MaterialSymbol
             icon="edit"
             size={18}
-            className="text-slate-500 hover:text-slate-700 transition-colors p-3 hover:rounded-md hover:bg-slate-100"
+            className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-3 hover:rounded-md hover:bg-slate-100 dark:hover:bg-slate-700"
           />
         </button>
       </Link>

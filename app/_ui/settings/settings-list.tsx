@@ -1,6 +1,5 @@
 import { SettingsListSettings, SettingListProps } from "@/app/_lib/model";
 import { DeleteButtonFactory, EditButtonFactory } from "./buttons";
-import { ResourceType } from "./buttons";
 
 export default async function SettingsList({
   settings,
@@ -13,10 +12,12 @@ export default async function SettingsList({
         //console.log(`Persona: ${persona.ownerId}`);
         return (
           <div className="basis-1/2" key={setting.id}>
-            <div className="m-4 p-4 rounded-lg border-slate-100 border-2 hover:border-slate-200 relative group">
+            {/* Dark mode: Adjust card background, border, hover border */}
+            <div className="m-4 p-4 rounded-lg border-slate-100 dark:border-slate-700 border-2 hover:border-slate-200 dark:hover:border-slate-600 relative group bg-white dark:bg-slate-800">
               <div className="flex flex-row">
                 <div className="basis-4/5">
-                  <h2 className="text-lg font-semibold mb-3">
+                  {/* Dark mode: Adjust title text color */}
+                  <h2 className="text-lg font-semibold mb-3 text-slate-900 dark:text-slate-100">
                     {setting.title}
                   </h2>
                 </div>
@@ -37,7 +38,8 @@ export default async function SettingsList({
                   )}
                 </div>
               </div>
-              <p className="text-xs ml-6 text-slate-600 line-clamp-2">
+              {/* Dark mode: Adjust detail text color */}
+              <p className="text-xs ml-6 text-slate-600 dark:text-slate-400 line-clamp-2">
                 {setting.detail}
               </p>
             </div>

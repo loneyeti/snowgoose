@@ -19,7 +19,8 @@ export default function Conversation({
   if (chats.length === 0 && imageURL === "" && !showSpinner) {
     return (
       <div className="grid w-full h-full place-items-center">
-        <h1 className="text-3xl text-slate-500 font-thin">
+        {/* Dark mode: Adjust welcome text color */}
+        <h1 className="text-3xl text-slate-500 dark:text-slate-400 font-thin">
           Welcome to Snowgoose
         </h1>
       </div>
@@ -42,15 +43,17 @@ export default function Conversation({
         {" "}
         {/* Removed grid and h-full */}
         {/* Ensure the prose container respects parent width */}
-        <div className="prose w-full lg:w-[65ch] mx-auto">
+        {/* Dark mode: Apply prose-invert for markdown content */}
+        <div className="prose dark:prose-invert w-full lg:w-[65ch] mx-auto">
           {chats && chats.length > 0 ? (
             chats.map((chat: ChatResponse, index) => (
+              // Dark mode: Adjust user message background/text
               <div
                 key={index}
                 className={
                   chat.role === "user"
-                    ? "px-6 py-1 text-sm text-slate-600 italic bg-slate-100 rounded-lg"
-                    : "p-2"
+                    ? "px-6 py-1 text-sm text-slate-600 dark:text-slate-300 italic bg-slate-100 dark:bg-slate-700 rounded-lg"
+                    : "p-2" // Assistant messages styled by prose-invert
                 }
               >
                 {isContentBlockArray(chat.content) ? (
@@ -59,13 +62,16 @@ export default function Conversation({
                     switch (block.type) {
                       case "thinking":
                         return (
+                          // Dark mode: Adjust thinking block styles
                           <div
                             key={blockIndex}
-                            className="relative mt-4 mb-4 p-4 bg-slate-50 rounded-md border border-slate-200"
+                            className="relative mt-4 mb-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-md border border-slate-200 dark:border-slate-600"
                           >
-                            <span className="absolute -top-3 left-2 px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded-md border border-slate-200">
+                            {/* Dark mode: Adjust thinking label styles */}
+                            <span className="absolute -top-3 left-2 px-2 py-0.5 text-xs font-medium bg-slate-100 dark:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-md border border-slate-200 dark:border-slate-500">
                               Thinking
                             </span>
+                            {/* Markdown inside should be handled by prose-invert */}
                             <MarkdownComponent markdown={block.thinking} />
                           </div>
                         );

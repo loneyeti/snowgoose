@@ -1,5 +1,4 @@
 import { getApiVendors } from "@/app/_lib/server_actions/api_vendor.actions";
-//import { APIVendor } from "@/app/_lib/model";
 import { APIVendor } from "@prisma/client";
 
 export async function APIVendorSelect({
@@ -8,15 +7,12 @@ export async function APIVendorSelect({
   defaultValue?: string | number;
 }) {
   const apiVendors = await getApiVendors();
-  //console.log(apiVendors);
   let selectDefault = "";
   if (!defaultValue) {
-    //console.log("No default value");
     selectDefault = `${apiVendors[0].id}`;
   } else {
     selectDefault = `${defaultValue}`;
   }
-  //console.log(selectDefault);
 
   return (
     <select

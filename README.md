@@ -42,7 +42,6 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
 - Test coverage needs improvement
 - Performance optimization is ongoing (Server Actions, DB queries)
 - Logging and monitoring systems need enhancement/implementation
-- Forget password functionality is not working
 - Need to implement automatic deletion of saved Vision files
 - Potential bug when loading history conversations created before a model was marked as 'thinking'
 
@@ -62,7 +61,7 @@ Snowgoose is a powerful Next.js 14 application that provides a unified interface
 1.  **Clone the repository:**
 
     ```bash
-    git clone https://github.com/yourusername/snowgoose.git # Replace with actual repo URL if different
+    git clone https://github.com/yourusername/snowgoose.git # Replace with actual repo URL
     cd snowgoose
     ```
 
