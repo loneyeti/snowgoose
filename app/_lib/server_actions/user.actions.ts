@@ -145,7 +145,7 @@ export async function ensureUserExists(
         try {
           await userSettingsRepository.create({
             userId: user.id,
-            appearanceMode: "light", // Default to light mode
+            appearanceMode: "system", // Default to light mode
           });
         } catch (settingsError) {
           console.error("Failed to create user settings:", settingsError);
