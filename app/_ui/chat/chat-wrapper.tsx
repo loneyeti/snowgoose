@@ -390,14 +390,16 @@ export default function ChatWrapper({
                         className="text-slate-400 mr-1"
                       />
                       <span className="text-xs font-medium text-slate-400">
-                        {Math.max(
-                          0,
-                          Math.round(
-                            (userUsageLimits.planUsageLimit -
-                              userUsageLimits.userPeriodUsage) *
-                              100
-                          )
-                        )}
+                        {user.hasUnlimitedCredits
+                          ? "unlimited"
+                          : Math.max(
+                              0,
+                              Math.round(
+                                (userUsageLimits.planUsageLimit -
+                                  userUsageLimits.userPeriodUsage) *
+                                  100
+                              )
+                            )}
                       </span>
                     </div>
                     {/* Tooltip on hover */}
@@ -420,34 +422,36 @@ export default function ChatWrapper({
         </div>
 
         {/* Free Tier Upgrade Banner */}
-        {user && user.stripePriceId === null && (
-          <div
-            className="bg-blue-100 border-t border-b border-blue-200 text-blue-800 px-4 py-3 shadow-sm"
-            role="alert"
-          >
-            <div className="flex items-center justify-between max-w-3xl mx-auto">
-              <div className="flex items-center">
-                <MaterialSymbol icon="campaign" size={24} className="mr-2" />
-                <p className="font-medium">
-                  You&apos;re currently on the Free Demo Plan.
-                </p>
-                <p className="text-sm ml-2 hidden sm:block">
-                  Unlock more usage by subscribing!
-                </p>
+        {user &&
+          user.stripePriceId === null &&
+          user.hasUnlimitedCredits !== true && (
+            <div
+              className="bg-blue-100 border-t border-b border-blue-200 text-blue-800 px-4 py-3 shadow-sm"
+              role="alert"
+            >
+              <div className="flex items-center justify-between max-w-3xl mx-auto">
+                <div className="flex items-center">
+                  <MaterialSymbol icon="campaign" size={24} className="mr-2" />
+                  <p className="font-medium">
+                    You&apos;re currently on the Free Demo Plan.
+                  </p>
+                  <p className="text-sm ml-2 hidden sm:block">
+                    Unlock more usage by subscribing!
+                  </p>
+                </div>
+                <a
+                  href="/pricing"
+                  className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-1.5 px-4 rounded-md text-sm transition-colors duration-150"
+                >
+                  Subscribe Now
+                </a>
               </div>
-              <a
-                href="/pricing"
-                className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-1.5 px-4 rounded-md text-sm transition-colors duration-150"
-              >
-                Subscribe Now
-              </a>
+              <p className="text-sm mt-1 text-center sm:hidden">
+                Unlock unlimited features by subscribing!
+              </p>{" "}
+              {/* Mobile text */}
             </div>
-            <p className="text-sm mt-1 text-center sm:hidden">
-              Unlock unlimited features by subscribing!
-            </p>{" "}
-            {/* Mobile text */}
-          </div>
-        )}
+          )}
 
         {/* Conversation area - fills space and scrolls internally */}
         <div className="flex-grow flex overflow-hidden">

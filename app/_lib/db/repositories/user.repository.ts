@@ -9,6 +9,7 @@ type SelectedUserForUsageCheck = {
   stripePriceId: string | null;
   stripeSubscriptionId: string | null;
   stripeSubscriptionStatus: string | null;
+  hasUnlimitedCredits: boolean | null; // <-- Add this
 };
 
 export class UserRepository extends BaseRepository {
@@ -267,6 +268,7 @@ export class UserRepository extends BaseRepository {
             stripePriceId: true,
             stripeSubscriptionId: true, // Need this to know if they *should* have a status
             stripeSubscriptionStatus: true, // Fetch the status
+            hasUnlimitedCredits: true, // <-- Add this
           },
         });
 
@@ -343,6 +345,15 @@ export class UserRepository extends BaseRepository {
       if (!user) {
         throw new Error(`User with ID ${userId} not found.`);
       }
+
+      // ---> NEW CHECK <---
+      // If user has unlimited credits, bypass all other checks
+      if (user.hasUnlimitedCredits === true) {
+        console.log(`User ${userId} has unlimited credits. Access granted.`);
+        return; // Grant access immediately
+      }
+      // ---> END NEW CHECK <---
+
       if (!plan) {
         // This should theoretically be caught by getUserPlanAndUsage, but double-check
         throw new Error(
