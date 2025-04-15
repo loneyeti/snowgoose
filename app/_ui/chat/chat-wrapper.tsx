@@ -121,7 +121,9 @@ export default function ChatWrapper({
         setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 });
       }
     } catch (error) {
-      log.error(`Error calling getUserUsageLimitsAction: ${error}`);
+      log.error("Error calling getUserUsageLimitsAction", {
+        error: String(error),
+      }); // Use structured logging
       setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 });
     }
   };
@@ -144,6 +146,7 @@ export default function ChatWrapper({
   };
 
   const resetChat = () => {
+    log.info("Chat reset");
     setResponse([]);
   };
 
@@ -159,19 +162,29 @@ export default function ChatWrapper({
     responseHistory: response,
     updateMessage,
     updateShowSpinner,
-    // Define the callback function
+    // Define the callback function and add logging
     onUsageLimitError: () => {
+      log.warn("Usage limit reached for user.");
       setLocalIsOverLimit(true); // Set local state immediately on error
     },
   });
 
   // Custom form submission handler to avoid double submissions
   const handleFormSubmit = async (formData: FormData) => {
+    log.info("Chat form submitted", {
+      model: formData.get("model"),
+      persona: formData.get("persona"),
+      outputFormat: formData.get("outputFormat"),
+      mcpTool: formData.get("mcpTool"),
+      maxTokens: formData.get("maxTokens"),
+      budgetTokens: formData.get("budgetTokens"),
+    });
     // Prevent double submission by handling it only here
     await submitForm(formData);
   };
 
   function populateHistory(history: ConversationHistory) {
+    log.info("Populating chat from history", { historyId: history.id });
     const chat: ChatUserSession = JSON.parse(history.conversation);
     updateMessage(chat);
     setCurrentChat(chat);
@@ -179,6 +192,7 @@ export default function ChatWrapper({
   }
 
   function toggleHistory() {
+    log.info("Toggling history panel");
     setIsHistoryShowing((isHistoryShowing) => !isHistoryShowing);
   }
 
@@ -191,7 +205,7 @@ export default function ChatWrapper({
           setHistory(historyData);
         }
       } catch (error) {
-        log.error(`Error fetching history: ${error}`);
+        log.error("Error fetching history", { error: String(error) });
       }
     };
     fetchData();
@@ -222,7 +236,9 @@ export default function ChatWrapper({
       } catch (error) {
         // Catch errors specifically from the action call itself (network issues, etc.)
         // Server-side errors within the action are handled there and return null here.
-        log.error(`Error calling getUserUsageLimitsAction: ${error}`);
+        log.error("Error calling getUserUsageLimitsAction", {
+          error: String(error),
+        });
         setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 }); // Reset or set error state
       }
     };
@@ -242,21 +258,25 @@ export default function ChatWrapper({
 
   const modelChange = (event: React.ChangeEvent) => {
     const target = event.target as HTMLSelectElement;
+    log.info("Model changed", { newModelId: target.value });
     updateSelectedModel(target.value);
   };
 
   const personaChange = (event: React.ChangeEvent) => {
     const target = event.target as HTMLSelectElement;
+    log.info("Persona changed", { newPersonaId: target.value });
     updateSelectedPersona(target.value);
   };
 
   const outputFormatChange = (event: React.ChangeEvent) => {
     const target = event.target as HTMLSelectElement;
+    log.info("Output format changed", { newOutputFormatId: target.value });
     updateSelectedOutputFormat(target.value);
   };
 
   const mcpToolChange = (event: React.ChangeEvent) => {
     const target = event.target as HTMLSelectElement;
+    log.info("MCP tool changed", { newMCPToolId: target.value });
     updateSelectedMCPTool(target.value);
   };
 

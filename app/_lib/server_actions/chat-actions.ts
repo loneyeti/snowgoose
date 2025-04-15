@@ -13,11 +13,15 @@ import { FormSchema } from "../form-schemas";
 import { getOutputFormat } from "./output-format.actions";
 import { getCurrentAPIUser } from "../auth"; // Import correct auth helper
 import { userRepository } from "../db/repositories/user.repository"; // Import user repository
+import { Logger } from "next-axiom"; // Import Axiom Logger
 
 export async function createChat(
   formData: FormData,
   responseHistory: ChatResponse[]
 ) {
+  let log = new Logger({ source: "chat-action" }).with({ userId: "" }); // Use let instead of const
+  log.info("createChat action started");
+
   const {
     model,
     personaId,
@@ -35,6 +39,8 @@ export async function createChat(
     budgetTokens: formData.get("budgetTokens") || null,
     mcpTool: formData.get("mcpTool") || 0,
   });
+  log.info("Parsed form data", { model, personaId, outputFormatId, mcpTool });
+
   const userChatResponse: ChatResponse = {
     role: "user",
     content: [{ type: "text", text: prompt }],
@@ -47,8 +53,11 @@ export async function createChat(
     try {
       renderTypeName = await getRenderTypeName(outputFormatId);
     } catch (error) {
-      // Log details, but don't throw, allow chat to proceed without render type if needed
-      console.error("Error fetching output format render type name:", error);
+      log.error("Error fetching output format render type name", {
+        outputFormatId,
+        error: String(error),
+      });
+      // Allow chat to proceed without render type if needed
       renderTypeName = "markdown"; // Default or fallback render type
     }
   }
@@ -65,8 +74,8 @@ export async function createChat(
       const persona = await getPersona(personaId);
       systemPrompt = persona?.prompt;
     } catch (error) {
-      // Log details, but don't throw, allow chat to proceed without persona prompt
-      console.error("Error fetching persona:", error);
+      log.error("Error fetching persona", { personaId, error: String(error) });
+      // Allow chat to proceed without persona prompt
       // personaPrompt remains undefined, which is handled later
     }
   }
@@ -76,8 +85,11 @@ export async function createChat(
       const outputFormat = await getOutputFormat(outputFormatId);
       outputFormatPrompt = outputFormat?.prompt;
     } catch (error) {
-      // Log details, but don't throw, allow chat to proceed without output format prompt
-      console.error("Error fetching Output Format:", error);
+      log.error("Error fetching Output Format", {
+        outputFormatId,
+        error: String(error),
+      });
+      // Allow chat to proceed without output format prompt
       // outputFormatPrompt remains undefined
     }
     // Combine prompts safely, handling undefined cases
@@ -109,12 +121,16 @@ export async function createChat(
         file
       );
       if (uploadURL) {
+        log.info("File uploaded successfully", { uploadURL });
         chat.visionUrl = uploadURL;
       }
     } catch (error) {
-      // Log details, but don't throw, allow chat to proceed without the image if upload fails
-      console.error("Problem uploading file:", error);
-      // chat.imageData remains null
+      log.error("Problem uploading file", {
+        fileName: file.name,
+        error: String(error),
+      });
+      // Allow chat to proceed without the image if upload fails
+      // chat.visionUrl remains null
     }
   }
 
@@ -124,20 +140,26 @@ export async function createChat(
     const user = await getCurrentAPIUser();
     if (!user) {
       // getCurrentAPIUser returns null if not authenticated or user doesn't exist in DB yet
+      log.error("Authentication required or user not found in DB.");
       throw new Error("Authentication required or user not found.");
     }
+    // Add user ID to logger context
+    log = log.with({ userId: user.id });
+
     // Check usage limit before proceeding using the user's DB ID
     await userRepository.checkUsageLimit(user.id);
+    log.info("Usage limit check passed.");
   } catch (error) {
-    console.error("Usage limit check failed:", error);
     // Re-throw the specific error message if it's the usage limit one
     if (
       error instanceof Error &&
       error.message.startsWith("Usage limit exceeded")
     ) {
+      log.warn("Usage limit exceeded for user.");
       throw error; // Let the calling code handle this specific error
     }
-    // Otherwise, throw a generic error
+    // Otherwise, log and throw a generic error
+    log.error("Failed to verify user usage limits", { error: String(error) });
     throw new Error("Failed to verify user usage limits.");
   }
   // --- End Usage Limit Check ---
@@ -145,12 +167,16 @@ export async function createChat(
   // Send chat request
   try {
     // The repository now handles fetching the tool based on chat.mcpToolId
-
-    // Call sendChat with only the chat object
-    console.log(
-      `---CHAT ACTION OBJECT BEGIN---${JSON.stringify(chat)}---CHAT ACTION OBJECT END---`
-    );
+    log.info("Sending chat to repository", {
+      model: chat.model,
+      modelId: chat.modelId,
+      personaId: chat.personaId,
+      outputFormatId: chat.outputFormatId,
+      mcpToolId: chat.mcpToolId,
+      hasVisionUrl: !!chat.visionUrl,
+    });
     const result = await chatRepository.sendChat(chat);
+    log.info("Received response from repository");
 
     // Handle DALL-E response or standard chat response
     if (chat.model !== "dall-e-3") {
@@ -160,14 +186,18 @@ export async function createChat(
       if (chat.visionUrl) {
         chat.imageURL = null;
       }
+      log.info("Handled standard chat response"); // Moved log here
     } else {
       chat.imageURL = result as string;
+      log.info("Handled DALL-E response");
     }
+    // Removed the incorrect extra 'else' block
   } catch (error) {
-    console.error("Failed to send Chat:", error); // Log detailed error
+    log.error("Failed to send Chat via repository", { error: String(error) });
     // Note: The specific "Usage limit exceeded" error is now caught *before* this block.
     // This block catches errors from chatRepository.sendChat itself.
     throw new Error("Failed to process chat request. Please try again.");
   }
+  log.info("createChat action finished successfully.");
   return chat;
 }

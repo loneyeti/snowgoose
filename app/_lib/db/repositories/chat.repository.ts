@@ -27,7 +27,7 @@ import { uploadBase64Image } from "../../storage"; // Import the new helper func
 import { getCurrentAPIUser } from "../../auth";
 import { SubscriptionPlanRepository } from "./subscription-plan.repository"; // Import SubscriptionPlan Repository class
 import { updateUserUsage } from "../../server_actions/user.actions";
-import { Logger } from "next-axiom";
+import { Logger } from "next-axiom"; // Re-add Logger import
 
 // Initialize AI vendors using the imported factory
 if (process.env.OPENAI_API_KEY) {
@@ -64,24 +64,30 @@ export class ChatRepository extends BaseRepository {
     content: ContentBlock[]
   ): Promise<ContentBlock[]> {
     const processedContent: ContentBlock[] = [];
-    const log = new Logger();
+    // Note: Using a new logger instance here, might want to pass the main one if userId is needed
+    const log = new Logger({ source: "chat-repository-processContent" });
+    log.info("Processing response content for image data blocks.");
     for (const block of content) {
       if (block.type === "image_data") {
         // Type guard for ImageDataBlock
         const imageDataBlock = block as ImageDataBlock;
         try {
-          console.log(
-            `Uploading image data (mime: ${imageDataBlock.mimeType})...`
-          );
+          log.info("Uploading image data from response block", {
+            mimeType: imageDataBlock.mimeType,
+          });
           const imageUrl = await uploadBase64Image(
             imageDataBlock.base64Data,
             imageDataBlock.mimeType
           );
           const imageBlock: ImageBlock = { type: "image", url: imageUrl };
           processedContent.push(imageBlock);
-          console.log(`Image uploaded successfully: ${imageUrl}`);
+          log.info("Image uploaded successfully from response block", {
+            imageUrl,
+          });
         } catch (error) {
-          log.error(`Failed to upload image from ImageDataBlock: ${error}`);
+          log.error("Failed to upload image from ImageDataBlock", {
+            error: String(error),
+          });
           // Optionally push an error message block or skip the block
           // For now, skipping the block if upload fails
         }
@@ -139,12 +145,18 @@ export class ChatRepository extends BaseRepository {
   }
 
   async sendChat(chat: LocalChat): Promise<ChatResponse | string> {
+    let log = new Logger({ source: "chat-repository" }).with({ userId: "" }); // Use let for potential reassignment with userId
+    log.info("sendChat repository method started.");
+
     // --- Usage Limit Check ---
     const user = await getCurrentAPIUser();
-    const log = new Logger();
     if (!user) {
+      log.error("Unauthorized: User not found for usage check.");
       throw new Error("Unauthorized: User not found for usage check.");
     }
+    // Add user ID to logger context
+    log = log.with({ userId: user.id });
+    log.info("Starting usage limit check.");
 
     // Check if user has a subscription plan linked
     if (user.stripePriceId) {
@@ -164,10 +176,14 @@ export class ChatRepository extends BaseRepository {
             );
             // Throw a specific, unique error string
             throw new Error("USAGE_LIMIT_EXCEEDED");
+          } else {
+            log.info("User is within usage limits or plan has no limit.");
           }
+        } else {
+          log.info("User plan not found or has no usage limit defined.");
         }
       } catch (error) {
-        log.error(`Error checking usage limit: ${error}`);
+        log.error("Error checking usage limit", { error: String(error) });
         // Decide how to handle errors during the check (e.g., allow request, throw error)
         // For safety, let's throw an error to prevent potential over-usage if check fails
         throw new Error(
@@ -177,7 +193,9 @@ export class ChatRepository extends BaseRepository {
     }
     // --- End Usage Limit Check ---
 
+    log.info("Getting AI vendor adapter", { modelId: chat.modelId });
     const adapter = await this.getVendorFactory(chat);
+    log.info("AI vendor adapter obtained successfully.");
 
     /*
     // For DALL-E image generation. Will be depreciated soon.
@@ -191,56 +209,63 @@ export class ChatRepository extends BaseRepository {
     // --- MCP Tool Handling ---
     let selectedMCPToolRecord: MCPTool | null = null;
     chat.mcpAvailableTools = []; // Initialize as empty
+    log.info("Starting MCP tool handling", { mcpToolId: chat.mcpToolId });
 
     if (chat.mcpToolId && chat.mcpToolId !== 0) {
-      console.log("CHAT INCLUDED MCP TOOL");
+      log.info("Chat included MCP tool, attempting to find record.");
       // Use the correct findById method
       selectedMCPToolRecord = await mcpToolRepository.findById(chat.mcpToolId);
       if (selectedMCPToolRecord) {
-        console.log("FOUND MCP TOOL IN DB");
+        log.info("Found MCP tool record in DB", {
+          toolName: selectedMCPToolRecord.name,
+        });
         try {
           // Get detailed tool definitions from the manager
+          log.info("Fetching tool definitions from MCP Manager.");
           const availableToolsInfo = await mcpManager.getAvailableTools(
             selectedMCPToolRecord
           );
+          log.info("Received tool definitions from MCP Manager", {
+            count: availableToolsInfo.length,
+          });
           // Find the specific tool definition
-          console.log(`FOUND MCP TOOL RECORD: ${availableToolsInfo}`);
           const formattedTools = availableToolsInfo.map((tool) => ({
             name: tool.name,
             description: tool.description || `Tool: ${tool.name}`,
             input_schema: tool.inputSchema,
           }));
-          if (formattedTools) {
+          if (formattedTools && formattedTools.length > 0) {
             chat.mcpAvailableTools = formattedTools;
+            log.info("Formatted and added available tools to chat object.");
           } else {
             log.warn(
-              `Tool definition not found via mcpManager for tool: ${selectedMCPToolRecord.name}`
+              `Tool definitions formatted incorrectly or not found via mcpManager for tool: ${selectedMCPToolRecord.name}`
             );
           }
         } catch (error) {
           log.error(
-            `Error fetching tool definitions for ${selectedMCPToolRecord.name}: ${error}`
+            `Error fetching tool definitions for ${selectedMCPToolRecord.name}`,
+            { error: String(error) }
           );
           // Proceed without the tool if definition fetch fails
         }
       } else {
         log.warn(`MCPTool record not found for ID: ${chat.mcpToolId}`);
       }
+    } else {
+      log.info("No MCP tool ID provided or it was 0.");
     }
     // --- End MCP Tool Handling ---
 
     // Initial chat completion call
-    console.log(
-      `Chat before initial sending: ${JSON.stringify(chat, null, 2)}`
-    );
+    log.info("Sending initial chat request to adapter.");
+    // Removed console.log for chat object before sending
     const initialResponse: ChatResponse = await this.sendChatAndUpdateCost(
       chat,
       adapter
     );
-    console.log(
-      // Fix: Added console.log(
-      `Initial response received: ${JSON.stringify(initialResponse, null, 2)}`
-    ); // Fix: Moved closing parenthesis
+    log.info("Initial response received from adapter.");
+    // Removed console.log for initial response object
 
     // Process initial response content for ImageDataBlocks
     initialResponse.content = await this.processResponseContent(
@@ -249,12 +274,17 @@ export class ChatRepository extends BaseRepository {
 
     // Check for ToolUseBlock in the initial response
     // Add explicit type ContentBlock for 'block' parameter
+    log.info("Checking initial response for tool_use block.");
     const toolUseBlock = initialResponse.content.find(
       (block: ContentBlock): block is ToolUseBlock => block.type === "tool_use"
     );
 
     if (toolUseBlock && selectedMCPToolRecord) {
-      console.log(`Tool use requested: ${toolUseBlock.name}`);
+      log.info("Tool use block found in initial response", {
+        toolName: toolUseBlock.name,
+        toolUseId: toolUseBlock.id, // Log the ID received from AI
+      });
+      // Removed console.log for tool use requested
 
       // --- Extract and validate the toolUseId ---
       // Check if the ID exists and is a non-empty string, as required by vendors like Anthropic
@@ -272,24 +302,31 @@ export class ChatRepository extends BaseRepository {
         );
       }
       const toolUseIdString = toolUseBlock.id; // ID is present and is a string
-      console.log(`Extracted and validated toolUseId: ${toolUseIdString}`);
+      log.info("Extracted and validated toolUseId", { toolUseIdString });
+      // Removed console.log
+
       // --- End Extract ---
 
       try {
+        log.info("Parsing tool arguments from tool_use input.");
         const toolArgs = JSON.parse(toolUseBlock.input);
-        console.log(`Parsed tool args: ${JSON.stringify(toolArgs)}`);
+        log.info("Parsed tool arguments successfully.", { toolArgs });
+        // Removed console.log
 
         // Execute the tool using MCPManager
+        log.info("Executing tool via MCP Manager", {
+          toolName: toolUseBlock.name,
+        });
         const toolExecutionResult = await mcpManager.callTool(
           selectedMCPToolRecord,
           toolUseBlock.name,
           toolArgs
         );
-        console.log(
-          `Tool execution result: ${JSON.stringify(toolExecutionResult)}`
-        );
+        log.info("Received tool execution result from MCP Manager.");
+        // Removed console.log
 
         // Construct ToolResultBlock
+        log.info("Constructing ToolResultBlock.");
         // Construct ToolResultBlock using the validated string ID
         const toolResultBlock: ToolResultBlock = {
           type: "tool_result",
@@ -308,28 +345,23 @@ export class ChatRepository extends BaseRepository {
           // Usage might not be applicable here or should be zeroed
         };
         chat.responseHistory.push(toolResultMessage);
+        log.info(
+          "Updated chat history with initial response and tool result message."
+        );
 
         // Clear tool information before the final call to prevent re-sending tools
         // This was the first fix and should remain.
         chat.mcpAvailableTools = [];
         chat.mcpToolId = 0; // Or null, depending on expected type, 0 seems safer based on initialization
+        log.info("Cleared MCP tool information before final adapter call.");
 
-        console.log(
-          `Chat before final sending (with tool result): ${JSON.stringify(
-            chat, // Log the original chat object with updated history and cleared tools
-            null,
-            2
-          )}`
-        );
+        // Removed console.log for chat object before final sending
+
         // Call sendChat again with the updated history but without tools enabled
+        log.info("Sending final chat request to adapter after tool use.");
         const finalResponse = await this.sendChatAndUpdateCost(chat, adapter);
-        console.log(
-          `Final response received after tool use: ${JSON.stringify(
-            finalResponse,
-            null,
-            2
-          )}`
-        );
+        log.info("Received final response from adapter after tool use.");
+        // Removed console.log for final response object
 
         // Process final response content for ImageDataBlocks
         finalResponse.content = await this.processResponseContent(
@@ -338,12 +370,18 @@ export class ChatRepository extends BaseRepository {
 
         return finalResponse;
       } catch (error) {
-        log.error(`Error processing tool use: ${error}`);
+        log.error("Error processing tool use", { error: String(error) });
         // Optionally, return an error message or the initial response
         // For now, return the initial response (already processed for images)
+        log.warn(
+          "Returning initial response due to error during tool processing."
+        );
         return initialResponse;
       }
     } else {
+      log.info(
+        "No tool use block found or no MCP tool selected, returning initial response."
+      );
       // If no tool use or no selected tool record, return the initial response (already processed for images)
       return initialResponse;
     }
