@@ -8,9 +8,11 @@ import { AIVendorFactory, ModelConfig } from "snowgander";
 import { Chat, TextBlock, Model } from "../model";
 import { getUserID } from "../auth";
 import { getModelAdaptorOptions } from "./model.actions";
+import { initializeAIVendors } from "../db/repositories/chat.repository";
 
 // Helper function to generate chat title
 async function _generateChatTitle(userId: number, chat: Chat): Promise<string> {
+  initializeAIVendors();
   try {
     // Get user's preferred summary model
     const userSettings = await userSettingsRepository.findByUserId(userId);
@@ -40,7 +42,7 @@ async function _generateChatTitle(userId: number, chat: Chat): Promise<string> {
 
     // Get the appropriate AI vendor adapter
     const { name, modelConfig } = await getModelAdaptorOptions(summaryModel);
-    const adapter = await AIVendorFactory.getAdapter(name, modelConfig);
+    const adapter = AIVendorFactory.getAdapter(name, modelConfig);
 
     // Create a system prompt for title generation
     const systemPrompt =

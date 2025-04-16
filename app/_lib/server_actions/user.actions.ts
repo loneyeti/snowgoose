@@ -1,6 +1,9 @@
 "use server";
 
-import { userRepository } from "@/app/_lib/db/repositories/user.repository";
+import {
+  UserRepository,
+  userRepository,
+} from "@/app/_lib/db/repositories/user.repository";
 import { revalidatePath } from "next/cache";
 import { CreateUserFormSchema, UpdateUserFormSchema } from "../form-schemas";
 import { User } from "@prisma/client";
@@ -8,6 +11,7 @@ import { UserPost, UserSession, UserUsageLimits } from "../model"; // Added User
 import { createClient } from "@/app/_utils/supabase/server";
 import { FormState } from "../form-schemas";
 import { userSettingsRepository } from "@/app/_lib/db/repositories/user-settings.repository";
+import { Logger } from "next-axiom";
 
 // User Functions
 export async function getUsers() {
@@ -19,6 +23,7 @@ export async function getUser(id: number) {
 }
 
 export async function createUser(formData: FormData) {
+  const log = new Logger();
   const user: UserPost = CreateUserFormSchema.parse({
     username: formData.get("username"),
     //password: formData.get("password"),
@@ -37,7 +42,7 @@ export async function createUser(formData: FormData) {
       authId: "",
     });
   } catch (error) {
-    console.error("Failed to create User:", error); // Log detailed error
+    log.error("Failed to create User:", { error: error }); // Log detailed error
     throw new Error("Unable to create User."); // Throw generic error
   }
   revalidatePath("/chat/settings/users");
@@ -119,6 +124,7 @@ export async function updateUserPassword(
 export async function ensureUserExists(
   userSession: UserSession
 ): Promise<User | null> {
+  const log = new Logger();
   // First check if user already exists
   let user = await userRepository.findByEmail(userSession.email);
 
@@ -148,15 +154,16 @@ export async function ensureUserExists(
             appearanceMode: "system", // Default to light mode
           });
         } catch (settingsError) {
-          console.error("Failed to create user settings:", settingsError);
+          log.error("Failed to create user settings:", {
+            error: settingsError,
+          });
           // We don't throw here to avoid blocking user creation if settings creation fails
         }
       }
     } catch (creationError) {
-      console.error(
-        "Failed to create user during ensureUserExists:",
-        creationError
-      );
+      log.error("Failed to create user during ensureUserExists:", {
+        error: creationError,
+      });
       // Don't throw, return null as user creation failed
       return null;
     }
@@ -166,7 +173,9 @@ export async function ensureUserExists(
         authId: userSession.userId,
       });
     } catch (error) {
-      console.error("Unable to link database user to Supabase user", error);
+      log.error("Unable to link database user to Supabase user", {
+        error: error,
+      });
     }
   }
 
@@ -174,6 +183,7 @@ export async function ensureUserExists(
 }
 
 export async function updateUserUsage(userId: number, usage: number) {
+  const log = new Logger();
   try {
     const user = await userRepository.findById(userId);
 
@@ -202,7 +212,7 @@ export async function updateUserUsage(userId: number, usage: number) {
 
     // No revalidatePath needed here as usage updates don't typically affect cached UI paths directly.
   } catch (error) {
-    console.error(`Failed to update usage for user ${userId}:`, error); // Log detailed error
+    log.error(`Failed to update usage for user ${userId}:`, { error: error }); // Log detailed error
     // Throw generic error for the client
     throw new Error("Unable to update user usage statistics.");
   }
@@ -216,6 +226,7 @@ export async function updateUserUsage(userId: number, usage: number) {
 export async function getUserUsageLimitsAction(
   userId: number
 ): Promise<UserUsageLimits | null> {
+  const log = new Logger();
   try {
     // Directly call the repository method on the server
     const limits = await userRepository.getUserPlanAndUsage(userId);
@@ -228,8 +239,22 @@ export async function getUserUsageLimitsAction(
     };
     return userUsageLimits;
   } catch (error) {
-    console.error(`Failed to get usage limits for user ${userId}:`, error);
+    log.error(`Failed to get usage limits for user ${userId}:`, {
+      error: error,
+    });
     // Return null or throw a more specific error if needed upstream
     return null;
+  }
+}
+
+export async function completeOnboardingAction(userId: number) {
+  const log = new Logger();
+  try {
+    await userRepository.update(userId, { onboardingCompleted: true });
+    return { success: true };
+  } catch (error) {
+    log.error("Failed to update onboarding status:", { error: error });
+    // Return or throw a user-friendly error if needed
+    return { success: false, error: "Failed to save onboarding status." };
   }
 }

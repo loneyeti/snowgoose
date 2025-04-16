@@ -28,7 +28,8 @@ export async function getPersona(id: number) {
 
 export async function createPersona(
   formData: FormData,
-  type: "user" | "global"
+  type: "user" | "global",
+  originPath?: string // Add optional originPath parameter
 ) {
   const user = await getCurrentAPIUser();
   const isAdmin = await isCurrentUserAdmin();
@@ -63,17 +64,25 @@ export async function createPersona(
     throw new Error("Unable to create Persona."); // Throw generic error
   }
   revalidatePath(`/chat/settings/${type}-personas`);
-  revalidatePath("/chat");
+  revalidatePath("/chat"); // Revalidate chat page too, in case persona list is shown there
 
-  redirect(`/chat/settings/${type}-personas`);
+  // Redirect based on originPath or default to settings page
+  redirect(originPath || `/chat/settings/${type}-personas`);
 }
 
-export async function createUserPersona(formData: FormData) {
-  await createPersona(formData, "user");
+// Update createUserPersona to accept and pass originPath
+export async function createUserPersona(
+  formData: FormData,
+  originPath?: string
+) {
+  await createPersona(formData, "user", originPath);
 }
 
-export async function createGlobalPersona(formData: FormData) {
-  await createPersona(formData, "global");
+export async function createGlobalPersona(
+  formData: FormData,
+  originPath?: string // Also update global for consistency
+) {
+  await createPersona(formData, "global", originPath);
 }
 
 export async function updatePersona(formData: FormData) {
