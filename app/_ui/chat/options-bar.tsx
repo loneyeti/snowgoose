@@ -147,8 +147,6 @@ export default function OptionsBar({
 
   return (
     <div className="py-3" data-testid="onboarding-options-bar">
-      {" "}
-      {/* Added for onboarding tour */}
       <div className="flex items-center gap-3">
         {/* Model Selection - Enhanced */}
         <Popover className="relative">
