@@ -492,7 +492,7 @@ export default function ChatWrapper({
         {/* Conversation area - fills space and scrolls internally */}
         <div className="flex-grow flex overflow-hidden">
           {/* Dark mode: Adjust conversation container colors */}
-          <div className="max-w-3xl w-full mx-auto overflow-y-auto p-4 rounded-2xl bg-white dark:bg-slate-800 m-3 shadow-[0_0_0_2px_rgba(255,255,255,0.95)] dark:shadow-[0_0_0_2px_rgba(51,65,85,0.95)] border dark:border-slate-700 flex-1">
+          <div className="max-w-3xl w-full mx-auto overflow-y-auto p-4 rounded-2xl bg-white dark:bg-slate-950 m-3 shadow-[0_0_0_2px_rgba(255,255,255,0.95)] dark:shadow-[0_0_0_2px_rgba(51,65,85,0.95)] border dark:border-slate-700 flex-1">
             {/* Conversation component likely needs internal dark mode styles */}
             <Conversation
               chats={response}

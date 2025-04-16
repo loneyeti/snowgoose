@@ -127,8 +127,11 @@ model User {
   stripeSubscriptionStatus    String?   @map("stripe_subscription_status") // Tracks the current status from Stripe (e.g., active, past_due, canceled)
   stripeCancelAtPeriodEnd     Boolean?  @map("stripe_cancel_at_period_end") // Tracks if cancellation is scheduled at period end
 
-  // ---> NEW FIELD <---
+  // Field for overriding limits
   hasUnlimitedCredits Boolean? @default(false) @map("has_unlimited_credits")
+
+  // Onboarding (Joyride)
+  onboardingCompleted Boolean @default(false) @map("onboarding_completed")
 
   // Relations (Existing)
   conversations ConversationHistory[]

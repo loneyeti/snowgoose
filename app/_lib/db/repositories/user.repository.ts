@@ -93,6 +93,7 @@ export class UserRepository extends BaseRepository {
       periodUsage?: number;
       totalUsage?: number;
       authId?: string;
+      onboardingCompleted?: boolean;
     }
   ): Promise<User> {
     try {

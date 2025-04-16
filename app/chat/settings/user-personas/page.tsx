@@ -1,11 +1,8 @@
 import { getUserPersonas } from "@/app/_lib/server_actions/persona.actions";
 import { getCurrentAPIUser } from "@/app/_lib/auth";
-import { SettingsHeadingWithButton } from "@/app/_ui/typography";
 import { notFound } from "next/navigation";
 import { SettingListProps, SettingsListSettings } from "@/app/_lib/model";
-import SettingsList from "@/app/_ui/settings/settings-list";
-import { Suspense } from "react";
-import ListSkeleton from "@/app/_ui/settings/list-skeleton";
+import UserPersonasClientPage from "./user-personas-client-page"; // Import the new client component
 
 export default async function UserPersonasPage() {
   const user = await getCurrentAPIUser();
@@ -21,29 +18,10 @@ export default async function UserPersonasPage() {
 
   const settingsListProps: SettingListProps = {
     settings: settingsListSettings,
-    resourceType: "personas",
+    resourceType: "personas", // Keep resourceType for potential use in SettingsList actions (edit/delete)
     hideEdit: false,
   };
 
-  return (
-    <main>
-      <SettingsHeadingWithButton
-        href="/chat/settings/user-personas/new"
-        buttonTitle="Add User Persona"
-      >
-        User Personas
-      </SettingsHeadingWithButton>
-      <Suspense
-        fallback={
-          <>
-            <ListSkeleton />
-            <ListSkeleton />
-            <ListSkeleton />
-          </>
-        }
-      >
-        <SettingsList settings={settingsListProps} />
-      </Suspense>
-    </main>
-  );
+  // Render the client component, passing the fetched and formatted data
+  return <UserPersonasClientPage settingsListProps={settingsListProps} />;
 }

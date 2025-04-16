@@ -126,9 +126,9 @@ export default function TextInputArea({
 
   return (
     <div className="w-full">
-      <div className="">
+      <div>
         {/* Dark mode: Adjust container background, border, shadow */}
-        <div className="overflow-hidden [&:has(textarea:focus)]:border-token-border-xheavy dark:[&:has(textarea:focus)]:border-blue-500 [&:has(textarea:focus)]:shadow-[0_2px_6px_rgba(0,0,0,.05)] dark:[&:has(textarea:focus)]:shadow-[0_2px_6px_rgba(0,0,0,0.15)] flex items-center w-full flex-grow relative border border-token-border-heavy dark:border-slate-600 bg-white dark:bg-slate-700 rounded-2xl shadow-[0_0_0_2px_rgba(255,255,255,0.95)] dark:shadow-[0_0_0_2px_rgba(51,65,85,0.95)]">
+        <div className="overflow-hidden [&:has(textarea:focus)]:border-token-border-xheavy dark:[&:has(textarea:focus)]:border-slate-500 [&:has(textarea:focus)]:shadow-[0_2px_6px_rgba(0,0,0,.05)] dark:[&:has(textarea:focus)]:shadow-[0_2px_6px_rgba(0,0,0,0.15)] flex items-center w-full flex-grow relative border border-token-border-heavy dark:border-slate-600 bg-white dark:bg-slate-950 rounded-2xl shadow-[0_0_0_2px_rgba(255,255,255,0.95)] dark:shadow-[0_0_0_2px_rgba(51,65,85,0.95)]">
           {/* Hidden file input that gets triggered by the image button */}
           <input
             type="file"
@@ -158,6 +158,7 @@ export default function TextInputArea({
 
           {/* Dark mode: Adjust textarea text color, placeholder color */}
           <textarea
+            data-testid="onboarding-chat-input" // Added for onboarding tour
             // Use text-base (16px) on small screens to prevent iOS zoom, text-sm on medium and up
             className="m-0 w-full text-[16px] resize-none border-0 bg-transparent text-gray-900 dark:text-slate-100 py-[10px] pr-10 focus:ring-0 focus-visible:ring-0 placeholder-black/50 dark:placeholder-white/50 pl-3 md:pl-4 text-base md:text-sm md:py-3.5 md:pr-12"
             id="prompt"

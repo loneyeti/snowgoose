@@ -29,31 +29,35 @@ import { SubscriptionPlanRepository } from "./subscription-plan.repository"; // 
 import { updateUserUsage } from "../../server_actions/user.actions";
 import { Logger } from "next-axiom"; // Re-add Logger import
 
-// Initialize AI vendors using the imported factory
-if (process.env.OPENAI_API_KEY) {
-  AIVendorFactory.setVendorConfig("openai", {
-    apiKey: process.env.OPENAI_API_KEY,
-    organizationId: process.env.OPENAI_ORG_ID,
-  });
+export function initializeAIVendors() {
+  // Initialize AI vendors using the imported factory
+  if (process.env.OPENAI_API_KEY) {
+    AIVendorFactory.setVendorConfig("openai", {
+      apiKey: process.env.OPENAI_API_KEY,
+      organizationId: process.env.OPENAI_ORG_ID,
+    });
+  }
+
+  if (process.env.ANTHROPIC_API_KEY) {
+    AIVendorFactory.setVendorConfig("anthropic", {
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+  }
+
+  if (process.env.GOOGLE_API_KEY) {
+    AIVendorFactory.setVendorConfig("google", {
+      apiKey: process.env.GOOGLE_API_KEY,
+    });
+  }
+
+  if (process.env.OPENROUTER_API_KEY) {
+    AIVendorFactory.setVendorConfig("openrouter", {
+      apiKey: process.env.OPENROUTER_API_KEY,
+    });
+  }
 }
 
-if (process.env.ANTHROPIC_API_KEY) {
-  AIVendorFactory.setVendorConfig("anthropic", {
-    apiKey: process.env.ANTHROPIC_API_KEY,
-  });
-}
-
-if (process.env.GOOGLE_API_KEY) {
-  AIVendorFactory.setVendorConfig("google", {
-    apiKey: process.env.GOOGLE_API_KEY,
-  });
-}
-
-if (process.env.OPENROUTER_API_KEY) {
-  AIVendorFactory.setVendorConfig("openrouter", {
-    apiKey: process.env.OPENROUTER_API_KEY,
-  });
-}
+initializeAIVendors();
 
 // Instantiate repositories needed within ChatRepository
 const subscriptionPlanRepo = new SubscriptionPlanRepository();

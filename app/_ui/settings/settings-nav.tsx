@@ -10,7 +10,12 @@ export default async function SettingsNav() {
     <Sidebar>
       <ul className="mt-6 space-y-1">
         {/* General Settings */}
-        <MenuListItem url="/chat/settings/profile">
+        <MenuListItem
+          url="/chat/settings/profile"
+          data-testid="onboarding-settings-link"
+        >
+          {" "}
+          {/* Added for onboarding tour */}
           <MaterialSymbol icon="face" size={18} className="mr-2 align-middle" />
           Profile
         </MenuListItem>

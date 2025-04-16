@@ -47,6 +47,7 @@ export default function UtilityIconRow({
           e.preventDefault();
           saveChatAction();
         }}
+        data-testid="onboarding-save"
         className="basis-1/5 text-slate-600 dark:text-slate-400 text-center p-3 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
       >
         <MaterialSymbol className="align-middle" icon="save" size={24} />
@@ -56,6 +57,7 @@ export default function UtilityIconRow({
           e.preventDefault();
           toggleHistory();
         }}
+        data-testid="onboarding-show-history"
         className="basis-1/5 text-slate-600 dark:text-slate-400 text-center p-3 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
       >
         <MaterialSymbol className="align-middle" icon="history" size={24} />
@@ -63,6 +65,7 @@ export default function UtilityIconRow({
       <Link
         href="/chat/settings/profile"
         className="basis-1/5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 text-center p-3 rounded-r-lg transition-colors"
+        data-testid="onboarding-show-settings"
       >
         <MaterialSymbol className="align-middle" icon="settings" size={24} />
       </Link>
