@@ -332,10 +332,19 @@ export default function ChatWrapper({
             />
           </div>
 
-          <div className="flex-1 pr-4">
-            <div className="flex-none sm:flex items-center sm:justify-between">
-              {/* Options Bar */}
-              <div className="flex flex-row items-center">
+          {/* Main Header Content - Adjusted for Responsiveness */}
+          {/* Stacks vertically on small screens, horizontal row on sm+ */}
+          {/* Added padding for mobile view */}
+          <div className="flex-1 px-4 sm:px-0 sm:pr-4 py-2 sm:py-0">
+            {/* Container for Options Bar and Credits/Icons */}
+            {/* flex-col stacks on mobile, sm:flex-row for desktop */}
+            {/* sm:items-center aligns items vertically in desktop row */}
+            {/* sm:justify-between pushes Options Bar left, Credits/Icons right on desktop */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+              {/* Options Bar Container - Allows wrapping within itself if needed, though parent handles main stacking */}
+              <div className="flex flex-wrap items-center gap-1">
+                {" "}
+                {/* Reduced gap for mobile, flex-wrap added */}
                 <OptionsBar
                   models={models}
                   personas={[
@@ -356,7 +365,6 @@ export default function ChatWrapper({
                   toggleMoreOptions={toggleMoreOptions}
                   hideOutputFormats={hideOutputFormats}
                 />
-
                 {/* More Options Popover */}
                 <Popover className="relative ml-1">
                   {({ open }) => (
@@ -407,12 +415,19 @@ export default function ChatWrapper({
                     </>
                   )}
                 </Popover>
-              </div>
-              {/* Credits Display & Utility icons */}
-              <div className="flex items-center">
+              </div>{" "}
+              {/* End of Options Bar + More Options Popover container */}
+              {/* Credits Display & Utility icons Container */}
+              {/* Added flex-wrap to allow credits/icons row to wrap if needed */}
+              {/* items-center aligns vertically, justify-end pushes to right on mobile when stacked */}
+              <div className="flex flex-wrap items-center justify-end sm:justify-normal gap-2">
+                {" "}
+                {/* Added gap and flex-wrap */}
                 {/* Subtle Credits Display */}
                 {userUsageLimits != null && (
-                  <div className="flex items-center mr-2 group relative">
+                  <div className="flex items-center group relative">
+                    {" "}
+                    {/* Removed mr-2, using gap now */}
                     {/* Dark mode: Adjust credits display colors */}
                     <div className="flex items-center px-2 py-0.5 rounded-full bg-slate-50 border border-slate-100 dark:bg-slate-700 dark:border-slate-600 shadow-sm">
                       <MaterialSymbol

@@ -259,8 +259,10 @@ export default function OptionsBar({
                     size={18}
                     className="text-slate-600 dark:text-slate-300"
                   />
-                  {/* Dark mode: Adjust text color */}
-                  <span className="text-sm font-medium whitespace-nowrap text-slate-700 dark:text-slate-100">
+                  {/* Dark mode: Adjust text color & add truncation */}
+                  <span className="text-sm font-medium whitespace-nowrap text-slate-700 dark:text-slate-100 truncate max-w-[150px] sm:max-w-none">
+                    {" "}
+                    {/* Added truncate and max-width for mobile */}
                     {[...allUserPersonas, ...allGlobalPersonas].find(
                       (p) => p.id === selectedPersona
                     )?.name ||

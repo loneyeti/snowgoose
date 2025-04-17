@@ -1,6 +1,7 @@
 import { ChatResponse, ContentBlock } from "../../_lib/model";
 import { SpinnerSize, Spinner } from "../spinner";
 import MarkdownComponent from "../markdown-parser";
+import CopyButton from "../copy-button"; // Import the CopyButton
 import { isContentBlockArray } from "../../_lib/utils";
 
 interface ConversationProps {
@@ -91,9 +92,17 @@ export default function Conversation({
                         );
                       case "text":
                         return (
-                          // Add overflow-x-auto for potential wide code blocks within markdown
-                          <div key={blockIndex} className="overflow-x-auto">
-                            <MarkdownComponent markdown={block.text} />
+                          // Wrap in relative container for button positioning
+                          <div key={blockIndex} className="relative group">
+                            {/* Add overflow-x-auto for potential wide code blocks */}
+                            <div className="overflow-x-auto">
+                              <MarkdownComponent markdown={block.text} />
+                            </div>
+                            {/* Position button top-right, initially hidden, show on hover/focus */}
+                            <CopyButton
+                              textToCopy={block.text}
+                              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150"
+                            />
                           </div>
                         );
                       default:
@@ -101,9 +110,17 @@ export default function Conversation({
                     }
                   })
                 ) : (
-                  // Add overflow-x-auto for potential wide code blocks within markdown
-                  <div className="overflow-x-auto">
-                    <MarkdownComponent markdown={chat.content} />
+                  // Wrap in relative container for button positioning (for simple string content)
+                  <div className="relative group">
+                    {/* Add overflow-x-auto for potential wide code blocks */}
+                    <div className="overflow-x-auto">
+                      <MarkdownComponent markdown={chat.content} />
+                    </div>
+                    {/* Position button top-right, initially hidden, show on hover/focus */}
+                    <CopyButton
+                      textToCopy={chat.content}
+                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150"
+                    />
                   </div>
                 )}
               </div>
