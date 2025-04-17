@@ -128,7 +128,7 @@ export default function TextInputArea({
     <div className="w-full">
       <div>
         {/* Dark mode: Adjust container background, border, shadow */}
-        <div className="overflow-hidden [&:has(textarea:focus)]:border-token-border-xheavy dark:[&:has(textarea:focus)]:border-slate-500 [&:has(textarea:focus)]:shadow-[0_2px_6px_rgba(0,0,0,.05)] dark:[&:has(textarea:focus)]:shadow-[0_2px_6px_rgba(0,0,0,0.15)] flex items-center w-full flex-grow relative border border-token-border-heavy dark:border-slate-600 bg-white dark:bg-slate-950 rounded-2xl shadow-[0_0_0_2px_rgba(255,255,255,0.95)] dark:shadow-[0_0_0_2px_rgba(51,65,85,0.95)]">
+        <div className="overflow-hidden [&:has(textarea:focus)]:border-slate-400 dark:[&:has(textarea:focus)]:border-slate-700 flex items-center w-full flex-grow relative border dark:border-slate-900 bg-white dark:bg-slate-900 rounded-2xl shadow-[0_0_0_1px_rgba(255,255,255,0.95)] dark:shadow-[0_0_0_1px_rgba(51,65,85,0.95)]">
           {/* Hidden file input that gets triggered by the image button */}
           <input
             type="file"

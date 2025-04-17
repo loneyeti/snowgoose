@@ -17,16 +17,10 @@ export default function Conversation({
   imageURL,
   renderTypeName,
 }: ConversationProps) {
-  if (chats.length === 0 && imageURL === "" && !showSpinner) {
-    return (
-      <div className="grid w-full h-full place-items-center">
-        {/* Dark mode: Adjust welcome text color */}
-        <h1 className="text-3xl text-slate-500 dark:text-slate-400 font-thin">
-          Welcome to Snowgoose
-        </h1>
-      </div>
-    );
-  } else if (imageURL !== "") {
+  // Removed the initial welcome message block.
+  // Now, if chats are empty and it's not an image response, it will proceed to the main return block,
+  // which will render nothing if chats array is empty.
+  if (imageURL !== "") {
     return (
       <div className="w-full">
         {/* eslint-disable @next/next/no-img-element */}
