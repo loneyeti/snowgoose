@@ -358,11 +358,11 @@ export default function ChatWrapper({
                 />
 
                 {/* More Options Popover */}
-                <Popover className="relative ml-3">
+                <Popover className="relative ml-1">
                   {({ open }) => (
                     <>
                       {/* Dark mode: Adjust button colors */}
-                      <Popover.Button className="py-1 px-2.5 rounded-full text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700 focus:outline-none transition-colors">
+                      <Popover.Button className="py-1 px-2.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700 focus:outline-none transition-colors">
                         <MaterialSymbol
                           className="mt-1.5"
                           icon="tune"

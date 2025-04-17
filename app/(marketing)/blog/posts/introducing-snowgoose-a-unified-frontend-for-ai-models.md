@@ -1,5 +1,5 @@
 ---
-title: "Introducing Snowgoose: A Unified Frontend for Frontier AI Models"
+title: "Introducing Snowgoose: A Unified Frontend for AI Models"
 date: "2024-04-16"
 excerpt: "We’re excited to announce the beta launch of Snowgoose, an open-source SaaS platform designed to make working with the latest AI models simpler and more accessible."
 tags: ["snowgoose", "launch", "snowgander", "ai"]
@@ -73,7 +73,7 @@ You can install it right now:
 npm install snowgander
 ```
 
-You’ll see more about snowgander in an upcoming blog post, where we’ll explore the technical details and potential integrations for your projects.
+For more about Snowgander, see [this blog post](https://snowgoose.app/blog/introducing-snowgander-ai-abstraction-layer).
 
 ---
 
