@@ -467,7 +467,6 @@ export default function ChatWrapper({
             </div>
           </div>
         </div>
-
         {/* Free Tier Upgrade Banner */}
         {user &&
           user.stripePriceId === null &&
@@ -503,12 +502,18 @@ export default function ChatWrapper({
               {/* Mobile text */}
             </div>
           )}
-
-        {/* Conversation area - fills space and scrolls internally */}
-        <div className="flex-grow flex overflow-hidden">
+        {/* Conversation area & Text Input Container */}
+        {/* Becomes flex-col. Centers content vertically and horizontally ONLY when chat is empty AND not loading */}
+        <div
+          className={`flex flex-col flex-grow overflow-hidden ${response.length === 0 && !showConversationSpinner ? "justify-center items-center" : ""}`}
+        >
+          {/* Conversation Area */}
+          {/* Takes up available space (flex-1) only when there are responses OR when loading */}
           {/* Dark mode: Adjust conversation container colors */}
-          <div className="max-w-3xl w-full mx-auto overflow-y-auto p-4 rounded-2xl bg-white dark:bg-slate-950 m-3 shadow-[0_0_0_2px_rgba(255,255,255,0.95)] dark:shadow-[0_0_0_2px_rgba(51,65,85,0.95)] border dark:border-slate-700 flex-1">
-            {/* Conversation component likely needs internal dark mode styles */}
+          <div
+            className={`max-w-3xl w-full mx-auto overflow-y-auto p-4 ${response.length > 0 || showConversationSpinner ? "flex-1" : ""}`}
+          >
+            {/* Conversation component renders nothing if chats are empty */}
             <Conversation
               chats={response}
               showSpinner={showConversationSpinner}
@@ -516,27 +521,39 @@ export default function ChatWrapper({
               renderTypeName={renderTypeName}
             />
           </div>
-        </div>
-
-        {/* Text input area - at bottom */}
-        <div className="max-w-3xl mx-auto w-full pb-2 px-2">
-          {/* Usage Limit Warning - Use local state */}
-          {localIsOverLimit && usageLimit && usageLimit > 0 && (
-            // Dark mode: Adjust warning colors
-            <div className="mb-2 p-2 text-center text-sm text-red-700 bg-red-100 border border-red-300 dark:bg-red-900 dark:border-red-700 dark:text-red-200 rounded-md">
-              You have reached your usage limit ({periodUsage?.toFixed(2) ?? 0}{" "}
-              / {usageLimit.toFixed(2)}) for the current billing period. Please
-              upgrade your plan or wait for the next cycle to continue.
+          {/* Welcome Message - Only shown when chat is empty and not loading */}
+          {response.length === 0 && !showConversationSpinner && (
+            <div className="text-center mb-4 transition-opacity duration-300 ease-out">
+              {/* Dark mode: Adjust welcome text color */}
+              <h1 className="text-3xl text-slate-600 dark:text-slate-300">
+                Welcome to Snowgoose
+              </h1>
             </div>
           )}
-          <TextInputArea
-            onSubmit={handleFormSubmit}
-            isSubmitting={isSubmitting}
-            disabled={localIsOverLimit} // Pass local disabled state
-            onReset={handleReset}
-            showFileUpload={showFileUpload}
-          />
-        </div>
+          {/* Text input area container - Applies transform/opacity transition */}
+          {/* The container itself doesn't move, but its placement within the flex parent changes */}
+          <div className="max-w-3xl mx-auto w-full pb-2 px-2 transition-transform duration-500 ease-out">
+            {/* Usage Limit Warning - Use local state */}
+            {localIsOverLimit && usageLimit && usageLimit > 0 && (
+              // Dark mode: Adjust warning colors
+              <div className="mb-2 p-2 text-center text-sm text-red-700 bg-red-100 border border-red-300 dark:bg-red-900 dark:border-red-700 dark:text-red-200 rounded-md">
+                You have reached your usage limit (
+                {periodUsage?.toFixed(2) ?? 0} / {usageLimit.toFixed(2)}) for
+                the current billing period. Please upgrade your plan or wait for
+                the next cycle to continue.
+              </div>
+            )}
+            <TextInputArea
+              onSubmit={handleFormSubmit}
+              isSubmitting={isSubmitting}
+              disabled={localIsOverLimit} // Pass local disabled state
+              onReset={handleReset}
+              showFileUpload={showFileUpload}
+            />
+          </div>{" "}
+          {/* Closes Text input area container */}
+        </div>{" "}
+        {/* Closes the main flex container for Conversation + TextInputArea */}
       </form>
       <Transition
         as={Fragment}

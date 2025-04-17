@@ -37,7 +37,7 @@ export default async function ChatLayout({
       <AxiomWebVitals />
       <ThemeProvider defaultTheme={userTheme}>
         <ThemeEffect initialTheme={userTheme} />
-        <div className="bg-slate-50 dark:bg-slate-900">
+        <div className="bg-white dark:bg-slate-950">
           {children}
           {/* Conditionally render the Product Tour */}
           {user && (
