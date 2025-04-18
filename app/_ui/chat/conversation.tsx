@@ -39,7 +39,7 @@ export default function Conversation({
         {/* Removed grid and h-full */}
         {/* Ensure the prose container respects parent width */}
         {/* Dark mode: Apply prose-invert for markdown content */}
-        <div className="prose dark:prose-invert w-full lg:w-[65ch] mx-auto">
+        <div className="prose dark:prose-invert w-full mx-auto">
           {chats && chats.length > 0 ? (
             chats.map((chat: ChatResponse, index) => (
               // Dark mode: Adjust user message background/text

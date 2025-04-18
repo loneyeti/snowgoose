@@ -22,6 +22,7 @@ interface OptionsBarProps {
   toggleMoreOptions: () => void;
   hideOutputFormats?: boolean;
   children?: React.ReactNode;
+  isMobileLayout?: boolean; // Add the new optional prop
 }
 
 export default function OptionsBar({
@@ -41,6 +42,7 @@ export default function OptionsBar({
   toggleMoreOptions,
   hideOutputFormats = true,
   children,
+  isMobileLayout = false, // Destructure the prop with a default value
 }: OptionsBarProps) {
   // State for the Add Persona Modal
   const [isAddPersonaModalOpen, setIsAddPersonaModalOpen] = useState(false);
@@ -60,19 +62,20 @@ export default function OptionsBar({
         : undefined
   );
 
-  // Ensure the form is updated with the initial model value
-  useEffect(() => {
-    if (selectedModel !== undefined && !currentModel) {
-      // Trigger model change event with initial value
-      const event = {
-        target: {
-          name: "model",
-          value: selectedModel,
-        },
-      } as unknown as React.ChangeEvent;
-      onModelChange(event);
-    }
-  }, [currentModel, onModelChange, selectedModel]);
+  // Removed the useEffect that was potentially causing issues
+  // useEffect(() => {
+  //   if (selectedModel !== undefined && !currentModel) {
+  //     // Trigger model change event with initial value
+  //     const event = {
+  //       target: {
+  //         name: "model",
+  //         value: selectedModel,
+  //       },
+  //     } as unknown as React.ChangeEvent;
+  //     onModelChange(event);
+  //   }
+  // }, [currentModel, onModelChange, selectedModel]);
+
   const [selectedPersona, setSelectedPersona] = useState<number | undefined>(
     currentPersona ||
       (allUserPersonas.length > 0
@@ -114,15 +117,9 @@ export default function OptionsBar({
   useEffect(() => {
     if (currentOutputFormat !== undefined) {
       setSelectedOutputFormat(currentOutputFormat);
-      const event = {
-        target: {
-          name: "outputFormat",
-          value: currentOutputFormat,
-        },
-      } as unknown as React.ChangeEvent;
-      onOutputFormatChange(event);
+      // Removed the incorrect call to onOutputFormatChange here
     }
-  }, [currentOutputFormat, onOutputFormatChange]);
+  }, [currentOutputFormat]); // Removed onOutputFormatChange from dependency array as it's no longer used
 
   // Group models by vendor using apiVendorName
   const groupedModels: { [vendor: string]: ModelWithVendorName[] } = {};
@@ -146,10 +143,15 @@ export default function OptionsBar({
   });
 
   return (
-    <div className="py-3" data-testid="onboarding-options-bar">
-      <div className="flex items-center gap-3">
+    // Removed all padding from the wrapper div, rely on parent/popover padding
+    <div data-testid="onboarding-options-bar">
+      {/* Apply flex-col and adjust gap when isMobileLayout is true */}
+      <div
+        className={`flex items-center ${isMobileLayout ? "flex-col gap-3 items-stretch" : "gap-3"}`} // Increased gap slightly for mobile stacking
+      >
         {/* Model Selection - Enhanced */}
-        <Popover className="relative">
+        {/* Ensure Popover takes full width in mobile layout */}
+        <Popover className={`relative ${isMobileLayout ? "w-full" : ""}`}>
           {({ open }) => (
             <>
               <Popover.Button
@@ -210,7 +212,7 @@ export default function OptionsBar({
                                   const event = {
                                     target: {
                                       name: "model",
-                                      value: model.id,
+                                      value: model.id.toString(), // Convert number to string
                                     },
                                   } as unknown as React.ChangeEvent;
                                   onModelChange(event);
@@ -239,41 +241,50 @@ export default function OptionsBar({
         </Popover>
 
         {/* Persona Selection Group (Popover + Add Button) */}
-        <div className="flex items-center gap-1">
+        {/* Ensure group takes full width in mobile layout */}
+        <div
+          className={`flex items-center gap-1 ${isMobileLayout ? "w-full" : ""}`}
+        >
           {/* Persona Selection - Enhanced */}
-          <Popover className="relative">
+          {/* Apply w-full to Popover in mobile layout */}
+          <Popover className={`relative ${isMobileLayout ? "w-full" : ""}`}>
             {({ open }) => (
               <>
                 {/* Dark mode: Adjust Popover button styles */}
                 <Popover.Button
-                  className={`relative flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-700 rounded-md border border-slate-200 dark:border-slate-600 shadow-sm hover:border-slate-300 dark:hover:border-slate-500 transition-colors ${open ? "border-blue-300 dark:border-blue-500 ring-1 ring-blue-200 dark:ring-blue-600" : ""} ${disableSelection ? "opacity-75 cursor-not-allowed" : "cursor-pointer"}`}
+                  // Removed the first className prop, keeping the second one with mobile adjustments
                   disabled={disableSelection}
+                  // Apply w-full and justify-between to the button in mobile layout
+                  className={`relative flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-700 rounded-md border border-slate-200 dark:border-slate-600 shadow-sm hover:border-slate-300 dark:hover:border-slate-500 transition-colors ${open ? "border-blue-300 dark:border-blue-500 ring-1 ring-blue-200 dark:ring-blue-600" : ""} ${disableSelection ? "opacity-75 cursor-not-allowed" : "cursor-pointer"} ${isMobileLayout ? "w-full justify-between" : ""}`}
                 >
                   {/* Dark mode: Adjust label styles */}
                   <div className="absolute -top-2 left-2 px-1 text-xs font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-700 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors z-10">
                     Persona
                   </div>
+                  {/* Wrap icon and text to allow truncation and prevent pushing arrow */}
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    {/* Dark mode: Adjust icon colors */}
+                    <MaterialSymbol
+                      icon="person"
+                      size={18}
+                      className="text-slate-600 dark:text-slate-300 flex-shrink-0" // Prevent icon shrinking
+                    />
+                    {/* Dark mode: Adjust text color & add truncation - Remove max-width in mobile */}
+                    <span className="text-sm font-medium whitespace-nowrap text-slate-700 dark:text-slate-100 truncate">
+                      {" "}
+                      {/* Reduced max-width from 150px */}
+                      {[...allUserPersonas, ...allGlobalPersonas].find(
+                        (p) => p.id === selectedPersona
+                      )?.name ||
+                        (allUserPersonas.length > 0
+                          ? allUserPersonas[0].name
+                          : allGlobalPersonas.length > 0
+                            ? allGlobalPersonas[0].name
+                            : "Default")}
+                    </span>
+                  </div>
                   {/* Dark mode: Adjust icon colors */}
-                  <MaterialSymbol
-                    icon="person"
-                    size={18}
-                    className="text-slate-600 dark:text-slate-300"
-                  />
-                  {/* Dark mode: Adjust text color & add truncation */}
-                  <span className="text-sm font-medium whitespace-nowrap text-slate-700 dark:text-slate-100 truncate max-w-[150px] sm:max-w-none">
-                    {" "}
-                    {/* Added truncate and max-width for mobile */}
-                    {[...allUserPersonas, ...allGlobalPersonas].find(
-                      (p) => p.id === selectedPersona
-                    )?.name ||
-                      (allUserPersonas.length > 0
-                        ? allUserPersonas[0].name
-                        : allGlobalPersonas.length > 0
-                          ? allGlobalPersonas[0].name
-                          : "Default")}
-                  </span>
-                  {/* Dark mode: Adjust icon colors */}
-                  <MaterialSymbol
+                  <MaterialSymbol // This is the expand/collapse arrow
                     icon={open ? "expand_less" : "expand_more"}
                     size={18}
                     className="text-slate-500 dark:text-slate-400 ml-1"
@@ -315,7 +326,7 @@ export default function OptionsBar({
                                   const event = {
                                     target: {
                                       name: "persona",
-                                      value: persona.id,
+                                      value: persona.id.toString(), // Convert number to string
                                     },
                                   } as unknown as React.ChangeEvent;
                                   onPersonaChange(event);
@@ -352,7 +363,7 @@ export default function OptionsBar({
                                   const event = {
                                     target: {
                                       name: "persona",
-                                      value: persona.id,
+                                      value: persona.id.toString(), // Convert number to string
                                     },
                                   } as unknown as React.ChangeEvent;
                                   onPersonaChange(event);
@@ -391,7 +402,7 @@ export default function OptionsBar({
                                     const event = {
                                       target: {
                                         name: "persona",
-                                        value: persona.id,
+                                        value: persona.id.toString(), // Convert number to string
                                       },
                                     } as unknown as React.ChangeEvent;
                                     onPersonaChange(event);

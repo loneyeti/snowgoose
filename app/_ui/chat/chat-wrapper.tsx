@@ -314,11 +314,12 @@ export default function ChatWrapper({
           <input type="hidden" name="budgetTokens" value={budgetTokens} />
         )}
         <input type="hidden" name="mcpTool" value={selectedMCPTool || "0"} />
-        {/* Enhanced top bar */}
+        {/* Enhanced top bar - Minimal mobile header */}
         {/* Dark mode: Adjust background, border */}
-        <div className="flex-none sm:flex items-center bg-gradient-to-r from-white to-slate-100 border-b border-slate-200 dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 shadow-sm">
-          {/* Logo section with improved styling */}
-          <div className="pl-5 pr-2 py-3 flex items-center">
+        {/* Single row, justify-between. Increased padding on sm+ */}
+        <div className="flex-none flex items-center justify-between bg-gradient-to-r from-white to-slate-100 border-b border-slate-200 dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 shadow-sm px-3 py-1.5 sm:px-6 sm:py-2">
+          {/* Logo section - Consistent padding */}
+          <div className="flex items-center">
             {/* Dark mode: Swap logo */}
             <img
               src="/snowgoose-logo-2025-black.png"
@@ -331,142 +332,230 @@ export default function ChatWrapper({
               className="h-10 w-auto transition-all hover:opacity-90 hidden dark:block" // Show white logo in dark mode
             />
           </div>
-
-          {/* Main Header Content - Adjusted for Responsiveness */}
-          {/* Stacks vertically on small screens, horizontal row on sm+ */}
-          {/* Added padding for mobile view */}
-          <div className="flex-1 px-4 sm:px-0 sm:pr-4 py-2 sm:py-0">
-            {/* Container for Options Bar and Credits/Icons */}
-            {/* flex-col stacks on mobile, sm:flex-row for desktop */}
-            {/* sm:items-center aligns items vertically in desktop row */}
-            {/* sm:justify-between pushes Options Bar left, Credits/Icons right on desktop */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-              {/* Options Bar Container - Allows wrapping within itself if needed, though parent handles main stacking */}
-              <div className="flex flex-wrap items-center gap-1">
-                {" "}
-                {/* Reduced gap for mobile, flex-wrap added */}
-                <OptionsBar
-                  models={models}
-                  personas={[
-                    ...(userPersonas || []),
-                    ...(globalPersonas || []),
-                  ]}
-                  userPersonas={userPersonas || []}
-                  globalPersonas={globalPersonas || []}
-                  outputFormats={outputFormats}
-                  currentModel={currentChat?.modelId}
-                  currentPersona={currentChat?.personaId}
-                  currentOutputFormat={currentChat?.outputFormatId}
-                  disableSelection={disableSelection}
-                  onModelChange={modelChange}
-                  onPersonaChange={personaChange}
-                  onOutputFormatChange={outputFormatChange}
-                  showMoreOptions={showMoreOptions}
-                  toggleMoreOptions={toggleMoreOptions}
-                  hideOutputFormats={hideOutputFormats}
-                />
-                {/* More Options Popover */}
-                <Popover className="relative ml-1">
-                  {({ open }) => (
-                    <>
-                      {/* Dark mode: Adjust button colors */}
-                      <Popover.Button className="py-1 px-2.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700 focus:outline-none transition-colors">
-                        <MaterialSymbol
-                          className="mt-1.5"
-                          icon="tune"
-                          size={22}
-                        />
-                      </Popover.Button>
-
-                      <Transition
-                        as={Fragment}
-                        enter="transition ease-out duration-200"
-                        enterFrom="opacity-0 translate-y-1"
-                        enterTo="opacity-100 translate-y-0"
-                        leave="transition ease-in duration-150"
-                        leaveFrom="opacity-100 translate-y-0"
-                        leaveTo="opacity-0 translate-y-1"
-                      >
-                        {/* Dark mode: Adjust panel colors */}
-                        <Popover.Panel className="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10 focus:outline-none">
-                          <div className="p-4">
-                            {/* MoreOptions component likely needs internal dark mode styles */}
-                            <MoreOptions
-                              outputFormats={outputFormats}
-                              mcpTools={mcpTools}
-                              currentOutputFormat={currentChat?.outputFormatId}
-                              currentMCPTool={currentChat?.mcpToolId}
-                              disableSelection={disableSelection}
-                              showFileUpload={showFileUpload}
-                              showMCPTools={showMCPTools}
-                              showTokenSliders={showTokenSliders}
-                              selectedPreset={selectedPreset}
-                              thinkingPresets={thinkingPresets}
-                              onPresetChange={updatePreset}
-                              maxTokens={maxTokens}
-                              budgetTokens={budgetTokens}
-                              hideOutputFormats={hideOutputFormats}
-                              onOutputFormatChange={outputFormatChange}
-                              onMCPToolChange={mcpToolChange}
-                            />
-                          </div>
-                        </Popover.Panel>
-                      </Transition>
-                    </>
-                  )}
-                </Popover>
-              </div>{" "}
-              {/* End of Options Bar + More Options Popover container */}
-              {/* Credits Display & Utility icons Container */}
-              {/* Added flex-wrap to allow credits/icons row to wrap if needed */}
-              {/* items-center aligns vertically, justify-end pushes to right on mobile when stacked */}
-              <div className="flex flex-wrap items-center justify-end sm:justify-normal gap-2">
-                {" "}
-                {/* Added gap and flex-wrap */}
-                {/* Subtle Credits Display */}
-                {userUsageLimits != null && (
-                  <div className="flex items-center group relative">
-                    {" "}
-                    {/* Removed mr-2, using gap now */}
-                    {/* Dark mode: Adjust credits display colors */}
-                    <div className="flex items-center px-2 py-0.5 rounded-full bg-slate-50 border border-slate-100 dark:bg-slate-700 dark:border-slate-600 shadow-sm">
-                      <MaterialSymbol
-                        icon="electric_bolt"
-                        size={14}
-                        className="text-slate-400 dark:text-slate-500 mr-1"
-                      />
-                      <span className="text-xs font-medium text-slate-400 dark:text-slate-300">
-                        {user.hasUnlimitedCredits
-                          ? "unlimited"
-                          : Math.max(
-                              0,
-                              Math.round(
-                                (userUsageLimits.planUsageLimit -
-                                  userUsageLimits.userPeriodUsage) *
-                                  100
-                              )
-                            )}
-                      </span>
-                    </div>
-                    {/* Tooltip on hover */}
-                    {/* Dark mode: Adjust tooltip colors */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 w-auto hidden group-hover:block">
-                      <div className="bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 text-xs rounded py-1 px-2 whitespace-nowrap">
-                        Available credits
+          {/* --- Mobile Only Controls Trigger --- */}
+          <div className="sm:hidden">
+            {" "}
+            {/* Visible only on mobile */}
+            <Popover className="relative">
+              {({ open }) => (
+                <>
+                  <Popover.Button className="p-1.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700 focus:outline-none transition-colors">
+                    <MaterialSymbol icon="tune" size={24} />
+                  </Popover.Button>
+                  {/* --- Mobile Popover Panel --- */}
+                  <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="opacity-0 translate-y-1"
+                    enterTo="opacity-100 translate-y-0"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="opacity-100 translate-y-0"
+                    leaveTo="opacity-0 translate-y-1"
+                  >
+                    {/* Removed max-w-sm, Increased z-index significantly */}
+                    <Popover.Panel className="absolute right-0 z-50 mt-2 w-[calc(100vw-2rem)] origin-top-right rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10 focus:outline-none">
+                      {/* Container for both OptionsBar and MoreOptions */}
+                      <div className="p-3 space-y-3">
+                        {/* Render OptionsBar inside mobile popover */}
+                        <div className="border-b border-slate-200 dark:border-slate-700 pb-3">
+                          <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 px-1">
+                            Chat Options
+                          </h3>
+                          {/* Pass isMobileLayout={true} and ensure all props are correct */}
+                          <OptionsBar
+                            isMobileLayout={true} // Add this prop
+                            models={models}
+                            personas={[
+                              ...(userPersonas || []),
+                              ...(globalPersonas || []),
+                            ]}
+                            userPersonas={userPersonas || []}
+                            globalPersonas={globalPersonas || []}
+                            outputFormats={outputFormats}
+                            currentModel={
+                              parseInt(selectedModel || "") || undefined
+                            } // Convert string to number
+                            currentPersona={
+                              parseInt(selectedPersona || "") || undefined
+                            } // Convert string to number
+                            currentOutputFormat={selectedOutputFormat} // Pass string state variable
+                            disableSelection={disableSelection}
+                            onModelChange={modelChange}
+                            onPersonaChange={personaChange}
+                            onOutputFormatChange={outputFormatChange}
+                            showMoreOptions={false} // Explicitly false
+                            toggleMoreOptions={() => {}} // No-op function
+                            hideOutputFormats={hideOutputFormats}
+                          />
+                        </div>
+                        {/* Render MoreOptions inside mobile popover */}
+                        {/* Ensure visibility props (show...) are passed correctly */}
+                        <div>
+                          <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 px-1">
+                            Advanced Options
+                          </h3>
+                          <MoreOptions
+                            outputFormats={outputFormats}
+                            mcpTools={mcpTools}
+                            currentOutputFormat={selectedOutputFormat} // Pass string state variable
+                            currentMCPTool={selectedMCPTool} // Pass string state variable
+                            disableSelection={disableSelection}
+                            showFileUpload={showFileUpload} // Pass hook result
+                            showMCPTools={showMCPTools} // Pass hook result
+                            showTokenSliders={showTokenSliders} // Pass hook result
+                            selectedPreset={selectedPreset}
+                            thinkingPresets={thinkingPresets}
+                            onPresetChange={updatePreset}
+                            maxTokens={maxTokens}
+                            budgetTokens={budgetTokens}
+                            hideOutputFormats={hideOutputFormats}
+                            onOutputFormatChange={outputFormatChange}
+                            onMCPToolChange={mcpToolChange}
+                          />
+                        </div>
+                        {/* Section for Utility Icons */}
+                        <div className="border-t border-slate-200 dark:border-slate-700 pt-3">
+                          <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 px-1">
+                            Actions & Info
+                          </h3>
+                          {/* Render UtilityIconRow inside mobile popover */}
+                          {/* Ensure props are passed correctly */}
+                          <UtilityIconRow
+                            resetChat={resetChat} // Pass resetChat function
+                            toggleHistory={toggleHistory} // Pass toggleHistory function
+                            user={user} // Pass user object
+                            chat={currentChat} // Pass currentChat state
+                          />
+                        </div>
                       </div>
+                    </Popover.Panel>
+                  </Transition>
+                </>
+              )}
+            </Popover>
+          </div>
+          {/* --- Desktop Only Controls --- */}
+          {/* Use justify-between and w-full to space out left/right groups */}
+          <div className="hidden sm:flex items-center justify-between w-full ml-4">
+            {" "}
+            {/* Added ml-4 for spacing from logo */}
+            {/* Left side: Options + More Options */}
+            <div className="flex items-center gap-x-2">
+              <OptionsBar /* Original OptionsBar for desktop */
+                models={models}
+                personas={[...(userPersonas || []), ...(globalPersonas || [])]}
+                userPersonas={userPersonas || []}
+                globalPersonas={globalPersonas || []}
+                outputFormats={outputFormats}
+                currentModel={parseInt(selectedModel || "") || undefined} // Use hook state
+                currentPersona={parseInt(selectedPersona || "") || undefined} // Use hook state
+                currentOutputFormat={selectedOutputFormat} // Use hook state
+                disableSelection={disableSelection}
+                onModelChange={modelChange}
+                onPersonaChange={personaChange}
+                onOutputFormatChange={outputFormatChange}
+                showMoreOptions={showMoreOptions}
+                toggleMoreOptions={toggleMoreOptions}
+                hideOutputFormats={hideOutputFormats}
+              />
+              {/* More Options Popover */}
+              <Popover className="relative ml-1">
+                {({ open }) => (
+                  <>
+                    {/* Dark mode: Adjust button colors */}
+                    <Popover.Button className="py-1 px-2.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700 focus:outline-none transition-colors">
+                      <MaterialSymbol
+                        className="mt-1.5"
+                        icon="tune"
+                        size={22}
+                      />
+                    </Popover.Button>
+
+                    <Transition
+                      as={Fragment}
+                      enter="transition ease-out duration-200"
+                      enterFrom="opacity-0 translate-y-1"
+                      enterTo="opacity-100 translate-y-0"
+                      leave="transition ease-in duration-150"
+                      leaveFrom="opacity-100 translate-y-0"
+                      leaveTo="opacity-0 translate-y-1"
+                    >
+                      {/* Dark mode: Adjust panel colors */}
+                      <Popover.Panel className="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10 focus:outline-none">
+                        <div className="p-4">
+                          {/* MoreOptions component likely needs internal dark mode styles */}
+                          <MoreOptions
+                            outputFormats={outputFormats}
+                            mcpTools={mcpTools}
+                            currentOutputFormat={currentChat?.outputFormatId}
+                            currentMCPTool={currentChat?.mcpToolId}
+                            disableSelection={disableSelection}
+                            showFileUpload={showFileUpload}
+                            showMCPTools={showMCPTools}
+                            showTokenSliders={showTokenSliders}
+                            selectedPreset={selectedPreset}
+                            thinkingPresets={thinkingPresets}
+                            onPresetChange={updatePreset}
+                            maxTokens={maxTokens}
+                            budgetTokens={budgetTokens}
+                            hideOutputFormats={hideOutputFormats}
+                            onOutputFormatChange={outputFormatChange}
+                            onMCPToolChange={mcpToolChange}
+                          />
+                        </div>
+                      </Popover.Panel>
+                    </Transition>
+                  </>
+                )}
+              </Popover>
+            </div>
+            {/* Right side: Credits + Utility Icons */}
+            {/* No ml-auto needed here, parent justify-between handles it */}
+            <div className="flex items-center gap-x-3">
+              {/* Subtle Credits Display */}
+              {userUsageLimits != null && (
+                <div className="flex items-center group relative">
+                  {/* Dark mode: Adjust credits display colors */}
+                  <div className="flex items-center px-2 py-0.5 rounded-full bg-slate-50 border border-slate-100 dark:bg-slate-700 dark:border-slate-600 shadow-sm">
+                    <MaterialSymbol
+                      icon="electric_bolt"
+                      size={14}
+                      className="text-slate-400 dark:text-slate-500 mr-1"
+                    />
+                    <span className="text-xs font-medium text-slate-400 dark:text-slate-300">
+                      {user.hasUnlimitedCredits
+                        ? "unlimited"
+                        : Math.max(
+                            0,
+                            Math.round(
+                              (userUsageLimits.planUsageLimit -
+                                userUsageLimits.userPeriodUsage) *
+                                100
+                            )
+                          )}
+                    </span>
+                  </div>
+                  {/* Tooltip on hover */}
+                  {/* Dark mode: Adjust tooltip colors */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 w-auto hidden group-hover:block">
+                    <div className="bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 text-xs rounded py-1 px-2 whitespace-nowrap">
+                      Available credits
                     </div>
                   </div>
-                )}
-                <UtilityIconRow
-                  resetChat={resetChat}
-                  toggleHistory={toggleHistory}
-                  chat={currentChat}
-                  user={user}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+                </div>
+              )}
+              <UtilityIconRow
+                resetChat={resetChat}
+                toggleHistory={toggleHistory}
+                chat={currentChat}
+                user={user}
+              />
+            </div>{" "}
+            {/* End of Credits + Utility Icons container */}
+          </div>{" "}
+          {/* End of Desktop Only Controls wrapper */}
+        </div>{" "}
+        {/* End of Top Bar Flex Container */}
         {/* Free Tier Upgrade Banner */}
         {user &&
           user.stripePriceId === null &&
@@ -503,15 +592,15 @@ export default function ChatWrapper({
             </div>
           )}
         {/* Conversation area & Text Input Container */}
-        {/* Becomes flex-col. Centers content vertically and horizontally ONLY when chat is empty AND not loading */}
-        <div
-          className={`flex flex-col flex-grow overflow-hidden ${response.length === 0 && !showConversationSpinner ? "justify-center items-center" : ""}`}
-        >
+        {/* Added min-h-0 to help flexbox calculate heights correctly with overflow */}
+        {/* Remove conditional centering here */}
+        <div className="flex flex-col flex-grow overflow-hidden min-h-0">
           {/* Conversation Area */}
-          {/* Takes up available space (flex-1) only when there are responses OR when loading */}
+          {/* Takes up available space (flex-1). Ensure it shrinks if needed (min-h-0 might not be needed here but doesn't hurt) */}
           {/* Dark mode: Adjust conversation container colors */}
+          {/* Make flex-1 conditional */}
           <div
-            className={`max-w-3xl w-full mx-auto overflow-y-auto p-4 ${response.length > 0 || showConversationSpinner ? "flex-1" : ""}`}
+            className={`max-w-3xl w-full mx-auto overflow-y-auto p-2 sm:p-4 ${response.length > 0 || showConversationSpinner ? "flex-1" : ""}`}
           >
             {/* Conversation component renders nothing if chats are empty */}
             <Conversation
@@ -521,39 +610,48 @@ export default function ChatWrapper({
               renderTypeName={renderTypeName}
             />
           </div>
-          {/* Welcome Message - Only shown when chat is empty and not loading */}
-          {response.length === 0 && !showConversationSpinner && (
-            <div className="text-center mb-4 transition-opacity duration-300 ease-out">
-              {/* Dark mode: Adjust welcome text color */}
-              <h1 className="text-3xl text-slate-600 dark:text-slate-300">
-                Welcome to Snowgoose
-              </h1>
-            </div>
-          )}
-          {/* Text input area container - Applies transform/opacity transition */}
-          {/* The container itself doesn't move, but its placement within the flex parent changes */}
-          <div className="max-w-3xl mx-auto w-full pb-2 px-2 transition-transform duration-500 ease-out">
-            {/* Usage Limit Warning - Use local state */}
-            {localIsOverLimit && usageLimit && usageLimit > 0 && (
-              // Dark mode: Adjust warning colors
-              <div className="mb-2 p-2 text-center text-sm text-red-700 bg-red-100 border border-red-300 dark:bg-red-900 dark:border-red-700 dark:text-red-200 rounded-md">
-                You have reached your usage limit (
-                {periodUsage?.toFixed(2) ?? 0} / {usageLimit.toFixed(2)}) for
-                the current billing period. Please upgrade your plan or wait for
-                the next cycle to continue.
+          {/* Wrapper for Welcome Message and Input Area - Center this when chat is empty */}
+          <div
+            className={`flex flex-col ${response.length === 0 && !showConversationSpinner ? "flex-1 justify-center items-center" : "flex-shrink-0"}`}
+          >
+            {" "}
+            {/* Conditional flex-1 and centering */}
+            {/* Welcome Message - Only shown when chat is empty and not loading */}
+            {response.length === 0 && !showConversationSpinner && (
+              <div className="text-center mb-4 transition-opacity duration-300 ease-out">
+                {/* Dark mode: Adjust welcome text color */}
+                <h1 className="text-3xl text-slate-600 dark:text-slate-300">
+                  Welcome to Snowgoose
+                </h1>
               </div>
             )}
-            <TextInputArea
-              onSubmit={handleFormSubmit}
-              isSubmitting={isSubmitting}
-              disabled={localIsOverLimit} // Pass local disabled state
-              onReset={handleReset}
-              showFileUpload={showFileUpload}
-            />
+            {/* Text input area container - Stays at the bottom */}
+            {/* Adjusted padding for mobile */}
+            {/* Removed flex-shrink-0 from here */}
+            <div className="max-w-3xl mx-auto w-full pb-2 px-2 sm:px-0">
+              {/* Usage Limit Warning - Use local state */}
+              {localIsOverLimit && usageLimit && usageLimit > 0 && (
+                // Dark mode: Adjust warning colors
+                <div className="mb-2 p-2 text-center text-sm text-red-700 bg-red-100 border border-red-300 dark:bg-red-900 dark:border-red-700 dark:text-red-200 rounded-md">
+                  You have reached your usage limit (
+                  {periodUsage?.toFixed(2) ?? 0} / {usageLimit.toFixed(2)}) for
+                  the current billing period. Please upgrade your plan or wait
+                  for the next cycle to continue.
+                </div>
+              )}
+              <TextInputArea
+                onSubmit={handleFormSubmit}
+                isSubmitting={isSubmitting}
+                disabled={localIsOverLimit} // Pass local disabled state
+                onReset={handleReset}
+                showFileUpload={showFileUpload}
+              />
+            </div>{" "}
+            {/* Closes Input inner container */}
           </div>{" "}
-          {/* Closes Text input area container */}
+          {/* Closes Welcome + Input wrapper */}
         </div>{" "}
-        {/* Closes the main flex container for Conversation + TextInputArea */}
+        {/* Closes the main flex container */}
       </form>
       <Transition
         as={Fragment}
