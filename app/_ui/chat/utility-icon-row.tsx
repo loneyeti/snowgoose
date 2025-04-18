@@ -66,6 +66,16 @@ export default function UtilityIconRow({
       >
         <MaterialSymbol icon="history" size={24} />
       </button>
+      {/* Help Icon Link */}
+      <Link
+        href="https://docs.snowgoose.app"
+        target="_blank" // Open in new tab
+        rel="noopener noreferrer" // Security best practice for target="_blank"
+        title="Help / Documentation"
+        className="text-slate-600 dark:text-slate-400 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"
+      >
+        <MaterialSymbol icon="help_outline" size={24} />
+      </Link>
       <Link
         href="/chat/settings/profile"
         title="Settings"
