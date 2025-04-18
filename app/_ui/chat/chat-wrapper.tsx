@@ -317,7 +317,7 @@ export default function ChatWrapper({
         {/* Enhanced top bar - Minimal mobile header */}
         {/* Dark mode: Adjust background, border */}
         {/* Single row, justify-between. Increased padding on sm+ */}
-        <div className="flex-none flex items-center justify-between bg-gradient-to-r from-white to-slate-100 border-b border-slate-200 dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 shadow-sm px-3 py-1.5 sm:px-6 sm:py-2">
+        <div className="flex-none flex items-center justify-between bg-gradient-to-r from-white to-slate-100 border-b border-slate-200 dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 shadow-sm px-3 py-1.5 lg:px-6 lg:py-2">
           {/* Logo section - Consistent padding */}
           <div className="flex items-center">
             {/* Dark mode: Swap logo */}
@@ -332,8 +332,9 @@ export default function ChatWrapper({
               className="h-10 w-auto transition-all hover:opacity-90 hidden dark:block" // Show white logo in dark mode
             />
           </div>
+          <span className="lg:pl-4">Snowgoose</span>
           {/* --- Mobile Only Controls Trigger --- */}
-          <div className="sm:hidden">
+          <div className="lg:hidden">
             {" "}
             {/* Visible only on mobile */}
             <Popover className="relative">
@@ -436,7 +437,7 @@ export default function ChatWrapper({
           </div>
           {/* --- Desktop Only Controls --- */}
           {/* Use justify-between and w-full to space out left/right groups */}
-          <div className="hidden sm:flex items-center justify-between w-full ml-4">
+          <div className="hidden lg:flex items-center justify-between w-full ml-4">
             {" "}
             {/* Added ml-4 for spacing from logo */}
             {/* Left side: Options + More Options */}
@@ -573,7 +574,7 @@ export default function ChatWrapper({
                     You&apos;re currently on the Free Demo Plan.{" "}
                     {/* Escaped apostrophe */}
                   </p>
-                  <p className="text-sm ml-2 hidden sm:block">
+                  <p className="text-sm ml-2 hidden lg:block">
                     Unlock more usage by subscribing!
                   </p>
                 </div>
@@ -585,24 +586,30 @@ export default function ChatWrapper({
                   Subscribe Now
                 </a>
               </div>
-              <p className="text-sm mt-1 text-center sm:hidden">
+              <p className="text-sm mt-1 text-center lg:hidden">
                 Unlock unlimited features by subscribing!
               </p>{" "}
               {/* Mobile text */}
             </div>
           )}
         {/* Conversation area & Text Input Container */}
-        {/* Added min-h-0 to help flexbox calculate heights correctly with overflow */}
-        {/* Remove conditional centering here */}
+        {/* Use flex-grow and min-h-0 to manage height correctly */}
         <div className="flex flex-col flex-grow overflow-hidden min-h-0">
-          {/* Conversation Area */}
-          {/* Takes up available space (flex-1). Ensure it shrinks if needed (min-h-0 might not be needed here but doesn't hurt) */}
-          {/* Dark mode: Adjust conversation container colors */}
-          {/* Make flex-1 conditional */}
+          {/* Welcome Message - Centered using flex-1 only when shown */}
+          {response.length === 0 && !showConversationSpinner && (
+            <div className="flex-1 flex flex-col justify-center items-center text-center p-4 transition-opacity duration-300 ease-out">
+              {/* Dark mode: Adjust welcome text color */}
+              <h1 className="text-3xl text-slate-600 dark:text-slate-300">
+                Welcome to Snowgoose
+              </h1>
+            </div>
+          )}
+
+          {/* Conversation Area - Always takes available space (flex-1) when active and scrolls */}
+          {/* Conditionally apply flex-1 based on whether welcome message is shown */}
           <div
-            className={`max-w-3xl w-full mx-auto overflow-y-auto p-2 sm:p-4 ${response.length > 0 || showConversationSpinner ? "flex-1" : ""}`}
+            className={`max-w-3xl w-full mx-auto overflow-y-auto p-2 lg:p-4 ${response.length > 0 || showConversationSpinner ? "flex-1" : ""}`}
           >
-            {/* Conversation component renders nothing if chats are empty */}
             <Conversation
               chats={response}
               showSpinner={showConversationSpinner}
@@ -610,48 +617,29 @@ export default function ChatWrapper({
               renderTypeName={renderTypeName}
             />
           </div>
-          {/* Wrapper for Welcome Message and Input Area - Center this when chat is empty */}
-          <div
-            className={`flex flex-col ${response.length === 0 && !showConversationSpinner ? "flex-1 justify-center items-center" : "flex-shrink-0"}`}
-          >
-            {" "}
-            {/* Conditional flex-1 and centering */}
-            {/* Welcome Message - Only shown when chat is empty and not loading */}
-            {response.length === 0 && !showConversationSpinner && (
-              <div className="text-center mb-4 transition-opacity duration-300 ease-out">
-                {/* Dark mode: Adjust welcome text color */}
-                <h1 className="text-3xl text-slate-600 dark:text-slate-300">
-                  Welcome to Snowgoose
-                </h1>
+
+          {/* Text input area container - Always at the bottom, never shrinks */}
+          <div className="flex-shrink-0 max-w-3xl mx-auto w-full pb-2 px-2 lg:px-0">
+            {/* Usage Limit Warning - Use local state */}
+            {localIsOverLimit && usageLimit && usageLimit > 0 && (
+              // Dark mode: Adjust warning colors
+              <div className="mb-2 p-2 text-center text-sm text-red-700 bg-red-100 border border-red-300 dark:bg-red-900 dark:border-red-700 dark:text-red-200 rounded-md">
+                You have reached your usage limit (
+                {periodUsage?.toFixed(2) ?? 0} / {usageLimit.toFixed(2)}) for
+                the current billing period. Please upgrade your plan or wait for
+                the next cycle to continue.
               </div>
             )}
-            {/* Text input area container - Stays at the bottom */}
-            {/* Adjusted padding for mobile */}
-            {/* Removed flex-shrink-0 from here */}
-            <div className="max-w-3xl mx-auto w-full pb-2 px-2 sm:px-0">
-              {/* Usage Limit Warning - Use local state */}
-              {localIsOverLimit && usageLimit && usageLimit > 0 && (
-                // Dark mode: Adjust warning colors
-                <div className="mb-2 p-2 text-center text-sm text-red-700 bg-red-100 border border-red-300 dark:bg-red-900 dark:border-red-700 dark:text-red-200 rounded-md">
-                  You have reached your usage limit (
-                  {periodUsage?.toFixed(2) ?? 0} / {usageLimit.toFixed(2)}) for
-                  the current billing period. Please upgrade your plan or wait
-                  for the next cycle to continue.
-                </div>
-              )}
-              <TextInputArea
-                onSubmit={handleFormSubmit}
-                isSubmitting={isSubmitting}
-                disabled={localIsOverLimit} // Pass local disabled state
-                onReset={handleReset}
-                showFileUpload={showFileUpload}
-              />
-            </div>{" "}
-            {/* Closes Input inner container */}
-          </div>{" "}
-          {/* Closes Welcome + Input wrapper */}
+            <TextInputArea
+              onSubmit={handleFormSubmit}
+              isSubmitting={isSubmitting}
+              disabled={localIsOverLimit} // Pass local disabled state
+              onReset={handleReset}
+              showFileUpload={showFileUpload}
+            />
+          </div>
         </div>{" "}
-        {/* Closes the main flex container */}
+        {/* Closes the main content flex container */}
       </form>
       <Transition
         as={Fragment}
