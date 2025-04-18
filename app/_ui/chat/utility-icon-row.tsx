@@ -89,7 +89,7 @@ export default function UtilityIconRow({
       <Link
         href="/chat/settings/profile"
         title="Profile"
-        className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-600 dark:bg-slate-500 text-white dark:text-slate-100 hover:bg-slate-700 dark:hover:bg-slate-400 transition-colors"
+        className="flex items-center justify-center w-8 h-8 rounded-full mb-2 bg-slate-600 dark:bg-slate-500 text-white dark:text-slate-100 hover:bg-slate-700 dark:hover:bg-slate-400 transition-colors"
       >
         <span className="text-sm font-medium">{initial}</span>
       </Link>

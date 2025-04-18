@@ -77,6 +77,11 @@ export default function ChatWrapper({
     initialModelId: currentChat?.modelId,
   });
 
+  function getModelName(): string {
+    const model = models.find((model) => model.id === parseInt(selectedModel));
+    return model?.name || "";
+  }
+
   const { selectedPersona, updateSelectedPersona } = usePersonaState({
     personas,
     initialPersonaId: currentChat?.personaId,
@@ -332,7 +337,8 @@ export default function ChatWrapper({
               className="h-10 w-auto transition-all hover:opacity-90 hidden dark:block" // Show white logo in dark mode
             />
           </div>
-          <span className="lg:pl-4">Snowgoose</span>
+          <span className="hidden lg:block lg:pl-4">Snowgoose</span>
+          <span className="lg:hidden">{getModelName()}</span>
           {/* --- Mobile Only Controls Trigger --- */}
           <div className="lg:hidden">
             {" "}
@@ -599,8 +605,11 @@ export default function ChatWrapper({
           {response.length === 0 && !showConversationSpinner && (
             <div className="flex-1 flex flex-col justify-center items-center text-center p-4 transition-opacity duration-300 ease-out">
               {/* Dark mode: Adjust welcome text color */}
-              <h1 className="text-3xl text-slate-600 dark:text-slate-300">
-                Welcome to Snowgoose
+              <h1 className="text-3xl text-slate-600 dark:text-slate-300 font-thin">
+                Welcome to{" "}
+                <span className="font-extrabold text-slate-500 dark:text-slate-400">
+                  Snowgoose
+                </span>
               </h1>
             </div>
           )}
