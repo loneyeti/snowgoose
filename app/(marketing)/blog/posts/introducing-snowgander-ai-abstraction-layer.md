@@ -83,7 +83,7 @@ Developer empowerment: Lower the barrier to multi-model, multi-vendor AI develop
 npm install snowgander
 ```
 
-2. Read the Documentation on [GitHub](https://github.com/troyharris/snowgander)
+2. Read the Documentation on [GitHub](https://github.com/loneyeti/snowgander)
 
 3. Start integrating multiple AIs, quickly and securely
 
@@ -97,6 +97,6 @@ We’re committed to improving snowgander alongside Snowgoose. Planned upcoming 
 -Even more type safety and extensibility
 -Get Involved
 
-snowgander is MIT licensed and fully open on [GitHub](https://github.com/troyharris/snowgander). Issues and Pull Requests are welcome.
+snowgander is MIT licensed and fully open on [GitHub](https://github.com/loneyeti/snowgander). Issues and Pull Requests are welcome.
 
 Ready to experience everything unified AI access can do? Try [Snowgoose](https://snowgoose.app) for yourself today (starting at just $5/mo), or power your own projects with snowgander!

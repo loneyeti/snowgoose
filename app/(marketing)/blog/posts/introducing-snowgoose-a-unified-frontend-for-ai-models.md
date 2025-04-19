@@ -50,7 +50,7 @@ Through our research, we’ve found that users want:
 
 Transparency and collaboration are important to us. That’s why **Snowgoose is 100% open source**, available on GitHub for you to use, contribute to, or deploy yourself:
 
-[Snowgoose on GitHub →](https://github.com/troyharris/snowgoose)
+[Snowgoose on GitHub →](https://github.com/loneyeti/snowgoose)
 
 We believe the open model will help us create a platform that genuinely fits real-world needs—especially as AI models and use cases evolve.
 
@@ -58,7 +58,7 @@ We believe the open model will help us create a platform that genuinely fits rea
 
 ## Under the Hood: snowgander
 
-A key part of Snowgoose’s architecture is [`snowgander`](https://github.com/troyharris/snowgander), our open-source AI vendor abstraction package. If you’ve wanted to build your own AI applications on top of multiple providers—but hate writing duplicate connection code—snowgander is worth a look.
+A key part of Snowgoose’s architecture is [`snowgander`](https://github.com/loneyeti/snowgander), our open-source AI vendor abstraction package. If you’ve wanted to build your own AI applications on top of multiple providers—but hate writing duplicate connection code—snowgander is worth a look.
 
 ### What does snowgander do?
 
@@ -108,6 +108,6 @@ Start exploring today:
 
 [Snowgoose.app](https://snowgoose.app)
 
-[Snowgoose (GitHub)](https://github.com/troyharris/snowgoose)
+[Snowgoose (GitHub)](https://github.com/loneyeti/snowgoose)
 
-[Snowgander (Github)](https://github.com/troyharris/snowgander)
+[Snowgander (Github)](https://github.com/loneyeti/snowgander)

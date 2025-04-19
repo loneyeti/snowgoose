@@ -237,7 +237,7 @@ export default function MarketingClientPage() {
                   </p>
                   <p className="mt-4">
                     <a
-                      href="https://github.com/troyharris/snowgoose"
+                      href="https://github.com/loneyeti/snowgoose"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm font-semibold leading-6 text-yellow-400 hover:text-yellow-300"
@@ -287,7 +287,7 @@ export default function MarketingClientPage() {
           </p>
           <div className="mt-8">
             <a
-              href="https://github.com/troyharris/snowgoose"
+              href="https://github.com/loneyeti/snowgoose"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-x-2 rounded-md bg-white/10 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white transition-colors"
