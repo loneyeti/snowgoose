@@ -1,7 +1,7 @@
 # Snowgoose
 
 <div align="center">
-  <img src="public/snowgoose-logo.png" alt="Snowgoose Logo" width="200"/>
+  <img src="public/snowgoose-logo-spring-2025-black-whitebg.png" alt="Snowgoose Logo" width="200"/>
   <p>A unified interface for AI service interactions</p>
 </div>
 

@@ -327,17 +327,17 @@ export default function ChatWrapper({
           <div className="flex items-center">
             {/* Dark mode: Swap logo */}
             <img
-              src="/snowgoose-logo-2025-black.png"
+              src="/snowgoose-logo-spring-2025-black-transparent.png"
               alt="Snowgoose Logo"
-              className="h-10 w-auto transition-all hover:opacity-90 dark:hidden" // Hide black logo in dark mode
+              className="w-12 object-fit transition-all hover:opacity-90 dark:hidden" // Hide black logo in dark mode
             />
             <img
-              src="/snowgoose-logo-2025-white.png"
+              src="/snowgoose-logo-spring-2025-white-transparent.png"
               alt="Snowgoose Logo"
-              className="h-10 w-auto transition-all hover:opacity-90 hidden dark:block" // Show white logo in dark mode
+              className="w-12 object-fit transition-all hover:opacity-90 hidden dark:block" // Show white logo in dark mode
             />
           </div>
-          <span className="hidden lg:block lg:pl-4">Snowgoose</span>
+          <span className="hidden lg:block lg:pl-1">Snowgoose</span>
           <span className="lg:hidden">{getModelName()}</span>
           {/* --- Mobile Only Controls Trigger --- */}
           <div className="lg:hidden">

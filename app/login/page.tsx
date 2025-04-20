@@ -146,7 +146,7 @@ function LoginForm() {
       >
         {/* Slightly larger logo */}
         <img
-          src="/snowgoose-logo-2025-black.png"
+          src="/snowgoose-logo-spring-2025-black-transparent.png"
           alt="Snowgoose Logo"
           className="mx-auto h-14 mb-6" // Increased size and margin
         />

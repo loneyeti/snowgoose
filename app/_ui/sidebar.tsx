@@ -13,7 +13,7 @@ export default function Sidebar({ children }: { children: ReactNode }) {
       <Link href="/chat">
         {/* Light mode logo */}
         <Image
-          src="/snowgoose-logo-2025-black.png"
+          src="/snowgoose-logo-spring-2025-black-transparent.png"
           alt="Snowgoose logo"
           width={80}
           height={80}
@@ -21,7 +21,7 @@ export default function Sidebar({ children }: { children: ReactNode }) {
         />
         {/* Dark mode logo */}
         <Image
-          src="/snowgoose-logo-2025-white.png" // Use white logo for dark mode
+          src="/snowgoose-logo-spring-2025-white-transparent.png" // Use white logo for dark mode
           alt="Snowgoose logo"
           width={80}
           height={80}

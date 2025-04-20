@@ -55,7 +55,7 @@ export default function MarketingLayout({
         <nav className="container mx-auto flex items-center justify-between p-4">
           <Link href="/" className="flex items-center space-x-2">
             <Image
-              src="/snowgoose-logo-2025-white.png"
+              src="/snowgoose-logo-spring-2025-white-transparent.png"
               alt="Snowgoose Logo"
               width={32} // Slightly smaller for nav
               height={32}
