@@ -1,9 +1,21 @@
 import { format } from "date-fns";
+import type { Metadata } from "next";
 import { getAllPostSlugs, getPostData } from "@/app/_utils/blog/mdx";
 
 interface BlogPostProps {
   params: {
     slug: string;
+  };
+}
+
+// Generate metadata dynamically based on the post slug
+export async function generateMetadata({
+  params,
+}: BlogPostProps): Promise<Metadata> {
+  const post = await getPostData(params.slug);
+  return {
+    title: `${post.title} | Snowgoose`,
+    description: post.excerpt,
   };
 }
 

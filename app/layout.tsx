@@ -12,7 +12,7 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: "Snowgoose",
-  description: "GPT Frontend",
+  description: "Unified AI Access",
 };
 
 export const viewport: Viewport = {
