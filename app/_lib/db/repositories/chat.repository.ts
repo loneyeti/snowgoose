@@ -138,12 +138,22 @@ export class ChatRepository extends BaseRepository {
     adapter: AIVendorAdapter
   ): Promise<ChatResponse> {
     const user = await getCurrentAPIUser();
+    let log = new Logger({ source: "chat-repository" }).with({
+      userId: `${user?.id}`,
+    }); // Use let for potential reassignment with userId
+    log.info("sendChatAndUpdateCost repository method started.");
     if (!user) {
+      log.error("No user found");
       throw new Error("Unauthorized");
     }
     const response = await adapter.sendChat(chat);
     if (response.usage) {
+      log.info(
+        `Response cost ${response.usage.totalCost}. Adding to user usage.`
+      );
       await updateUserUsage(user.id, response.usage.totalCost);
+    } else {
+      log.warn("Response generated no usage.");
     }
     return response;
   }

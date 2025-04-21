@@ -78,11 +78,7 @@ export default function OptionsBar({
 
   const [selectedPersona, setSelectedPersona] = useState<number | undefined>(
     currentPersona ||
-      (allUserPersonas.length > 0
-        ? allUserPersonas[0].id
-        : allGlobalPersonas.length > 0
-          ? allGlobalPersonas[0].id
-          : undefined)
+      (allGlobalPersonas.length > 0 ? allGlobalPersonas[0].id : undefined)
   );
 
   const [selectedOutputFormat, setSelectedOutputFormat] = useState<
@@ -309,14 +305,14 @@ export default function OptionsBar({
                       </div>
 
                       <div className="max-h-80 overflow-y-auto">
-                        {/* User Personas Section */}
-                        {allUserPersonas.length > 0 && (
+                        {/* Global Personas Section */}
+                        {allGlobalPersonas.length > 0 && (
                           <>
                             {/* Dark mode: Adjust group header */}
-                            <div className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500 mt-1">
-                              Your Personas
+                            <div className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500 mt-2">
+                              Global Personas
                             </div>
-                            {allUserPersonas.map((persona: Persona) => (
+                            {allGlobalPersonas.map((persona: Persona) => (
                               // Dark mode: Adjust item styles (hover, selected, text)
                               <div
                                 key={persona.id}
@@ -346,14 +342,14 @@ export default function OptionsBar({
                           </>
                         )}
 
-                        {/* Global Personas Section */}
-                        {allGlobalPersonas.length > 0 && (
+                        {/* User Personas Section */}
+                        {allUserPersonas.length > 0 && (
                           <>
                             {/* Dark mode: Adjust group header */}
-                            <div className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500 mt-2">
-                              Global Personas
+                            <div className="px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500 mt-1">
+                              Your Personas
                             </div>
-                            {allGlobalPersonas.map((persona: Persona) => (
+                            {allUserPersonas.map((persona: Persona) => (
                               // Dark mode: Adjust item styles (hover, selected, text)
                               <div
                                 key={persona.id}
@@ -440,7 +436,7 @@ export default function OptionsBar({
             disabled={disableSelection}
             aria-label="Add Persona"
           >
-            <MaterialSymbol icon="add" size={20} />
+            <MaterialSymbol icon="person_add" size={20} />
           </button>
         </div>
       </div>

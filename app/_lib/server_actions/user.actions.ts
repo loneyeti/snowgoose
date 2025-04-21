@@ -183,37 +183,56 @@ export async function ensureUserExists(
 }
 
 export async function updateUserUsage(userId: number, usage: number) {
-  const log = new Logger();
+  let log = new Logger({ source: "user.actions" }).with({
+    userId: `${userId}`,
+  });
   try {
     const user = await userRepository.findById(userId);
 
     if (!user) {
-      // Throw specific error for not found, but catch block will generalize
+      log.error("User not found");
       throw new Error(`User with ID ${userId} not found.`);
     }
 
-    // Ensure usage is a non-negative number
-    if (typeof usage !== "number" || usage < 0) {
-      // Throw specific error for invalid input, but catch block will generalize
-      throw new Error(`Invalid usage amount provided: ${usage}`);
+    // More strict usage validation
+    if (typeof usage !== "number" || isNaN(usage) || usage < 0) {
+      log.warn(`Invalid usage amount provided: ${usage}`);
+      //throw new Error(`Invalid usage amount provided: ${usage}`);
+      // Could be not enough usage to report so proceed with 0.00001
+      usage = 0.00001;
     }
 
-    // Calculate new usage values, ensuring current values are treated as numbers (defaulting to 0 if null/undefined)
-    const currentPeriodUsage = Number(user.periodUsage) || 0;
-    const currentTotalUsage = Number(user.totalUsage) || 0;
+    // Better conversion with explicit NaN handling
+    const currentPeriodUsage = isNaN(Number(user.periodUsage))
+      ? 0
+      : Number(user.periodUsage);
+    const currentTotalUsage = isNaN(Number(user.totalUsage))
+      ? 0
+      : Number(user.totalUsage);
 
-    const newPeriodUsage = currentPeriodUsage + usage;
-    const newTotalUsage = currentTotalUsage + usage;
+    // For extremely small values, ensure we maintain numeric integrity
+    // by using toFixed for consistent decimal precision (e.g., 5 decimal places)
+    const newPeriodUsage = parseFloat((currentPeriodUsage + usage).toFixed(5));
+    const newTotalUsage = parseFloat((currentTotalUsage + usage).toFixed(5));
 
-    await userRepository.update(userId, {
-      periodUsage: newPeriodUsage,
-      totalUsage: newTotalUsage,
-    });
-
-    // No revalidatePath needed here as usage updates don't typically affect cached UI paths directly.
+    // Only check if they're valid numbers, not necessarily positive
+    // as some systems might track negative adjustments
+    if (!isNaN(newPeriodUsage) && !isNaN(newTotalUsage)) {
+      await userRepository.update(userId, {
+        periodUsage: newPeriodUsage,
+        totalUsage: newTotalUsage,
+      });
+      log.info(
+        `Updated user total usage from ${currentTotalUsage} to ${newTotalUsage}`
+      );
+    } else {
+      log.warn(
+        `Calculation resulted in invalid numbers. Skipping update. Old Total: ${currentTotalUsage}, ` +
+          `Tried to add: ${usage}, New Period: ${newPeriodUsage}, New Total: ${newTotalUsage}`
+      );
+    }
   } catch (error) {
-    log.error(`Failed to update usage for user ${userId}:`, { error: error }); // Log detailed error
-    // Throw generic error for the client
+    log.error(`Failed to update usage for user ${userId}:`, { error });
     throw new Error("Unable to update user usage statistics.");
   }
 }
