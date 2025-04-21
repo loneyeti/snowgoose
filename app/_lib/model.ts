@@ -213,7 +213,7 @@ export interface MCPToolPost {
 export interface SettingsListSettings {
   id: number;
   title: string;
-  detail: string;
+  detail?: string; // Made detail optional
 }
 
 export interface SettingListProps {

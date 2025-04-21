@@ -11,11 +11,13 @@ export default function UtilityIconRow({
   toggleHistory,
   user,
   chat,
+  closePopover, // Add optional closePopover prop
 }: {
   resetChat: () => void;
   toggleHistory: () => void;
   user: User;
   chat: Chat | undefined;
+  closePopover?: () => void; // Make it optional
 }) {
   async function saveChatAction() {
     try {
@@ -59,6 +61,7 @@ export default function UtilityIconRow({
         onClick={(e) => {
           e.preventDefault();
           toggleHistory();
+          closePopover?.(); // Call closePopover if it exists
         }}
         title="Show History"
         data-testid="onboarding-show-history"

@@ -18,7 +18,11 @@ export function usePersonaState({
 } {
   const [selectedPersona, setSelectedPersona] = useState<string>(
     initialPersonaId?.toString() ??
-      (personas.length > 0 ? personas[0].id.toString() : "")
+      (personas.length > 0
+        ? (
+            personas.find((p) => p.ownerId === null) || personas[0]
+          ).id.toString()
+        : "")
   );
 
   const updateSelectedPersona = (personaId: string) => {

@@ -13,19 +13,25 @@ export default async function UserSettingsPage() {
     redirect("/login");
   }
   return (
-    <div>
+    <main>
+      {" "}
+      {/* Changed div to main for semantic consistency */}
       <SettingsHeading>User Settings</SettingsHeading>
-      <Suspense
-        fallback={
-          <>
-            <ListSkeleton />
-            <ListSkeleton />
-            <ListSkeleton />
-          </>
-        }
-      >
-        <UserSettingsForm />
-      </Suspense>
-    </div>
+      {/* Added consistent container for spacing and max-width */}
+      <div className="mt-6 space-y-6 max-w-4xl">
+        <Suspense
+          fallback={
+            <>
+              <ListSkeleton />
+              <ListSkeleton />
+              <ListSkeleton />
+            </>
+          }
+        >
+          {/* The form itself might need internal styling adjustments */}
+          <UserSettingsForm />
+        </Suspense>
+      </div>
+    </main>
   );
 }

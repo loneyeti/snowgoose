@@ -66,28 +66,37 @@ export function DeleteButtonFactory({
 export function EditButtonFactory({
   id,
   resourceType,
+  className, // Add className prop
+  iconSize, // Add iconSize prop
 }: {
   id: string;
   resourceType: ResourceType;
+  className?: string; // Make className optional
+  iconSize?: number; // Make iconSize optional
 }) {
   const path =
     resourceType === "history"
-      ? `/chat/settings/${resourceType}`
+      ? `/chat/settings/${resourceType}` // History doesn't have an edit page, link to list
       : `/chat/settings/${resourceType}/${id}/edit`;
 
+  // Default className if not provided
+  const buttonClassName =
+    className ||
+    "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-3 hover:rounded-md hover:bg-slate-100 dark:hover:bg-slate-700";
+
   return (
-    <div className="w-full flex justify-end">
-      <Link href={path}>
-        <button>
-          {/* Dark mode: Adjust icon color and hover styles */}
-          <MaterialSymbol
-            icon="edit"
-            size={18}
-            className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-3 hover:rounded-md hover:bg-slate-100 dark:hover:bg-slate-700"
-          />
-        </button>
-      </Link>
-    </div>
+    // Removed the wrapping div to allow direct placement/styling by parent
+    <Link href={path} passHref legacyBehavior>
+      {/* Apply passed className to the button */}
+      <a className={buttonClassName} aria-label={`Edit item ${id}`}>
+        <MaterialSymbol
+          icon="edit"
+          size={iconSize || 18} // Use passed iconSize or default to 18
+          // Removed className here as it's now controlled by the button's className
+        />
+      </a>
+    </Link>
+    // Removed the stray closing div tag
   );
 }
 

@@ -286,7 +286,9 @@ export default function ChatWrapper({
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-[100dvh] overflow-hidden">
+      {" "}
+      {/* Use dynamic viewport height */}
       <form className="flex flex-col h-full">
         {/* Hidden input fields for required data */}
         <input
@@ -344,7 +346,9 @@ export default function ChatWrapper({
             {" "}
             {/* Visible only on mobile */}
             <Popover className="relative">
-              {({ open }) => (
+              {(
+                { open, close } // Destructure the 'close' function from Popover render prop
+              ) => (
                 <>
                   <Popover.Button className="p-1.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700 focus:outline-none transition-colors">
                     <MaterialSymbol icon="tune" size={24} />
@@ -426,12 +430,13 @@ export default function ChatWrapper({
                             Actions & Info
                           </h3>
                           {/* Render UtilityIconRow inside mobile popover */}
-                          {/* Ensure props are passed correctly */}
+                          {/* Pass the 'close' function from Popover */}
                           <UtilityIconRow
-                            resetChat={resetChat} // Pass resetChat function
-                            toggleHistory={toggleHistory} // Pass toggleHistory function
-                            user={user} // Pass user object
-                            chat={currentChat} // Pass currentChat state
+                            resetChat={resetChat}
+                            toggleHistory={toggleHistory}
+                            user={user}
+                            chat={currentChat}
+                            closePopover={close} // Pass the close function here
                           />
                         </div>
                       </div>
@@ -470,7 +475,7 @@ export default function ChatWrapper({
                 {({ open }) => (
                   <>
                     {/* Dark mode: Adjust button colors */}
-                    <Popover.Button className="py-1 px-2.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700 focus:outline-none transition-colors">
+                    <Popover.Button className="py-0.5 px-2.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700 focus:outline-none transition-colors">
                       <MaterialSymbol
                         className="mt-1.5"
                         icon="tune"
@@ -660,41 +665,52 @@ export default function ChatWrapper({
         leaveFrom="translate-x-0"
         leaveTo="translate-x-full"
       >
-        {/* Dark mode: Adjust history panel colors */}
-        <div className="absolute right-0 top-0 bottom-0 w-1/2 border-l-2 border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 p-6 overflow-y-auto z-20">
-          <div className="p-2 border-b-2 border-slate-200 dark:border-slate-700">
-            <button onClick={toggleHistory}>
-              <MaterialSymbol
-                icon="arrow_right_alt"
-                size={24}
-                className="text-slate-500 dark:text-slate-400" // Adjust icon color
-              />
-            </button>
-            {/* Dark mode: Adjust history title color */}
-            <h1 className="text-xl text-slate-900 dark:text-slate-100">
+        {/* --- History Panel --- */}
+        {/* Enhanced styling: Softer border, cleaner background, shadow, adjusted width and padding. Responsive width added. */}
+        <div className="absolute right-0 top-0 bottom-0 w-full lg:w-96 border-l border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 overflow-y-auto z-30 shadow-xl flex flex-col">
+          {/* Panel Header: Flex layout, softer border, adjusted padding */}
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3 mb-3 flex-shrink-0">
+            {/* Title: Adjusted size and weight */}
+            <h1 className="text-lg font-medium text-slate-700 dark:text-slate-200">
               History
             </h1>
+            {/* Close Button: Added hover effect and padding */}
+            <button
+              onClick={toggleHistory}
+              className="p-1 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              aria-label="Close history panel"
+            >
+              <MaterialSymbol icon="close" size={20} />
+            </button>
           </div>
-          {history.map((h: ConversationHistory) => {
-            return (
-              // Dark mode: Adjust history item colors
+          {/* History List Area: Takes remaining space and scrolls */}
+          <div className="flex-grow overflow-y-auto -mr-2 pr-2">
+            {" "}
+            {/* Negative margin + padding trick for scrollbar */}
+            {history.length === 0 && (
+              <p className="text-sm text-slate-500 dark:text-slate-400 text-center mt-4">
+                No history yet.
+              </p>
+            )}
+            {history.map((h: ConversationHistory) => (
+              // History Item: Cleaner look, hover effect, better spacing
               <div
                 key={h.id}
-                className="w-full p-3 text-sm bg-slate-50 dark:bg-slate-700 mt-3 rounded-md"
+                className="mt-1 rounded-lg transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50"
               >
-                {/* Dark mode: Adjust history button text color */}
+                {/* History Button: Adjusted text color, padding, truncation */}
                 <button
-                  className="text-left text-slate-800 dark:text-slate-200"
+                  className="w-full text-left text-sm text-slate-700 dark:text-slate-300 p-2 truncate rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
                   onClick={(e) => {
-                    e.preventDefault;
+                    e.preventDefault(); // Corrected: Added parentheses to call the function
                     populateHistory(h);
                   }}
                 >
                   {h.title}
                 </button>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
       </Transition>
     </div>
