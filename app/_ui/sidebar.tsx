@@ -4,8 +4,10 @@ import Link from "next/link";
 
 export default function Sidebar({ children }: { children: ReactNode }) {
   return (
+    // Adjusted for flex layout: full width on mobile, fixed width on desktop.
+    // Removed fixed positioning. Added overflow for scrolling.
     <div
-      className="flex-none md:fixed md:top-0 md:left-0 md:w-80 p-6 md:h-screen w-screen bg-white dark:bg-slate-950"
+      className="flex-shrink-0 w-full md:w-80 p-6 h-auto md:h-screen bg-white dark:bg-slate-950 overflow-y-auto"
       data-testid="onboarding-sidebar"
     >
       {" "}

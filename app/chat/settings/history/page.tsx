@@ -27,7 +27,7 @@ export default async function HistoryPage() {
     (history) => ({
       id: history.id,
       title: history.title ?? "Unknown Conversation",
-      detail: history.conversation,
+      // detail: history.conversation, // Removed detail
     })
   );
 

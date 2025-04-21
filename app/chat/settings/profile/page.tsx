@@ -11,9 +11,9 @@ export default async function Profile() {
   return (
     <main>
       <SettingsHeading>Profile Settings</SettingsHeading>
-      {/* Dark mode: Adjust container text color if needed, though SettingsHeading handles its own */}
-      <div className="w-2/3 flex justify-center flex-col">
-        {/* Dark mode: Adjust card background, shadow, text */}
+      {/* Removed w-2/3 and flex centering. Added max-w-4xl for large screens and spacing. */}
+      <div className="mt-6 space-y-6 max-w-4xl">
+        {/* Profile Info Card */}
         <div className="bg-white dark:bg-slate-800 rounded-lg shadow dark:shadow-slate-700 p-6">
           <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-slate-100">
             Profile Information
@@ -31,10 +31,9 @@ export default async function Profile() {
           </div>
         </div>
 
-        {/* Conditionally render Subscription Settings */}
+        {/* Subscription Settings Card (Conditional) */}
         {apiUser.stripeCustomerId && (
-          // Dark mode: Adjust card background, shadow, text
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow dark:shadow-slate-700 p-6 mt-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow dark:shadow-slate-700 p-6">
             <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-slate-100">
               Subscription Settings
             </h2>
@@ -48,9 +47,8 @@ export default async function Profile() {
           </div>
         )}
 
-        {/* Sign Out Section */}
-        {/* Dark mode: Adjust card background, shadow, text */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow dark:shadow-slate-700 p-6 mt-4">
+        {/* Sign Out Card */}
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow dark:shadow-slate-700 p-6">
           <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-slate-100">
             Sign Out
           </h2>
