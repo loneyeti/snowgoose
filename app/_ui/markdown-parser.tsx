@@ -1,5 +1,6 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/cjs/styles/prism";
 
@@ -29,7 +30,11 @@ const renderers = {
 };
 
 const MarkdownComponent: React.FC<MarkdownComponentProps> = ({ markdown }) => {
-  return <ReactMarkdown components={renderers}>{markdown}</ReactMarkdown>;
+  return (
+    <ReactMarkdown remarkPlugins={[remarkGfm]} components={renderers}>
+      {markdown}
+    </ReactMarkdown>
+  );
 };
 
 export default MarkdownComponent;
