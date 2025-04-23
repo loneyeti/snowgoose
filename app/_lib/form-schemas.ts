@@ -115,3 +115,13 @@ export const upsertSubscriptionPlanSchema = z.object({
     })
     .positive("Usage limit must be a positive number."),
 });
+
+export const ContactFormSchema = z.object({
+  topic: z.enum(["Issue", "Feedback", "General Inquiry"], {
+    required_error: "Please select a topic.",
+  }),
+  message: z.string().min(10, "Message must be at least 10 characters long."),
+  // userId and userEmail will be added server-side or via hidden/read-only fields,
+  // so they don't need explicit client-side validation here unless required by the form structure.
+  // We'll handle getting these values in the component/action.
+});

@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { Chat } from "../../_lib/model";
 import { saveChat } from "../../_lib/server_actions/history.actions";
 import { User } from "@prisma/client";
+import { Menu, Transition } from "@headlessui/react"; // Import Headless UI components
+import { Fragment } from "react"; // Import Fragment
 
 export default function UtilityIconRow({
   resetChat,
@@ -42,7 +44,7 @@ export default function UtilityIconRow({
         href="/chat"
         onClick={resetChat}
         title="New Chat"
-        className="text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 p-2 rounded-md transition-colors"
+        className="text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 p-2 rounded-md transition-colors inline-flex justify-center items-center"
       >
         <MaterialSymbol icon="add" size={24} />
       </Link>
@@ -53,7 +55,7 @@ export default function UtilityIconRow({
         }}
         title="Save Chat"
         data-testid="onboarding-save"
-        className="text-slate-600 dark:text-slate-400 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"
+        className="text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 p-2 rounded-md transition-colors inline-flex justify-center items-center"
       >
         <MaterialSymbol icon="save" size={24} />
       </button>
@@ -65,24 +67,83 @@ export default function UtilityIconRow({
         }}
         title="Show History"
         data-testid="onboarding-show-history"
-        className="text-slate-600 dark:text-slate-400 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"
+        className="text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 p-2 rounded-md transition-colors inline-flex justify-center items-center"
       >
         <MaterialSymbol icon="history" size={24} />
       </button>
-      {/* Help Icon Link */}
-      <Link
-        href="https://docs.snowgoose.app"
-        target="_blank" // Open in new tab
-        rel="noopener noreferrer" // Security best practice for target="_blank"
-        title="Help / Documentation"
-        className="text-slate-600 dark:text-slate-400 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"
-      >
-        <MaterialSymbol icon="help_outline" size={24} />
-      </Link>
+      {/* Removed the old direct Help Icon Link */}
+
+      {/* Help Dropdown Menu */}
+      <Menu as="div" className="relative inline-block text-left">
+        <div>
+          {/* Apply consistent styling to the dropdown button */}
+          <Menu.Button
+            title="Help"
+            className="text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 p-2 rounded-md transition-colors inline-flex justify-center items-center"
+          >
+            <MaterialSymbol icon="help_outline" size={24} />
+          </Menu.Button>
+        </div>
+        <Transition
+          as={Fragment}
+          enter="transition ease-out duration-100"
+          enterFrom="transform opacity-0 scale-95"
+          enterTo="transform opacity-100 scale-100"
+          leave="transition ease-in duration-75"
+          leaveFrom="transform opacity-100 scale-100"
+          leaveTo="transform opacity-0 scale-95"
+        >
+          <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-gray-700 rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+            <div className="px-1 py-1 ">
+              <Menu.Item>
+                {({ active }) => (
+                  <Link
+                    href="https://docs.snowgoose.app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${
+                      active
+                        ? "bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        : "text-slate-700 dark:text-slate-300"
+                    } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                  >
+                    <MaterialSymbol
+                      icon="menu_book"
+                      size={20}
+                      className="mr-2"
+                    />
+                    Documentation
+                  </Link>
+                )}
+              </Menu.Item>
+              <Menu.Item>
+                {({ active }) => (
+                  <Link
+                    href="/contact" // Link to the new contact page
+                    className={`${
+                      active
+                        ? "bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        : "text-slate-700 dark:text-slate-300"
+                    } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                  >
+                    <MaterialSymbol
+                      icon="contact_support"
+                      size={20}
+                      className="mr-2"
+                    />
+                    Contact Support
+                  </Link>
+                )}
+              </Menu.Item>
+            </div>
+          </Menu.Items>
+        </Transition>
+      </Menu>
+
       <Link
         href="/chat/settings/profile"
         title="Settings"
-        className="text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 p-2 rounded-md transition-colors"
+        className="text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 p-2 rounded-md transition-colors inline-flex justify-center items-center"
         data-testid="onboarding-show-settings"
       >
         <MaterialSymbol icon="settings" size={24} />
