@@ -85,6 +85,7 @@ Standalone Next.js application with Server Actions
        - Updated `UserRepository` methods to handle status.
        - Updated `UserRepository.checkUsageLimit` to enforce 'active' status.
        - Updated Stripe webhook handler to pass status.
+     - **Fixed race condition in `ensureUserExists` (`app/_lib/server_actions/user.actions.ts`) by catching Prisma P2002 errors (unique constraint violation) during user creation and re-fetching the user if the error occurs.**
 
 5. AI Integration
 
@@ -289,3 +290,4 @@ Standalone Next.js application with Server Actions
 27. **Passwordless Authentication Refactor**: Replaced email/password login with Supabase Magic Links (`signInWithOtp`), removing password fields, signup, and password reset functionality.
 28. **Explicit Stripe Subscription Status Tracking**: Added status field to DB, updated repository methods and webhook handler, and integrated status check into usage limit logic.
 29. **Stripe `cancel_at_period_end` Handling**: Added `stripeCancelAtPeriodEnd` field to `User` model, updated repository, and modified webhook handler to store this flag from `customer.subscription.updated` events.
+30. **`ensureUserExists` Race Condition Fix**: Implemented error handling in `user.actions.ts` to catch Prisma P2002 errors during user creation and re-fetch the user, resolving potential race conditions.

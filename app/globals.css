@@ -2,15 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body {
-  height: 100%; /* Ensure html and body take full viewport height */
-  overflow-y: hidden; /* Prevent body from scrolling */
-  /* Keep existing overflow-x hidden if needed, though height: 100% might make it redundant */
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
 @layer utilities {
   .scrollbar-hide {
     -ms-overflow-style: none; /* IE and Edge */

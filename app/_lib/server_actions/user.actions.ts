@@ -12,6 +12,7 @@ import { createClient } from "@/app/_utils/supabase/server";
 import { FormState } from "../form-schemas";
 import { userSettingsRepository } from "@/app/_lib/db/repositories/user-settings.repository";
 import { Logger } from "next-axiom";
+import { Prisma } from "@prisma/client"; // Import Prisma for error type checking
 
 // User Functions
 export async function getUsers() {
@@ -128,44 +129,65 @@ export async function ensureUserExists(
   // First check if user already exists
   let user = await userRepository.findByEmail(userSession.email);
 
-  // If user doesn't exist, create one
+  // If user doesn't exist, attempt to create one
   if (!user) {
     // username and email are the same.
     const username = userSession.email;
 
     try {
-      // For Supabase users, we don't store the real password in our DB
-      // We're using Supabase for auth, so just create a placeholder
+      // Attempt to create the user
       user = await userRepository.create({
         username: username,
-        //password: "SUPABASE_AUTH_USER", // placeholder password since Supabase handles auth
         email: userSession.email,
-        isAdmin: false, // default to non-admin,
+        isAdmin: false, // default to non-admin
         periodUsage: 0.0,
         totalUsage: 0.0,
         authId: userSession.userId,
       });
 
       // Also create a UserSettings record for the new user
-      if (user) {
-        try {
-          await userSettingsRepository.create({
-            userId: user.id,
-            appearanceMode: "system", // Default to light mode
-          });
-        } catch (settingsError) {
-          log.error("Failed to create user settings:", {
-            error: settingsError,
-          });
-          // We don't throw here to avoid blocking user creation if settings creation fails
-        }
+      // This should only happen if the user creation above was successful
+      try {
+        await userSettingsRepository.create({
+          userId: user.id,
+          appearanceMode: "system", // Default to system theme
+        });
+      } catch (settingsError) {
+        log.error("Failed to create user settings for newly created user:", {
+          userId: user.id,
+          error: settingsError,
+        });
+        // Log but don't block the process if settings creation fails
       }
     } catch (creationError) {
-      log.error("Failed to create user during ensureUserExists:", {
-        error: creationError,
-      });
-      // Don't throw, return null as user creation failed
-      return null;
+      // Check if the error is the unique constraint violation (P2002)
+      if (
+        creationError instanceof Prisma.PrismaClientKnownRequestError &&
+        creationError.code === "P2002"
+      ) {
+        // This likely means another request created the user just before this one (race condition)
+        log.warn(
+          "User creation failed due to P2002 (Unique Constraint), likely race condition. Re-fetching user.",
+          { email: userSession.email }
+        );
+        // Re-fetch the user, as it should exist now
+        user = await userRepository.findByEmail(userSession.email);
+        if (!user) {
+          // If re-fetch fails, something else is wrong
+          log.error(
+            "Failed to re-fetch user after P2002 error during creation.",
+            { email: userSession.email }
+          );
+          return null;
+        }
+      } else {
+        // Log any other unexpected error during creation
+        log.error("Unexpected error creating user during ensureUserExists:", {
+          error: creationError,
+        });
+        // Don't throw, return null as user creation failed
+        return null;
+      }
     }
   } else if (!user.authId || user.authId === "") {
     try {

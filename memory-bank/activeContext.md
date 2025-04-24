@@ -83,6 +83,7 @@
     - Added `stripeCancelAtPeriodEnd` field (Boolean) to `User` model (`prisma/schema.prisma`). Applied migration `add_stripe_cancel_at_period_end`.
     - Updated `UserRepository.updateSubscriptionByCustomerId` to accept and store the `stripeCancelAtPeriodEnd` value.
     - Modified Stripe webhook handler (`app/api/webhooks/stripe/route.ts`) to extract `cancel_at_period_end` from the `customer.subscription.updated` event and pass it to the repository method.
+  - **Fixed race condition in `ensureUserExists` (`app/_lib/server_actions/user.actions.ts`) by catching Prisma P2002 errors (unique constraint violation) during user creation and re-fetching the user if the error occurs.**
 
 ## Active Decisions
 
