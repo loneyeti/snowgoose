@@ -61,6 +61,7 @@ export async function createModel(formData: FormData) {
     outputTokenCost: formData.get("output_token_cost")
       ? parseFloat(formData.get("output_token_cost") as string)
       : null,
+    paidOnly: formData.get("paid_only") === "on" ? true : false, // Add paidOnly parsing
   });
 
   try {
@@ -90,6 +91,7 @@ export async function createModel(formData: FormData) {
       isThinking: model.isThinking,
       inputTokenCost: model.inputTokenCost,
       outputTokenCost: model.outputTokenCost,
+      paidOnly: formValues.paidOnly, // Pass parsed paidOnly value
     });
   } catch (error) {
     console.error("Failed to create Model:", error); // Log detailed error
@@ -117,6 +119,7 @@ export async function updateModel(formData: FormData) {
     outputTokenCost: formData.get("output_token_cost")
       ? parseFloat(formData.get("output_token_cost") as string)
       : null,
+    paidOnly: formData.get("paid_only") === "on" ? true : false, // Add paidOnly parsing
   });
 
   try {
@@ -135,6 +138,7 @@ export async function updateModel(formData: FormData) {
         formValues.outputTokenCost !== null
           ? formValues.outputTokenCost
           : undefined,
+      paidOnly: formValues.paidOnly, // Pass parsed paidOnly value
     });
   } catch (error) {
     console.error("Failed to update Model:", error); // Log detailed error

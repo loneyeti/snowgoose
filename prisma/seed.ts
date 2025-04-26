@@ -137,46 +137,6 @@ async function main() {
   });
 
   await prisma.model.upsert({
-    where: { id: 3 },
-    update: {
-      apiName: "o1-preview",
-      name: "o1 Preview",
-      isVision: false,
-      isImageGeneration: false,
-      isThinking: false,
-      apiVendorId: openaiVendor.id,
-    },
-    create: {
-      apiName: "o1-preview",
-      name: "o1 Preview",
-      isVision: false,
-      isImageGeneration: false,
-      isThinking: false,
-      apiVendorId: openaiVendor.id,
-    },
-  });
-
-  await prisma.model.upsert({
-    where: { id: 4 },
-    update: {
-      apiName: "dall-e-3",
-      name: "DALL-E-3",
-      isVision: false,
-      isImageGeneration: true,
-      isThinking: false,
-      apiVendorId: openaiVendor.id,
-    },
-    create: {
-      apiName: "dall-e-3",
-      name: "DALL-E-3",
-      isVision: false,
-      isImageGeneration: true,
-      isThinking: false,
-      apiVendorId: openaiVendor.id,
-    },
-  });
-
-  await prisma.model.upsert({
     where: { id: 5 },
     update: {
       apiName: "claude-3-opus-20240229",

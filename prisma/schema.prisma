@@ -57,6 +57,7 @@ model Model {
   isThinking        Boolean        @default(false) @map("is_thinking")
   inputTokenCost    Float?         @map("input_token_cost")
   outputTokenCost   Float?         @map("output_token_cost")
+  paidOnly          Boolean        @default(false) @map("paid_only") // New field for paid-only models
   apiVendor         APIVendor?     @relation(fields: [apiVendorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   userSettings      UserSettings[]
 

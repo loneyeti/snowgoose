@@ -52,6 +52,7 @@ export class ModelRepository extends BaseRepository {
     apiVendorId: number;
     inputTokenCost?: number | null;
     outputTokenCost?: number | null;
+    paidOnly: boolean; // Add paidOnly
   }): Promise<Model> {
     try {
       return await this.prisma.model.create({
@@ -76,6 +77,7 @@ export class ModelRepository extends BaseRepository {
       apiVendorId?: number;
       inputTokenCost?: number | null;
       outputTokenCost?: number | null;
+      paidOnly?: boolean; // Add paidOnly
     }
   ): Promise<Model> {
     try {

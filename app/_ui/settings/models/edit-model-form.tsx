@@ -104,6 +104,17 @@ export default function EditModelForm({ model }: { model: Model }) {
               <APIVendorSelect defaultValue={`${model.apiVendorId}`} />
             </Suspense>
           </div>
+          <div className="py-2 flex items-center">
+            <input
+              type="checkbox"
+              name="paid_only"
+              defaultChecked={model.paidOnly}
+              className="mr-2 mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
+            />
+            <label className="text-gray-700 text-xs" htmlFor="paid_only">
+              Paid Only (Requires Subscription)
+            </label>
+          </div>
           <div className="py-2">
             <button
               className="rounded-md bg-slate-200 p-2 hover:bg-slate-300"

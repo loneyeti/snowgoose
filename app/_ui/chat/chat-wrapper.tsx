@@ -28,6 +28,7 @@ import { useMCPToolState } from "./hooks/useMCPToolState";
 // Import the server action instead of the repository
 import { getUserUsageLimitsAction } from "@/app/_lib/server_actions/user.actions";
 import { useLogger } from "next-axiom";
+import { ImageBlock } from "@/app/_lib/model"; // Import ImageBlock
 
 export default function ChatWrapper({
   userPersonas,
@@ -57,6 +58,9 @@ export default function ChatWrapper({
   const [renderTypeName, setRenderTypeName] = useState("");
   const [hidePersonas] = useState(false);
   const [hideOutputFormats] = useState(false);
+  const [visionUrlFromLastResponse, setVisionUrlFromLastResponse] = useState<
+    string | null
+  >(null); // State for last image URL
   const personas = [...(userPersonas || []), ...(globalPersonas || [])];
   const [userUsageLimits, setUserUsageLimits] = useState<UserUsageLimits>({
     userPeriodUsage: 0.0,
@@ -138,17 +142,41 @@ export default function ChatWrapper({
 
   // Define updateMessage before useFormSubmission
   const updateMessage = (chat: LocalChat | undefined) => {
+    let lastImageUrl: string | null = null;
     if (chat) {
       if (!chat.imageURL) {
         setResponse(chat.responseHistory);
+        // Check the last message in the history for an ImageBlock
+        const lastMessage =
+          chat.responseHistory[chat.responseHistory.length - 1];
+        if (
+          lastMessage &&
+          lastMessage.role !== "user" &&
+          Array.isArray(lastMessage.content)
+        ) {
+          const imageBlock = lastMessage.content.find(
+            (block): block is ImageBlock => block.type === "image"
+          );
+          if (imageBlock) {
+            lastImageUrl = imageBlock.url;
+            log.info("Found ImageBlock URL in last response", {
+              url: lastImageUrl,
+            });
+          }
+        }
       } else {
         setImageURL(chat.imageURL);
+        // If it was a DALL-E response, clear any previous vision URL
+        lastImageUrl = null;
       }
       setCurrentChat(chat);
       setRenderTypeName(`${chat.renderTypeName}`);
     } else {
       setResponse([]);
+      lastImageUrl = null; // Reset on error or empty chat
     }
+    // Update the state for the next turn's input
+    setVisionUrlFromLastResponse(lastImageUrl);
     // Fetch updated usage limits after processing the message
     fetchUsageLimits();
   };
@@ -324,6 +352,12 @@ export default function ChatWrapper({
           <input type="hidden" name="budgetTokens" value={budgetTokens} />
         )}
         <input type="hidden" name="mcpTool" value={selectedMCPTool || "0"} />
+        {/* Hidden input for vision URL from previous response */}
+        <input
+          type="hidden"
+          name="visionUrlFromPrevious"
+          value={visionUrlFromLastResponse || ""}
+        />
         {/* Enhanced top bar - Minimal mobile header */}
         {/* Dark mode: Adjust background, border */}
         {/* Single row, justify-between. Increased padding on sm+ */}
@@ -400,6 +434,7 @@ export default function ChatWrapper({
                             showMoreOptions={false} // Explicitly false
                             toggleMoreOptions={() => {}} // No-op function
                             hideOutputFormats={hideOutputFormats}
+                            user={user} // Pass user object
                           />
                         </div>
                         {/* Render MoreOptions inside mobile popover */}
@@ -473,6 +508,7 @@ export default function ChatWrapper({
                 showMoreOptions={showMoreOptions}
                 toggleMoreOptions={toggleMoreOptions}
                 hideOutputFormats={hideOutputFormats}
+                user={user} // Pass user object
               />
               {/* More Options Popover */}
               <Popover className="relative ml-1">
