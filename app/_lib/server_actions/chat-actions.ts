@@ -290,17 +290,25 @@ export async function createChat(
   } else {
     // Priority 3: No previous URL and no new file upload
     log.info("No previous vision URL and no new file uploaded.");
-    // Apply GENERATION options if provided (only if no visionUrl is set at all)
-    if (imageSize || imageQuality || imageBackground) {
+    // If the selected model is for image generation, ensure generation options are set.
+    if (modelObj.isImageGeneration) {
+      // Ensure the options object is created for generation models, using form values or sensible defaults.
       chat.openaiImageGenerationOptions = {
-        size: imageSize,
-        quality: imageQuality,
-        background: imageBackground,
-        user: `${user.id}`,
+        n: 1, // We always generate one image
+        size: imageSize || "1024x1024", // Default size if not provided
+        quality: imageQuality || "auto", // Default quality to 'auto' if not provided
+        // 'background' is not a standard OpenAI param, removed.
+        // Let snowgander handle 'auto' values if passed from the form.
+        user: `${user.id}`, // Pass user ID
       };
-      log.info("Populated OpenAI Image Generation options", {
-        options: chat.openaiImageGenerationOptions,
-      });
+      log.info(
+        "Populated OpenAI Image Generation options (using defaults if needed)",
+        {
+          options: chat.openaiImageGenerationOptions,
+        }
+      );
+    } else {
+      log.info("Model is not image generation, skipping generation options.");
     }
   }
   // --- End Vision URL Logic ---
