@@ -2,12 +2,12 @@
 
 ## Current Focus
 
-- **Build initial marketing pages (Home, Features, Pricing).**
-- Performance optimization of Server Actions
-- Enhanced error handling and recovery
-- Monitoring and logging implementation
-- Testing and documentation
-- User experience improvements
+- **Refinement of UI/UX across the application, including mobile responsiveness.**
+- **Monitoring and Logging:** Leveraging Axiom integration.
+- Performance optimization of Server Actions.
+- Enhanced error handling and recovery.
+- Testing and documentation.
+- Addressing any remaining known issues or bugs.
 
 ## Recent Changes
 
@@ -20,10 +20,23 @@
   - Enhanced error handling and recovery mechanisms.
   - Improved MCP tool management and stability.
   - Optimized database operations using the repository pattern.
-  - **Refactored AI vendor logic into a standalone npm package (`snowgander` v0.0.17).**
+  - **Refactored AI vendor logic into a standalone npm package (`snowgander` v0.0.26).**
   - **Fixed `toolUseId` handling in `chat.repository.ts` to correctly pass the string ID from `ToolUseBlock` to `ToolResultBlock` as required by `snowgander` and vendors like Anthropic.**
   - **Corrected MCP tool flow in `chat.repository.ts` to prevent sending available tools on the second API call (after receiving a tool result), resolving an issue where the AI would attempt to call the tool again instead of providing a final text response.**
-  - **Implemented basic Stripe integration for subscriptions:**
+  - **Enhanced Stripe Integration:** (Summary of previous detailed steps)
+    - Full subscription lifecycle management (checkout, portal, webhooks for updates/cancellations).
+    - Free tier and usage limit enforcement based on `SubscriptionPlan` table.
+    - Admin UIs for viewing subscriptions and managing plan limits.
+    - Explicit subscription status tracking (`stripeSubscriptionStatus`, `stripeCancelAtPeriodEnd`).
+  - **Improved Login Flow:** (Summary of previous detailed steps)
+    - Replaced password login with passwordless Magic Links (Supabase OTP).
+    - Added Google and GitHub OAuth sign-in options.
+    - Removed signup and password reset flows.
+  - **Implemented Axiom Logging:** Integrated `next-axiom` for structured logging and monitoring.
+  - **Implemented Resend Email:** Added `resend` package and API route (`app/api/resend/route.ts`) for transactional emails (e.g., magic links, potentially notifications).
+  - **Added User Onboarding Tour:** Implemented `react-joyride` (`app/_ui/onboarding/ProductTour.tsx`) to guide new users.
+  - **UI/UX and Mobile Responsiveness Improvements:** Made various tweaks across components (`app/_ui/`, `app/globals.css`, etc.) to enhance the user interface and ensure better usability on mobile devices.
+  - **Fixed race condition in `ensureUserExists` (`app/_lib/server_actions/user.actions.ts`) by catching Prisma P2002 errors (unique constraint violation) during user creation and re-fetching the user if the error occurs.**
     - Added subscription page at `/subscriptions` that displays available plans
     - Created Stripe checkout session functionality (`app/_lib/server_actions/stripe.actions.ts`)
     - Added success page that confirms subscription (`app/success/page.tsx`)
@@ -120,30 +133,49 @@
 
 5. MCP Integration
 
-   - Enhanced tool management
-   - Improved process handling
-   - Robust error recovery
-   - Environment management
-   - Performance optimization
+- Enhanced tool management
+- Improved process handling
+- Robust error recovery
+- Environment management
+- Performance optimization
 
-6. **Subscription Management**
+6.  **Subscription Management** (Decision Summary)
 
-   - Stripe integration for payment processing
-   - Server-side subscription plan retrieval
-   - Checkout session creation via Server Actions (passing `client_reference_id`).
-   - Success page confirmation.
-   - **Database schema updated to store necessary Stripe subscription details (`customerId`, `subscriptionId`, `priceId`, `currentPeriodBegin`, `currentPeriodEnd`, `subscriptionStartDate`).**
-   - **Webhook handling implemented (`/api/webhooks/stripe`) for `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed` events.**
-     - Uses `UserRepository` methods (`updateSubscriptionByAuthId`, `updateSubscriptionByCustomerId`, `clearSubscriptionByCustomerId`) for database updates.
-   - **Middleware configured to allow unauthenticated access to the webhook endpoint.**
-   - **Customer Portal session creation implemented (`createCustomerPortalSessionAction`).**
-   - **UI added to profile page (`/settings/profile`) for users to access the Customer Portal.**
-   - **Database structure (`SubscriptionPlan` table) added to support usage limits per plan.**
-   - **Logic added to `UserRepository` to reset `periodUsage` automatically on subscription renewal via webhook.**
-   - **Admin UI (`/settings/admin/subscriptions`) created for viewing active Stripe subscriptions and associated local `SubscriptionPlan` records (read-only).**
-   - **Admin UI (`/settings/admin/subscription-limits`) created for managing local `SubscriptionPlan` records (name, usageLimit) associated with Stripe Prices.**
-   - **Free Tier Implementation: A dedicated "Free Tier" record in the `SubscriptionPlan` table (with `stripePriceId = null` and `usageLimit = 0.5`) provides a usage allowance for non-subscribed users.**
-   - **Usage Limit Enforcement: The `UserRepository.checkUsageLimit` method centralizes the logic for checking a user's `periodUsage` against the `usageLimit` of their determined plan (paid or free) AND verifies that the `stripeSubscriptionStatus` is 'active' if a subscription exists. This check is performed in relevant server actions (e.g., `createChat`) before potentially billable operations.**
+- Stripe integration for payment processing
+- Server-side subscription plan retrieval
+- Checkout session creation via Server Actions (passing `client_reference_id`).
+- Success page confirmation.
+- **Database schema updated to store necessary Stripe subscription details (`customerId`, `subscriptionId`, `priceId`, `currentPeriodBegin`, `currentPeriodEnd`, `subscriptionStartDate`).**
+- **Webhook handling implemented (`/api/webhooks/stripe`) for `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed` events.**
+  - Uses `UserRepository` methods (`updateSubscriptionByAuthId`, `updateSubscriptionByCustomerId`, `clearSubscriptionByCustomerId`) for database updates.
+- **Middleware configured to allow unauthenticated access to the webhook endpoint.**
+- **Customer Portal session creation implemented (`createCustomerPortalSessionAction`).**
+- **UI added to profile page (`/settings/profile`) for users to access the Customer Portal.**
+- **Database structure (`SubscriptionPlan` table) added to support usage limits per plan.**
+- **Logic added to `UserRepository` to reset `periodUsage` automatically on subscription renewal via webhook.**
+- **Admin UI (`/settings/admin/subscriptions`) created for viewing active Stripe subscriptions and associated local `SubscriptionPlan` records (read-only).**
+- **Admin UI (`/settings/admin/subscription-limits`) created for managing local `SubscriptionPlan` records (name, usageLimit) associated with Stripe Prices.**
+- **Free Tier Implementation: A dedicated "Free Tier" record in the `SubscriptionPlan` table (with `stripePriceId = null` and `usageLimit = 0.5`) provides a usage allowance for non-subscribed users.**
+- **Usage Limit Enforcement: The `UserRepository.checkUsageLimit` method centralizes the logic for checking a user's `periodUsage` against the `usageLimit` of their determined plan (paid or free) AND verifies that the `stripeSubscriptionStatus` is 'active' if a subscription exists. This check is performed in relevant server actions (e.g., `createChat`) before potentially billable operations.**
+
+7.  **Authentication Strategy** (Decision Summary)
+
+    - Utilize Supabase for authentication.
+    - Prioritize passwordless (Magic Link) login as the primary method.
+    - Offer Google and GitHub OAuth as alternative sign-in options.
+
+8.  **Logging & Monitoring**
+
+    - Use Axiom (`next-axiom`) for structured logging and application monitoring.
+
+9.  **Email Notifications**
+
+    - Use Resend for sending transactional emails (e.g., magic links).
+
+10. **UI/UX Approach**
+    - Focus on clean, responsive design using Tailwind CSS.
+    - Employ reusable components (`app/_ui/`).
+    - Provide a guided onboarding experience (`react-joyride`).
 
 ## Next Steps
 
@@ -198,21 +230,24 @@
    - **Create UI/Action for managing `SubscriptionPlan` table records (DONE)**
    - **Populate `SubscriptionPlan` table with actual plan data (PENDING)**
 7. **Marketing Site Development (`app/(marketing)/`)**
-
-- **Home page content (`/`) (IN PROGRESS)**
-- **Features page content (`/features`) (IN PROGRESS)**
-- **Pricing page content (`/pricing`) (IN PROGRESS)**
-- About page content (`/about`) (PENDING)
-- Blog structure and initial posts (`/blog`) (PENDING)
-- Contact page content (`/contact`) (PENDING)
-- Shared marketing navigation/layout (`app/(marketing)/layout.tsx`) (IN PROGRESS)
-- Terms of Service page (`/terms`) (DONE)
-- Privacy Policy page (`/privacy`) (DONE)
-- About page content (`/about`) (PENDING)
-- Blog structure and initial posts (`/blog`) (PENDING)
-- Contact page content (`/contact`) (PENDING)
-- Shared marketing navigation/layout (`app/(marketing)/layout.tsx`) (IN PROGRESS - Footer updated)
-- Styling and visuals (`app/marketing.css`, Tailwind) (IN PROGRESS)
+   - **Home page content (`/`) (DONE - Needs Review/Refinement)**
+   - **Features page content (`/features`) (DONE - Needs Review/Refinement)**
+   - **Pricing page content (`/pricing`) (DONE - Needs Review/Refinement)**
+   - About page content (`/about`) (PENDING)
+   - Blog structure and initial posts (`/blog`) (PENDING)
+   - Contact page content (`/contact`) (PENDING)
+   - Shared marketing navigation/layout (`app/(marketing)/layout.tsx`) (DONE - Needs Review/Refinement)
+   - Terms of Service page (`/terms`) (DONE)
+   - Privacy Policy page (`/privacy`) (DONE)
+   - Styling and visuals (`app/marketing.css`, Tailwind) (DONE - Needs Review/Refinement)
+8. **Onboarding Experience**
+   - Refine Product Tour steps and content (`app/_ui/onboarding/ProductTour.tsx`).
+   - Integrate tour triggering logic (e.g., for first-time users).
+9. **Email Integration**
+   - Implement specific email triggers beyond magic links (e.g., subscription confirmations, welcome emails).
+10. **Logging & Monitoring**
+    - Define key metrics and alerts in Axiom.
+    - Ensure comprehensive logging coverage in critical paths.
 
 ## Current Considerations
 

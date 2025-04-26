@@ -4,8 +4,10 @@ import { MaterialSymbol } from "react-material-symbols";
 import React, { Fragment, useState, useEffect } from "react";
 import { Popover, Transition } from "@headlessui/react";
 import AddPersonaModal from "@/app/_ui/settings/user-personas/add-persona-modal"; // Import the modal
+import { User } from "@prisma/client"; // Import User type
 
 interface OptionsBarProps {
+  user: User; // Add user prop
   models: ModelWithVendorName[]; // Use ModelWithVendorName
   personas: Persona[];
   userPersonas?: Persona[];
@@ -43,6 +45,7 @@ export default function OptionsBar({
   hideOutputFormats = true,
   children,
   isMobileLayout = false, // Destructure the prop with a default value
+  user, // Destructure user prop
 }: OptionsBarProps) {
   // State for the Add Persona Modal
   const [isAddPersonaModalOpen, setIsAddPersonaModalOpen] = useState(false);
@@ -198,33 +201,70 @@ export default function OptionsBar({
                             {vendor}
                           </div>
                           {groupedModels[vendor].map(
-                            (model: ModelWithVendorName) => (
-                              // Dark mode: Adjust item styles (hover, selected, text)
-                              <div
-                                key={model.id}
-                                className={`flex items-center px-3 py-2 rounded-md cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 ${model.id === selectedModel ? "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200" : "text-slate-700 dark:text-slate-200"}`}
-                                onClick={() => {
-                                  setSelectedModel(model.id);
-                                  const event = {
-                                    target: {
-                                      name: "model",
-                                      value: model.id.toString(), // Convert number to string
-                                    },
-                                  } as unknown as React.ChangeEvent;
-                                  onModelChange(event);
-                                }}
-                              >
-                                <span className="text-sm">{model.name}</span>
-                                {model.id === selectedModel && (
-                                  // Dark mode: Adjust checkmark color
-                                  <MaterialSymbol
-                                    icon="check"
-                                    size={18}
-                                    className="ml-auto text-blue-600 dark:text-blue-400"
-                                  />
-                                )}
-                              </div>
-                            )
+                            (model: ModelWithVendorName) => {
+                              // Determine if user has access to paid models
+                              const hasPaidAccess =
+                                user?.hasUnlimitedCredits === true ||
+                                (user?.stripeSubscriptionId &&
+                                  user?.stripeSubscriptionStatus === "active");
+                              const requiresPaid = model.paidOnly === true; // Explicitly check for true
+                              const isDisabled = requiresPaid && !hasPaidAccess;
+
+                              return (
+                                // Dark mode: Adjust item styles (hover, selected, text, disabled)
+                                <div
+                                  key={model.id}
+                                  className={`flex items-center justify-between px-3 py-2 rounded-md ${
+                                    isDisabled
+                                      ? "opacity-50 cursor-not-allowed" // Disabled styles
+                                      : "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700" // Enabled styles
+                                  } ${
+                                    model.id === selectedModel && !isDisabled // Only apply selected style if not disabled
+                                      ? "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200"
+                                      : isDisabled
+                                        ? "text-slate-400 dark:text-slate-500" // Disabled text color
+                                        : "text-slate-700 dark:text-slate-200" // Enabled text color
+                                  }`}
+                                  onClick={
+                                    isDisabled
+                                      ? undefined // Disable click if needed
+                                      : () => {
+                                          setSelectedModel(model.id);
+                                          const event = {
+                                            target: {
+                                              name: "model",
+                                              value: model.id.toString(), // Convert number to string
+                                            },
+                                          } as unknown as React.ChangeEvent;
+                                          onModelChange(event);
+                                        }
+                                  }
+                                >
+                                  <span className="text-sm">{model.name}</span>
+                                  <div className="flex items-center ml-auto">
+                                    {" "}
+                                    {/* Wrapper for checkmark and tag */}
+                                    {model.id === selectedModel &&
+                                      !isDisabled && (
+                                        // Dark mode: Adjust checkmark color
+                                        <MaterialSymbol
+                                          icon="check"
+                                          size={18}
+                                          className="text-blue-600 dark:text-blue-400"
+                                        />
+                                      )}
+                                    {/* Only show the tag if the model requires paid access AND is disabled for the user */}
+                                    {requiresPaid && isDisabled && (
+                                      <span
+                                        className={`ml-2 text-xs font-semibold px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-500 dark:bg-slate-600 dark:text-slate-400`}
+                                      >
+                                        Paid
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
                           )}
                         </Fragment>
                       ))}

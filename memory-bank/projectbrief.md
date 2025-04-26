@@ -27,9 +27,12 @@ Snowgoose is a standalone NextJS 14 application that provides a unified interfac
    - Conversation history management
    - MCP tool integration
    - Subscription management via Stripe
+   - Logging via Axiom
+   - Email notifications via Resend
+   - User onboarding tour
 
 3. Key Goals
-   - Clean, beautiful UI/UX
+   - Clean, beautiful, and responsive UI/UX (including mobile)
    - Complete database management through Prisma
    - Elegant error handling
    - Efficient server actions

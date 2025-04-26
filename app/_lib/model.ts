@@ -10,10 +10,13 @@ import {
   RedactedThinkingBlock,
   TextBlock,
   ImageBlock,
+  OpenAIImageGenerationOptions,
+  OpenAIImageEditOptions, // Import directly now
 } from "snowgander";
 
 // Re-export Prisma types for consistent usage
 export type { Model, User };
+
 // Re-export types from the package for use within the app
 export type {
   Chat,
@@ -24,6 +27,8 @@ export type {
   RedactedThinkingBlock,
   TextBlock,
   ImageBlock,
+  OpenAIImageGenerationOptions,
+  OpenAIImageEditOptions, // Re-export directly
 };
 
 // Define a new type that includes the vendor name
@@ -38,6 +43,8 @@ export interface LocalChat extends Chat {
   personaId: number;
   outputFormatId: number;
   renderTypeName: string;
+  openaiImageGenerationOptions?: OpenAIImageGenerationOptions;
+  openaiImageEditOptions?: OpenAIImageEditOptions;
 }
 
 export interface Persona {

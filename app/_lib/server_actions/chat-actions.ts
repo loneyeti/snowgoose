@@ -1,6 +1,11 @@
 "use server";
 
-import { ChatResponse, Chat, LocalChat } from "../model";
+import {
+  ChatResponse,
+  Chat,
+  LocalChat,
+  OpenAIImageGenerationOptions,
+} from "../model"; // Added OpenAIImageGenerationOptions
 import { chatRepository } from "../db/repositories/chat.repository";
 import { getModel } from "./model.actions";
 import { getRenderTypeName } from "./render-type.actions";
@@ -9,11 +14,13 @@ import { getApiVendor } from "./api_vendor.actions";
 import { getPersona } from "./persona.actions";
 import { supabaseUploadFile } from "../storage";
 import { generateUniqueFilename } from "../utils";
-import { FormSchema } from "../form-schemas";
+import { FormSchema as BaseFormSchema } from "../form-schemas"; // Rename original schema
+import { z } from "zod"; // Import Zod
 import { getOutputFormat } from "./output-format.actions";
 import { getCurrentAPIUser } from "../auth"; // Import correct auth helper
 import { userRepository } from "../db/repositories/user.repository"; // Import user repository
 import { Logger } from "next-axiom"; // Import Axiom Logger
+import { use } from "react";
 
 export async function createChat(
   formData: FormData,
@@ -21,6 +28,15 @@ export async function createChat(
 ) {
   let log = new Logger({ source: "chat-action" }).with({ userId: "" }); // Use let instead of const
   log.info("createChat action started");
+
+  // Extend the base schema to include image options
+  const FormSchema = BaseFormSchema.extend({
+    imageSize: z
+      .enum(["auto", "1024x1024", "1024x1536", "1536x1024"])
+      .optional(),
+    imageQuality: z.enum(["auto", "low", "medium", "high"]).optional(),
+    imageBackground: z.enum(["auto", "opaque", "transparent"]).optional(),
+  });
 
   const {
     model,
@@ -30,6 +46,10 @@ export async function createChat(
     maxTokens,
     budgetTokens,
     mcpTool, // Keep parsing the mcpTool ID from the form
+    // Add new image options
+    imageSize,
+    imageQuality,
+    imageBackground,
   } = FormSchema.parse({
     model: formData.get("model"),
     personaId: formData.get("persona"),
@@ -38,8 +58,56 @@ export async function createChat(
     maxTokens: formData.get("maxTokens") || null,
     budgetTokens: formData.get("budgetTokens") || null,
     mcpTool: formData.get("mcpTool") || 0,
+    // Parse new image options from form data
+    imageSize: formData.get("imageSize") || undefined, // Use undefined if null/empty
+    imageQuality: formData.get("imageQuality") || undefined,
+    imageBackground: formData.get("imageBackground") || undefined,
+    // Parse the new hidden field
+    visionUrlFromPrevious:
+      (formData.get("visionUrlFromPrevious") as string | null) || null,
   });
-  log.info("Parsed form data", { model, personaId, outputFormatId, mcpTool });
+  log.info("Parsed form data", {
+    model,
+    personaId,
+    outputFormatId,
+    mcpTool,
+    imageSize,
+    imageQuality,
+    imageBackground,
+    visionUrlFromPrevious: formData.get("visionUrlFromPrevious"), // Log the received value
+  });
+
+  let user = undefined;
+
+  // --- Usage Limit Check ---
+  try {
+    // Get the full user object from our DB using the helper
+    user = await getCurrentAPIUser();
+    if (!user) {
+      // getCurrentAPIUser returns null if not authenticated or user doesn't exist in DB yet
+      log.error("Authentication required or user not found in DB.");
+      throw new Error("Authentication required or user not found.");
+    }
+    // Add user ID to logger context
+    log = log.with({ userId: user.id });
+
+    // Check usage limit before proceeding using the user's DB ID
+    await userRepository.checkUsageLimit(user.id);
+    log.info("Usage limit check passed.");
+  } catch (error) {
+    // Re-throw the specific error message if it's the usage limit one
+    if (
+      error instanceof Error &&
+      error.message.startsWith("Usage limit exceeded")
+    ) {
+      log.warn("Usage limit exceeded for user.");
+      throw error; // Let the calling code handle this specific error
+    }
+    // Otherwise, log and throw a generic error
+    log.error("Failed to verify user usage limits", { error: String(error) });
+    throw new Error("Failed to verify user usage limits.");
+  }
+  // --- End Usage Limit Check ---
 
   const userChatResponse: ChatResponse = {
     role: "user",
@@ -66,6 +134,39 @@ export async function createChat(
   if (!modelObj) {
     throw new Error(`Model with ID ${model} not found`);
   }
+
+  // --- Paid Model Check ---
+  if (modelObj.paidOnly) {
+    log.info("Selected model is paid-only. Checking user access.");
+    // User object should be guaranteed to exist here due to earlier checks
+    const hasActiveSubscription =
+      user &&
+      user.stripeSubscriptionId &&
+      user.stripeSubscriptionStatus === "active";
+    const hasUnlimited = user && user.hasUnlimitedCredits === true;
+
+    if (!hasActiveSubscription && !hasUnlimited) {
+      log.warn(
+        "User attempted to use a paid-only model without required access (no active subscription or unlimited credits).",
+        { userId: user?.id }
+      );
+      // Throw a specific error message
+      throw new Error(
+        "This model requires an active paid subscription or special access. Please upgrade your plan or contact support."
+      );
+    } else if (hasUnlimited) {
+      log.info(
+        "User has unlimited credits. Access granted for paid-only model.",
+        { userId: user.id }
+      );
+    } else {
+      log.info(
+        "User has an active subscription. Access granted for paid-only model.",
+        { userId: user.id }
+      );
+    }
+  }
+  // --- End Paid Model Check ---
 
   // Get persona prompt if personaId exists
   let systemPrompt;
@@ -110,59 +211,99 @@ export async function createChat(
     budgetTokens,
     systemPrompt: systemPrompt,
     mcpToolId: mcpTool, // Add the mcpToolId directly to the chat object
+    // Initialize options conditionally based on file upload
+    openaiImageGenerationOptions: undefined, // Initialize as undefined
+    openaiImageEditOptions: undefined, // Initialize as undefined
   };
 
-  // If there is a file, we upload to Supabase storage and get the URL
-  const file = formData.get("image") as File | null;
-  if (file && file.name !== "undefined") {
+  // --- Vision URL Logic ---
+  const visionUrlFromPrevious = formData.get("visionUrlFromPrevious") as
+    | string
+    | null;
+  const file = formData.get("image") as File | null; // Declare file here
+
+  if (visionUrlFromPrevious && visionUrlFromPrevious.trim() !== "") {
+    // Priority 1: Use previous URL
+    log.info("Using vision URL from previous response", {
+      url: visionUrlFromPrevious,
+    });
+    chat.visionUrl = visionUrlFromPrevious;
+    // Apply EDIT options if provided
+    if (imageSize || imageQuality) {
+      chat.openaiImageEditOptions = {
+        size: imageSize,
+        quality: imageQuality,
+        moderation: "low",
+        user: `${user.id}`,
+      };
+      log.info(
+        "Populated OpenAI Image Edit options (size, quality) for previous image URL",
+        { options: chat.openaiImageEditOptions }
+      );
+    } else {
+      chat.openaiImageEditOptions = {
+        size: "auto",
+        quality: "auto",
+        moderation: "low",
+      };
+    }
+  } else if (file && file.name !== "undefined") {
+    // Priority 2: Handle new file upload
+    log.info("No previous vision URL, attempting new file upload.");
     try {
       const uploadURL = await supabaseUploadFile(
         generateUniqueFilename(file.name),
         file
       );
       if (uploadURL) {
-        log.info("File uploaded successfully", { uploadURL });
+        log.info("New file uploaded successfully", { uploadURL });
         chat.visionUrl = uploadURL;
+        // Apply EDIT options if provided
+        if (imageSize || imageQuality) {
+          chat.openaiImageEditOptions = {
+            size: imageSize,
+            quality: imageQuality,
+            moderation: "low",
+            user: `${user.id}`,
+          };
+          log.info(
+            "Populated OpenAI Image Edit options (size, quality) for new upload",
+            { options: chat.openaiImageEditOptions }
+          );
+        } else {
+          chat.openaiImageEditOptions = {
+            size: "auto",
+            quality: "auto",
+            moderation: "low",
+            user: `${user.id}`,
+          };
+        }
       }
     } catch (error) {
-      log.error("Problem uploading file", {
+      log.error("Problem uploading new file", {
         fileName: file.name,
         error: String(error),
       });
       // Allow chat to proceed without the image if upload fails
       // chat.visionUrl remains null
     }
-  }
-
-  // --- Usage Limit Check ---
-  try {
-    // Get the full user object from our DB using the helper
-    const user = await getCurrentAPIUser();
-    if (!user) {
-      // getCurrentAPIUser returns null if not authenticated or user doesn't exist in DB yet
-      log.error("Authentication required or user not found in DB.");
-      throw new Error("Authentication required or user not found.");
+  } else {
+    // Priority 3: No previous URL and no new file upload
+    log.info("No previous vision URL and no new file uploaded.");
+    // Apply GENERATION options if provided (only if no visionUrl is set at all)
+    if (imageSize || imageQuality || imageBackground) {
+      chat.openaiImageGenerationOptions = {
+        size: imageSize,
+        quality: imageQuality,
+        background: imageBackground,
+        user: `${user.id}`,
+      };
+      log.info("Populated OpenAI Image Generation options", {
+        options: chat.openaiImageGenerationOptions,
+      });
     }
-    // Add user ID to logger context
-    log = log.with({ userId: user.id });
-
-    // Check usage limit before proceeding using the user's DB ID
-    await userRepository.checkUsageLimit(user.id);
-    log.info("Usage limit check passed.");
-  } catch (error) {
-    // Re-throw the specific error message if it's the usage limit one
-    if (
-      error instanceof Error &&
-      error.message.startsWith("Usage limit exceeded")
-    ) {
-      log.warn("Usage limit exceeded for user.");
-      throw error; // Let the calling code handle this specific error
-    }
-    // Otherwise, log and throw a generic error
-    log.error("Failed to verify user usage limits", { error: String(error) });
-    throw new Error("Failed to verify user usage limits.");
   }
-  // --- End Usage Limit Check ---
+  // --- End Vision URL Logic ---
 
   // Send chat request
   try {
