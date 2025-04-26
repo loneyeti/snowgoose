@@ -4,6 +4,7 @@ import { SpinnerSize, Spinner } from "../spinner";
 import MarkdownComponent from "../markdown-parser";
 import CopyButton from "../copy-button"; // Import the CopyButton
 import { isContentBlockArray } from "../../_lib/utils";
+import { ErrorBlock } from "snowgander/dist/types";
 
 interface ConversationProps {
   chats: ChatResponse[];
@@ -204,6 +205,16 @@ export default function Conversation({
                               textToCopy={block.text}
                               className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150"
                             />
+                          </div>
+                        );
+                      case "error":
+                        return (
+                          <div key={blockIndex} className="relative group">
+                            <div className="overflow-x-auto">
+                              <MarkdownComponent
+                                markdown={block.publicMessage}
+                              />
+                            </div>
                           </div>
                         );
                       default:

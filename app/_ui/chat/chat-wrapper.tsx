@@ -77,6 +77,9 @@ export default function ChatWrapper({
     initialModelId: currentChat?.modelId,
   });
 
+  // Determine if image options should be shown based on the selected model's vendor
+  const shouldShowImageOptions = selectedModelVendor === "openai-image";
+
   function getModelName(): string {
     const model = models.find((model) => model.id === parseInt(selectedModel));
     return model?.name || "";
@@ -422,6 +425,7 @@ export default function ChatWrapper({
                             hideOutputFormats={hideOutputFormats}
                             onOutputFormatChange={outputFormatChange}
                             onMCPToolChange={mcpToolChange}
+                            showImageOptions={shouldShowImageOptions} // Pass the conditional flag here
                           />
                         </div>
                         {/* Section for Utility Icons */}
@@ -513,6 +517,7 @@ export default function ChatWrapper({
                             hideOutputFormats={hideOutputFormats}
                             onOutputFormatChange={outputFormatChange}
                             onMCPToolChange={mcpToolChange}
+                            showImageOptions={shouldShowImageOptions} // Pass the conditional flag here too
                           />
                         </div>
                       </Popover.Panel>

@@ -16,9 +16,13 @@ flowchart TD
     AIFactory --> AIVendors["snowgander <br> Adapters"]
     Actions --> MCPManager[MCP Manager]
     Actions --> StripeActions[Stripe Actions]
+    Actions -- Log Events --> Axiom[Axiom Logging]
+    Actions -- Trigger Emails --> ResendRoute[API Route: /api/resend]
+    ResendRoute --> ResendAPI[Resend API]
     StripeActions --> StripeAPI[Stripe API]
     StripeAPI -- Webhook Event --> StripeWebhookRoute[API Route: /api/webhooks/stripe]
     StripeWebhookRoute --> Repositories
+    UI -- Uses --> Onboarding[React Joyride (Onboarding)]
 
     subgraph Components
         Pages[Pages] --> UIComponents[UI Components]
@@ -80,14 +84,16 @@ graph TD
   - **/server_actions**: Server action business logic for interfacing with repositories
     - **stripe.actions.ts**: Stripe checkout session creation
   - Form schemas and validation
-  # Note: AI vendor logic is now in the standalone 'snowgander' npm package (v0.0.17)
+  # Note: AI vendor logic is now in the standalone 'snowgander' npm package (v0.0.26)
 - **mcp_servers/** Storage of MCP servers
 - **app/(marketing)/**: Public-facing marketing pages (Home, Features, Pricing) using a shared layout.
 - **app/chat/**: Main application interface, accessible after login.
+  - **app/\_ui/onboarding/ProductTour.tsx**: Component implementing the user onboarding tour.
   - **/chat/settings/**: User settings, profile, history, etc.
-- **app/subscriptions/** Subscription management pages (`page.tsx`) - _Note: May need relocation or review under new structure._
-- **app/success/** Subscription confirmation page (`page.tsx`) - _Note: May need relocation or review under new structure._
+- **app/subscriptions/** Subscription management pages (`page.tsx`) - _Note: Relocated/integrated into settings or marketing._
+- **app/success/** Subscription confirmation page (`page.tsx`) - _Note: Relocated/integrated._
 - **app/api/webhooks/stripe/** Stripe webhook handler (`route.ts`)
+- **app/api/resend/** Resend email sending route (`route.ts`)
 
 ### 2. Data Flow
 
@@ -164,12 +170,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    subgraph Snowgoose App
-        ChatRepo[Chat Repository] -- uses --> VendorFactory
+    subgraph "Snowgoose App"
+        ChatRepo[Chat Repository] -- uses --> VendorFactory["snowgander <br> AIVendorFactory"]
     end
 
-    subgraph "snowgander npm package"
-        VendorFactory[AIVendorFactory] --> Config[Vendor Config]
+    subgraph "snowgander npm package (v0.0.26)"
+        VendorFactory --> Config[Vendor Config]
         VendorFactory -- creates --> Adapters
         Adapters --> BaseAdapter[AIVendorAdapter Interface]
 
@@ -297,12 +303,13 @@ flowchart TD
 
 ### 5. UI Patterns
 
-- Component composition
+- Component composition (`app/_ui/`)
 - Progressive enhancement
-- Responsive design
-- Loading states
+- **Responsive Design**: Tailwind CSS utility classes used extensively for mobile, tablet, and desktop layouts.
+- Loading states (e.g., spinners, skeleton loaders)
 - Error boundaries
 - Toast notifications (`sonner`)
+- **Onboarding**: Guided tour using `react-joyride` (`app/_ui/onboarding/ProductTour.tsx`).
 
 ### 6. MCP Integration
 
@@ -311,3 +318,11 @@ flowchart TD
 - Environment handling
 - Error recovery
 - Communication protocol
+
+### 7. Logging
+
+- **Axiom Integration**: Using `next-axiom` wrapper for structured logging from Server Components, Server Actions, and API Routes.
+
+### 8. Email Notifications
+
+- **Resend Integration**: Dedicated API route (`/api/resend`) likely handles sending emails via the `resend` SDK, triggered by Server Actions (e.g., for magic links).

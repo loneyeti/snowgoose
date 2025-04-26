@@ -43,53 +43,23 @@ Standalone Next.js application with Server Actions
    - Persona management
    - Output format handling
    - Corrected MCP tool interaction flow (prevents duplicate tool calls)
-   - **Stripe subscription integration:**
-     - Basic checkout flow (subscription page, checkout action, success page)
-     - Basic checkout flow (subscription page, checkout action, success page)
-     - Database schema updated with Stripe fields
-     - Webhook handler for `checkout.session.completed` to update DB
-     - Checkout session linked to user via `client_reference_id`
-     - Middleware updated to allow webhook access
-     - **Stripe Customer Portal integration:**
-       - Server action (`createCustomerPortalSessionAction`) to generate portal URL
-       - Client component (`ManageSubscriptionButton`) for redirection
-       - Button added to profile page (`/settings/profile`) for subscribed users
-     - **Usage Limit Foundation:**
-       - Added `SubscriptionPlan` table to DB schema (`prisma/schema.prisma`)
-       - Applied migration (`20250406230457_add_subscription_plan_table`)
-       - Updated `UserRepository` to reset `periodUsage` on renewal via webhook
-       - **Added Admin Active Subscriptions page (`/settings/admin/subscriptions`) for viewing active customer subscriptions and associated local plan data (read-only).**
-       - **Added Admin Subscription Limits page (`/settings/admin/subscription-limits`) for managing local plan name and usage limits per Stripe Price ID.**
-     - **Implemented Free Tier & Usage Limits:**
-       - Modified `SubscriptionPlan` schema to make `stripePriceId` optional.
-       - Seeded "Free Tier" plan (`stripePriceId = null`, `usageLimit = 0.5`).
-       - Added `UserRepository.checkUsageLimit` method.
-       - Integrated usage check into `createChat` server action.
-     - **Marketing Site:**
-       - Terms of Service page (`app/(marketing)/terms/page.tsx`) created.
-       - Privacy Policy page (`app/(marketing)/privacy/page.tsx`) created.
-       - Footer links added in `app/(marketing)/layout.tsx`.
-     - **Google OAuth Sign-In (Pre-built Button):**
-       - Added `NEXT_PUBLIC_GOOGLE_CLIENT_ID` environment variable.
-       - Integrated Google GSI client script, nonce handling, button rendering, and Supabase `signInWithIdToken` callback into `app/login/page.tsx`.
-     - **GitHub OAuth Sign-In:**
-       - Added `NEXT_PUBLIC_GITHUB_CLIENT_ID` environment variable.
-       - Integrated GitHub sign-in button and `signInWithGithub` handler using `supabase.auth.signInWithOAuth` into `app/login/page.tsx`.
-     - **Passwordless Authentication (Magic Link):**
-       - Removed password fields/logic from login page (`app/login/page.tsx`).
-       - Updated login server action (`app/login/actions.ts`) to use `supabase.auth.signInWithOtp`.
-       - Removed signup and password reset server actions.
-       - Removed password reset page (`app/auth/reset-password/`).
-     - **Explicit Subscription Status Tracking:**
-       - Added `stripeSubscriptionStatus` field to `User` model.
-       - Updated `UserRepository` methods to handle status.
-       - Updated `UserRepository.checkUsageLimit` to enforce 'active' status.
-       - Updated Stripe webhook handler to pass status.
-     - **Fixed race condition in `ensureUserExists` (`app/_lib/server_actions/user.actions.ts`) by catching Prisma P2002 errors (unique constraint violation) during user creation and re-fetching the user if the error occurs.**
+   - **Enhanced Stripe Subscription Integration (Summary):**
+     - Full lifecycle management (checkout, portal, webhooks).
+     - Free tier and usage limits enforced.
+     - Admin UIs for viewing/managing plans.
+     - Explicit status tracking.
+   - **Improved Login Flow (Summary):**
+     - Passwordless (Magic Link) primary authentication.
+     - Google & GitHub OAuth options.
+   - **Axiom Logging:** Integrated `next-axiom` for application logging.
+   - **Resend Email:** Integrated `resend` for transactional emails (e.g., magic links).
+   - **User Onboarding Tour:** Implemented `react-joyride` for new user guidance.
+   - **UI/UX & Mobile Improvements:** Various enhancements across the application for better usability and responsiveness.
+   - **Fixed `ensureUserExists` Race Condition:** Handled potential duplicate user creation errors.
 
 5. AI Integration
 
-- **AI vendor logic moved to standalone `snowgander` npm package (v0.0.17)**
+- **AI vendor logic moved to standalone `snowgander` npm package (v0.0.26)**
 - OpenAI adapter
 - Anthropic adapter
 - Google AI adapter
@@ -137,36 +107,30 @@ Standalone Next.js application with Server Actions
    - Troubleshooting guides
 
 6. **Subscription System**
-   - Basic Stripe integration implemented
-   - Subscription page with plan display
-   - Checkout session creation
-   - Success page confirmation
-   - Basic Stripe integration implemented
-   - Subscription page with plan display
-   - Checkout session creation
-   - Success page confirmation
-   - **Database schema updated for subscription tracking (DONE)**
-   - **Webhook handling for `checkout.session.completed` (DONE)**
-   - **Webhook handling for `customer.subscription.updated` (DONE - handles renewals, updates)**
-   - **Webhook handling for `customer.subscription.deleted` (DONE - handles cancellations)**
-   - **Webhook handling for `invoice.payment_failed` (DONE - logs failures)**
-   - **Stripe Customer Portal integration (DONE)**
-   - **Foundation for usage limits and reset (DONE - `SubscriptionPlan` table added, `UserRepository` updated to reset usage on renewal)**
-   - **Admin UI for viewing active customer subscriptions (DONE)**
-   - **Implement subscription status checks (using new DB fields) (DONE)**
-   - Need to add subscription management UI (beyond portal and admin page)
-   - **Implement usage limit checks based on `SubscriptionPlan` table and active status (DONE)**
-   - Need to create UI/Action for managing `SubscriptionPlan` table records (DONE)
-   - Need to populate `SubscriptionPlan` table (PENDING)
-   - ~~Need to add webhook handling for other events (updates, cancellations)~~ (Now covered)
+   - **Core functionality implemented (DONE)**
+   - Need to populate `SubscriptionPlan` table with actual plan data (PENDING)
+   - Consider adding more user-facing subscription management UI beyond portal link (Optional Enhancement)
 7. **Marketing Site Development (`app/(marketing)/`)**
-   - Home page content (`/`) (IN PROGRESS)
-   - Features page content (`/features`) (IN PROGRESS)
-   - Pricing page content (`/pricing`) (IN PROGRESS)
-   - Terms of Service page (`/terms`) (DONE)
-   - Privacy Policy page (`/privacy`) (DONE)
-   - Shared marketing layout (`app/(marketing)/layout.tsx`) (IN PROGRESS - Footer updated)
-   - Styling (`app/marketing.css`, Tailwind) (IN PROGRESS)
+   - Core pages (Home, Features, Pricing, Terms, Privacy) content (DONE - Needs Review/Refinement)
+   - Shared marketing layout (DONE - Needs Review/Refinement)
+   - Styling (DONE - Needs Review/Refinement)
+   - About page content (`/about`) (PENDING)
+   - Blog structure and initial posts (`/blog`) (PENDING)
+   - Contact page content (`/contact`) (PENDING)
+8. **Onboarding Experience**
+   - **Initial implementation done (`react-joyride`) (DONE)**
+   - Refine Product Tour steps and content (`app/_ui/onboarding/ProductTour.tsx`) (PENDING)
+   - Integrate tour triggering logic (e.g., for first-time users) (PENDING)
+9. **Email Integration**
+   - **Resend setup and magic link emails (DONE)**
+   - Implement specific email triggers beyond magic links (e.g., subscription confirmations, welcome emails) (PENDING)
+10. **Logging & Monitoring**
+    - **Axiom integration (`next-axiom`) setup (DONE)**
+    - Define key metrics and alerts in Axiom (PENDING)
+    - Ensure comprehensive logging coverage in critical paths (PENDING)
+11. **UI/UX & Mobile Responsiveness**
+    - **Significant improvements made (DONE)**
+    - Ongoing refinement based on testing and feedback (CONTINUOUS)
 
 ## Known Issues
 
@@ -209,6 +173,10 @@ Standalone Next.js application with Server Actions
    - Resource utilization
    - Caching implementation
    - Load testing
+4. **Populate Subscription Plans**: Add actual tier data to `SubscriptionPlan` table.
+5. **Refine Onboarding**: Improve tour content and triggering logic.
+6. **Expand Email Triggers**: Add welcome/confirmation emails.
+7. **Configure Axiom**: Define metrics and alerts.
 
 ## Feature Status
 
@@ -250,6 +218,41 @@ Standalone Next.js application with Server Actions
 - [ ] Enhanced monitoring
 - [ ] Advanced logging
 
+### Subscription System
+
+- [x] Stripe Checkout Integration
+- [x] Stripe Customer Portal Integration
+- [x] Stripe Webhook Handling (Core Events)
+- [x] Database Schema for Subscriptions & Plans
+- [x] Usage Limit Logic (`checkUsageLimit`)
+- [x] Free Tier Implementation
+- [x] Admin UIs (View Subscriptions, Manage Limits)
+- [x] Explicit Status Tracking (`stripeSubscriptionStatus`, `cancel_at_period_end`)
+- [ ] Populate Production Plan Data
+
+### Authentication
+
+- [x] Supabase Integration
+- [x] Passwordless (Magic Link) Login
+- [x] Google OAuth Login
+- [x] GitHub OAuth Login
+- [x] Protected Routes/Middleware
+
+### UI/UX & Onboarding
+
+- [x] Responsive Design (Tailwind)
+- [x] Core UI Components (`app/_ui`)
+- [x] Onboarding Tour (`react-joyride` initial setup)
+- [ ] Onboarding Tour Refinement (Content, Triggers)
+
+### Logging & Email
+
+- [x] Axiom Logging (`next-axiom`) Integration
+- [x] Resend Email Integration (`resend` SDK, API route)
+- [x] Magic Link Emails
+- [ ] Other Transactional Emails (Welcome, Confirmation, etc.)
+- [ ] Axiom Metrics/Alerts Configuration
+
 ## Upcoming Work
 
 1. Expand test coverage
@@ -272,22 +275,12 @@ Standalone Next.js application with Server Actions
 9. Authentication system
 10. Error handling system (Initial)
 11. Standardized Server Action error handling (Log details server-side, throw generic errors)
-12. **AI Vendor Logic Refactoring**: Extracted AI adapters and factory into standalone `snowgander` npm package (v0.0.17).
-13. **Basic Stripe Integration**: Implemented subscription page, checkout process, and success confirmation.
-14. **Stripe DB Schema Update**: Added necessary fields to `User` model for subscription tracking and applied migration.
-15. **Stripe Webhook Implementation**: Added webhook handler for `checkout.session.completed` to update user subscription data in the database.
-16. **Middleware Update**: Excluded Stripe webhook path from authentication checks.
-17. **Stripe Customer Portal Integration**: Added functionality for users to manage their subscriptions via the Stripe portal, accessible from the profile page.
-18. **Expanded Stripe Webhook Handling**: Added handlers for `customer.subscription.updated`, `customer.subscription.deleted`, and `invoice.payment_failed` to manage subscription lifecycle events in the database.
-19. **Subscription Usage Limit Foundation**: Added `SubscriptionPlan` table to database schema and updated `UserRepository` to reset `periodUsage` on subscription renewal via webhook.
-20. **Admin Active Subscriptions View**: Created page (`/settings/admin/subscriptions`) allowing admins to view active Stripe subscriptions and associated local `SubscriptionPlan` data (read-only).
-21. **Admin Subscription Limits Management**: Created page (`/settings/admin/subscription-limits`) allowing admins to manage local `SubscriptionPlan` records (name, usageLimit) associated with Stripe Prices.
-22. **Free Tier & Usage Limit Implementation**: Added a "Free Tier" plan, made `stripePriceId` optional in `SubscriptionPlan`, and integrated usage limit checks into the chat action.
-23. **Terms of Service Page**: Created the Terms of Service page (`/terms`) and linked it in the marketing site footer.
-24. **Privacy Policy Page**: Created the Privacy Policy page (`/privacy`) and linked it in the marketing site footer.
-25. **Google OAuth Sign-In (Pre-built Button)**: Integrated Google Sign-In via the GSI client library and Supabase `signInWithIdToken` on the login page.
-26. **GitHub OAuth Sign-In**: Integrated GitHub Sign-In via `supabase.auth.signInWithOAuth` on the login page and added the necessary environment variable.
-27. **Passwordless Authentication Refactor**: Replaced email/password login with Supabase Magic Links (`signInWithOtp`), removing password fields, signup, and password reset functionality.
-28. **Explicit Stripe Subscription Status Tracking**: Added status field to DB, updated repository methods and webhook handler, and integrated status check into usage limit logic.
-29. **Stripe `cancel_at_period_end` Handling**: Added `stripeCancelAtPeriodEnd` field to `User` model, updated repository, and modified webhook handler to store this flag from `customer.subscription.updated` events.
-30. **`ensureUserExists` Race Condition Fix**: Implemented error handling in `user.actions.ts` to catch Prisma P2002 errors during user creation and re-fetch the user, resolving potential race conditions.
+12. **AI Vendor Logic Refactoring**: Extracted AI adapters and factory into standalone `snowgander` npm package (v0.0.26).
+13. **Enhanced Stripe Integration**: Full lifecycle, portal, webhooks, usage limits, admin UIs.
+14. **Improved Login Flow**: Passwordless (Magic Link), Google OAuth, GitHub OAuth.
+15. **Terms & Privacy Pages**: Added marketing site legal pages.
+16. **`ensureUserExists` Race Condition Fix**: Handled duplicate user creation errors.
+17. **Axiom Logging Integration**: Added `next-axiom`.
+18. **Resend Email Integration**: Added `resend` for transactional emails (starting with magic links).
+19. **User Onboarding Tour**: Implemented `react-joyride`.
+20. **UI/UX & Mobile Responsiveness**: General improvements across the application.

@@ -11,6 +11,8 @@ Snowgoose serves as a unified interface for AI interactions, simplifying the pro
 3. **Feature Management**: Centralizes access to various AI capabilities (text, vision, image generation)
 4. **Context Management**: Enables saving and returning to conversations
 5. **Customization**: Supports personas and output formats for tailored AI interactions
+6. **Operational Visibility**: Provides logging (via Axiom) for monitoring and troubleshooting.
+7. **User Communication**: Enables transactional emails (via Resend) for confirmations, notifications, etc.
 
 ## User Experience Goals
 
@@ -18,7 +20,8 @@ Snowgoose serves as a unified interface for AI interactions, simplifying the pro
 2. **Reliability**: Elegant error handling and clear feedback
 3. **Flexibility**: Easy switching between AI providers and features
 4. **Consistency**: Standardized interaction patterns across all providers
-5. **Customization**: User control over interaction style through personas and output formats
+5. **Responsiveness**: Seamless experience across desktop and mobile devices.
+6. **Customization**: User control over interaction style through personas and output formats
 
 ## Core User Flows
 
@@ -37,6 +40,7 @@ Snowgoose serves as a unified interface for AI interactions, simplifying the pro
     - Saving conversations
     - Returning to previous contexts
     - Managing conversation history
+    - **Onboarding**: Guided product tour for new users
 
 ### Marketing Site (`/`)
 

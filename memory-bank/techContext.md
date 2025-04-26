@@ -62,21 +62,34 @@ Required in package.json:
     "@modelcontextprotocol/sdk": "^1.7.0",
     "@prisma/client": "^6.5.0",
     "@stripe/stripe-js": "^7.0.0",
+    "@hookform/resolvers": "^5.0.1", // Added for react-hook-form
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.49.1",
     "blob-polyfill": "^9.0.20240710",
     "clsx": "^2.1.0",
+    "date-fns": "^4.1.0", // Added for date formatting
+    "gray-matter": "^4.0.3", // Added for blog/mdx
     "html-react-parser": "^5.1.1",
     "nanoid": "^5.0.5",
     "next": "^14.1.0",
-    "openai": "^4.91.1",
+    "next-axiom": "^1.9.1", // Added for Axiom logging
+    "next-themes": "^0.4.6", // Added for theme management
+    "openai": "^4.96.0", // Updated version
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-markdown": "^9.0.1",
+    "react-hook-form": "^7.56.1", // Added for forms
+    "react-icons": "^5.5.0", // Added for icons
+    "react-joyride": "^2.9.3", // Added for onboarding tour
+    "react-markdown": "^10.1.0", // Updated version
     "react-material-symbols": "^4.3.1",
+    "reading-time": "^1.5.0", // Added for blog/mdx
     "rehype-raw": "^7.0.0",
+    "remark": "^15.0.1", // Added for blog/mdx
+    "remark-gfm": "^4.0.1", // Added for blog/mdx
+    "remark-html": "^16.0.1", // Added for blog/mdx
+    "resend": "^4.4.0", // Added for Resend email
     "sharp": "^0.33.2",
-    "snowgander": "^0.0.17", // Standalone AI vendor package
+    "snowgander": "^0.0.26", // Updated standalone AI vendor package
     "sonner": "^2.0.2",
     "stripe": "^18.0.0", // Stripe API for subscription management
     "zod": "^3.22.4"
@@ -88,15 +101,26 @@ Required in package.json:
 ```json
 {
   "devDependencies": {
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "autoprefixer": "latest",
-    "eslint": "latest",
-    "eslint-config-next": "latest",
-    "postcss": "latest",
-    "prisma": "latest",
-    "typescript": "latest"
+    "@tailwindcss/forms": "^0.5.7", // Added for Tailwind forms plugin
+    "@tailwindcss/typography": "^0.5.10", // Added for Tailwind typography plugin
+    "@types/dompurify": "^3.0.5", // Added for potential sanitization
+    "@types/node": "^20", // Updated version
+    "@types/react": "^18.2.55", // Updated version
+    "@types/react-dom": "^18.2.18", // Updated version
+    "@types/react-syntax-highlighter": "^15.5.11", // Added for syntax highlighting
+    "autoprefixer": "^10.0.1", // Updated version
+    "dompurify": "^3.0.8", // Added for potential sanitization
+    "dotenv-cli": "^8.0.0", // Added for env var loading in scripts
+    "eslint": "^8.56.0", // Updated version
+    "eslint-config-next": "^14.1.0", // Updated version
+    "eslint-config-prettier": "^9.1.0", // Added for Prettier integration
+    "postcss": "^8", // Updated version
+    "prettier": "^3.2.4", // Added for code formatting
+    "prisma": "^6.5.0", // Updated version
+    "react-syntax-highlighter": "^15.5.0", // Added for syntax highlighting
+    "tailwindcss": "^3.3.0", // Updated version
+    "tsx": "^4.7.0", // Added for running TS scripts (e.g., seed)
+    "typescript": "^5" // Updated version
   }
 }
 ```
@@ -130,6 +154,16 @@ Required in package.json:
   - Environment configuration
   - Response standardization
 
+### Logging & Monitoring
+
+    - Axiom integration via `next-axiom`.
+    - Structured logging configuration.
+
+### Email Notifications
+
+    - Resend integration via `resend` SDK.
+    - API route for triggering emails.
+
 ### Performance Requirements
 
 - **Response Times**:
@@ -148,7 +182,7 @@ Required in package.json:
 ### Browser Support
 
 - Modern browsers (last 2 versions)
-- Mobile responsiveness
+- **Mobile Responsiveness**: Core requirement, implemented via Tailwind CSS.
 - Progressive enhancement
 - Error boundaries
 - Loading states
@@ -179,8 +213,15 @@ Required Environment Variables:
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..." # Use test keys for development
   STRIPE_WEBHOOK_SECRET="whsec_..." # From Stripe Dashboard (or temporary from Stripe CLI for local testing)
 
-  # MCP Configuration (Optional, if using local MCP servers)
-  MCP_CONFIG_PATH="/path/to/your/mcp/config.json"
+   # MCP Configuration (Optional, if using local MCP servers)
+   MCP_CONFIG_PATH="/path/to/your/mcp/config.json"
+
+   # Logging (Axiom - often configured via Vercel integration or NEXT_PUBLIC_AXIOM_INGEST_ENDPOINT)
+   # AXIOM_DATASET="your-axiom-dataset" # Usually set in Vercel/Fly.io env
+   # AXIOM_TOKEN="axiom-token" # Usually set in Vercel/Fly.io env
+
+   # Email (Resend)
+   RESEND_API_KEY="re_..."
   ```
 
 - **Production (`.env.production` - DO NOT COMMIT, use secrets management)**:

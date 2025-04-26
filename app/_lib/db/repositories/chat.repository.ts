@@ -18,7 +18,8 @@ import {
   ToolUseBlock,
   ContentBlock,
   ImageDataBlock,
-  AIVendorAdapter, // Added ImageDataBlock import from snowgander
+  AIVendorAdapter,
+  OpenAIImageGenerationOptions, // Added ImageDataBlock import from snowgander
 } from "snowgander"; // Added MCPAvailableTool, ToolUseBlock, ContentBlock
 import { getApiVendor } from "../../server_actions/api_vendor.actions";
 import { mcpManager } from "../../mcp/manager"; // Import MCP Manager
@@ -33,6 +34,13 @@ export function initializeAIVendors() {
   // Initialize AI vendors using the imported factory
   if (process.env.OPENAI_API_KEY) {
     AIVendorFactory.setVendorConfig("openai", {
+      apiKey: process.env.OPENAI_API_KEY,
+      organizationId: process.env.OPENAI_ORG_ID,
+    });
+  }
+
+  if (process.env.OPENAI_API_KEY) {
+    AIVendorFactory.setVendorConfig("openai-image", {
       apiKey: process.env.OPENAI_API_KEY,
       organizationId: process.env.OPENAI_ORG_ID,
     });
@@ -102,7 +110,10 @@ export class ChatRepository extends BaseRepository {
     return processedContent;
   }
 
-  private async getVendorFactory(chat: LocalChat): Promise<AIVendorAdapter> {
+  // Update return type to include vendor name
+  private async getVendorFactory(
+    chat: LocalChat
+  ): Promise<{ adapter: AIVendorAdapter; vendorName: string }> {
     // Get the model from the database or throw error
     const model = await prisma.model.findUnique({
       where: { id: chat.modelId },
@@ -130,12 +141,31 @@ export class ChatRepository extends BaseRepository {
     };
 
     // Get the appropriate AI vendor adapter using vendor name and model config
-    return AIVendorFactory.getAdapter(apiVendor.name, modelConfig);
+    const adapter = AIVendorFactory.getAdapter(apiVendor.name, modelConfig);
+    // Return both adapter and vendor name
+    return { adapter, vendorName: apiVendor.name };
   }
 
+  private createOpenAIImageGenerationOptions(
+    chat: LocalChat
+  ): OpenAIImageGenerationOptions {
+    // Use options from chat object if available, otherwise use defaults
+    const options = chat.openaiImageGenerationOptions;
+    return {
+      n: 1, // Always generate 1 image for now
+      quality: options?.quality || "auto", // Default to auto
+      size: options?.size || "auto", // Default to auto
+      background: options?.background || "auto", // Default to auto
+      moderation: "low",
+      // user, output_compression, moderation could be added here if needed later
+    };
+  }
+
+  // Add vendorName parameter
   private async sendChatAndUpdateCost(
     chat: LocalChat,
-    adapter: AIVendorAdapter
+    adapter: AIVendorAdapter,
+    vendorName: string // Add vendorName parameter
   ): Promise<ChatResponse> {
     const user = await getCurrentAPIUser();
     let log = new Logger({ source: "chat-repository" }).with({
@@ -146,7 +176,24 @@ export class ChatRepository extends BaseRepository {
       log.error("No user found");
       throw new Error("Unauthorized");
     }
+
+    // The 'chat' object received from chat-actions.ts should now contain
+    // either openaiImageGenerationOptions or openaiImageEditOptions (or neither)
+    // correctly populated. We no longer need to conditionally create/delete them here.
+    // The snowgander adapter is responsible for interpreting these options based on
+    // the presence of visionUrl and the specific options object provided.
+
+    log.info("Passing chat object to adapter", {
+      hasGenerationOptions: !!chat.openaiImageGenerationOptions,
+      hasEditOptions: !!chat.openaiImageEditOptions,
+      generationOptions: chat.openaiImageGenerationOptions,
+      editOptions: chat.openaiImageEditOptions,
+      hasVisionUrl: !!chat.visionUrl,
+    });
+
+    // Always call sendChat, passing the chat object as prepared by chat-actions.ts
     const response = await adapter.sendChat(chat);
+
     if (response.usage) {
       log.info(
         `Response cost ${response.usage.totalCost}. Adding to user usage.`
@@ -154,6 +201,10 @@ export class ChatRepository extends BaseRepository {
       await updateUserUsage(user.id, response.usage.totalCost);
     } else {
       log.warn("Response generated no usage.");
+    }
+    if (response.content[0].type == "error") {
+      const privateerr = response.content[0].privateMessage;
+      console.error(`Error block received: ${privateerr}`);
     }
     return response;
   }
@@ -208,17 +259,9 @@ export class ChatRepository extends BaseRepository {
     // --- End Usage Limit Check ---
 
     log.info("Getting AI vendor adapter", { modelId: chat.modelId });
-    const adapter = await this.getVendorFactory(chat);
-    log.info("AI vendor adapter obtained successfully.");
-
-    /*
-    // For DALL-E image generation. Will be depreciated soon.
-    if (modelConfig.isImageGeneration && model.apiName === "dall-e-3") {
-      // Assuming generateImage takes just the prompt string based on snowgander README
-      const imageUrl = await adapter.generateImage(chat);
-      return imageUrl;
-    }
-      */
+    // Destructure the result from getVendorFactory
+    const { adapter, vendorName } = await this.getVendorFactory(chat);
+    log.info("AI vendor adapter obtained successfully.", { vendorName });
 
     // --- MCP Tool Handling ---
     let selectedMCPToolRecord: MCPTool | null = null;
@@ -274,9 +317,11 @@ export class ChatRepository extends BaseRepository {
     // Initial chat completion call
     log.info("Sending initial chat request to adapter.");
     // Removed console.log for chat object before sending
+    // Pass vendorName to sendChatAndUpdateCost
     const initialResponse: ChatResponse = await this.sendChatAndUpdateCost(
       chat,
-      adapter
+      adapter,
+      vendorName
     );
     log.info("Initial response received from adapter.");
     // Removed console.log for initial response object
@@ -373,7 +418,12 @@ export class ChatRepository extends BaseRepository {
 
         // Call sendChat again with the updated history but without tools enabled
         log.info("Sending final chat request to adapter after tool use.");
-        const finalResponse = await this.sendChatAndUpdateCost(chat, adapter);
+        // Pass vendorName to sendChatAndUpdateCost
+        const finalResponse = await this.sendChatAndUpdateCost(
+          chat,
+          adapter,
+          vendorName
+        );
         log.info("Received final response from adapter after tool use.");
         // Removed console.log for final response object
 

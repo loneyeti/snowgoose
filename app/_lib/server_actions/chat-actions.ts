@@ -1,6 +1,11 @@
 "use server";
 
-import { ChatResponse, Chat, LocalChat } from "../model";
+import {
+  ChatResponse,
+  Chat,
+  LocalChat,
+  OpenAIImageGenerationOptions,
+} from "../model"; // Added OpenAIImageGenerationOptions
 import { chatRepository } from "../db/repositories/chat.repository";
 import { getModel } from "./model.actions";
 import { getRenderTypeName } from "./render-type.actions";
@@ -9,7 +14,8 @@ import { getApiVendor } from "./api_vendor.actions";
 import { getPersona } from "./persona.actions";
 import { supabaseUploadFile } from "../storage";
 import { generateUniqueFilename } from "../utils";
-import { FormSchema } from "../form-schemas";
+import { FormSchema as BaseFormSchema } from "../form-schemas"; // Rename original schema
+import { z } from "zod"; // Import Zod
 import { getOutputFormat } from "./output-format.actions";
 import { getCurrentAPIUser } from "../auth"; // Import correct auth helper
 import { userRepository } from "../db/repositories/user.repository"; // Import user repository
@@ -22,6 +28,15 @@ export async function createChat(
   let log = new Logger({ source: "chat-action" }).with({ userId: "" }); // Use let instead of const
   log.info("createChat action started");
 
+  // Extend the base schema to include image options
+  const FormSchema = BaseFormSchema.extend({
+    imageSize: z
+      .enum(["auto", "1024x1024", "1024x1536", "1536x1024"])
+      .optional(),
+    imageQuality: z.enum(["auto", "low", "medium", "high"]).optional(),
+    imageBackground: z.enum(["auto", "opaque", "transparent"]).optional(),
+  });
+
   const {
     model,
     personaId,
@@ -30,6 +45,10 @@ export async function createChat(
     maxTokens,
     budgetTokens,
     mcpTool, // Keep parsing the mcpTool ID from the form
+    // Add new image options
+    imageSize,
+    imageQuality,
+    imageBackground,
   } = FormSchema.parse({
     model: formData.get("model"),
     personaId: formData.get("persona"),
@@ -38,8 +57,20 @@ export async function createChat(
     maxTokens: formData.get("maxTokens") || null,
     budgetTokens: formData.get("budgetTokens") || null,
     mcpTool: formData.get("mcpTool") || 0,
+    // Parse new image options from form data
+    imageSize: formData.get("imageSize") || undefined, // Use undefined if null/empty
+    imageQuality: formData.get("imageQuality") || undefined,
+    imageBackground: formData.get("imageBackground") || undefined,
   });
-  log.info("Parsed form data", { model, personaId, outputFormatId, mcpTool });
+  log.info("Parsed form data", {
+    model,
+    personaId,
+    outputFormatId,
+    mcpTool,
+    imageSize,
+    imageQuality,
+    imageBackground,
+  });
 
   const userChatResponse: ChatResponse = {
     role: "user",
@@ -110,6 +141,9 @@ export async function createChat(
     budgetTokens,
     systemPrompt: systemPrompt,
     mcpToolId: mcpTool, // Add the mcpToolId directly to the chat object
+    // Initialize options conditionally based on file upload
+    openaiImageGenerationOptions: undefined, // Initialize as undefined
+    openaiImageEditOptions: undefined, // Initialize as undefined
   };
 
   // If there is a file, we upload to Supabase storage and get the URL
@@ -123,6 +157,23 @@ export async function createChat(
       if (uploadURL) {
         log.info("File uploaded successfully", { uploadURL });
         chat.visionUrl = uploadURL;
+        // If visionUrl is set, populate EDIT options (size and quality only)
+        if (imageSize || imageQuality) {
+          chat.openaiImageEditOptions = {
+            size: imageSize,
+            quality: imageQuality,
+            // background: imageBackground, // Background is not supported for edits per type definition
+            // n: 1, // 'n' might not be applicable or needed for edits, snowgander should handle defaults
+          };
+          log.info("Populated OpenAI Image Edit options (size, quality)", {
+            options: chat.openaiImageEditOptions,
+          });
+        } else {
+          chat.openaiImageEditOptions = {
+            size: "auto",
+            quality: "auto",
+          };
+        }
       }
     } catch (error) {
       log.error("Problem uploading file", {
@@ -131,6 +182,19 @@ export async function createChat(
       });
       // Allow chat to proceed without the image if upload fails
       // chat.visionUrl remains null
+    }
+  } else {
+    // If no file (no visionUrl), populate GENERATION options if provided
+    if (imageSize || imageQuality || imageBackground) {
+      chat.openaiImageGenerationOptions = {
+        size: imageSize,
+        quality: imageQuality,
+        background: imageBackground,
+        // n: 1, // Default handled by repository/snowgander
+      };
+      log.info("Populated OpenAI Image Generation options", {
+        options: chat.openaiImageGenerationOptions,
+      });
     }
   }
 
