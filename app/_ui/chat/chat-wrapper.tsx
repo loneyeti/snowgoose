@@ -214,6 +214,10 @@ export default function ChatWrapper({
       mcpTool: formData.get("mcpTool"),
       maxTokens: formData.get("maxTokens"),
       budgetTokens: formData.get("budgetTokens"),
+      // Add logging for image options
+      imageSize: formData.get("imageSize"),
+      imageQuality: formData.get("imageQuality"),
+      imageBackground: formData.get("imageBackground"),
     });
     // Prevent double submission by handling it only here
     await submitForm(formData);
