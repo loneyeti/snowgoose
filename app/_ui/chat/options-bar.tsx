@@ -84,12 +84,7 @@ export default function OptionsBar({
       (allGlobalPersonas.length > 0 ? allGlobalPersonas[0].id : undefined)
   );
 
-  const [selectedOutputFormat, setSelectedOutputFormat] = useState<
-    number | undefined
-  >(
-    currentOutputFormat ||
-      (outputFormats.length > 0 ? outputFormats[0].id : undefined)
-  );
+  // Removed internal selectedOutputFormat state
 
   // Update local state when props change
   useEffect(() => {
@@ -113,12 +108,7 @@ export default function OptionsBar({
     }
   }, [currentPersona]);
 
-  useEffect(() => {
-    if (currentOutputFormat !== undefined) {
-      setSelectedOutputFormat(currentOutputFormat);
-      // Removed the incorrect call to onOutputFormatChange here
-    }
-  }, [currentOutputFormat]); // Removed onOutputFormatChange from dependency array as it's no longer used
+  // Removed useEffect for selectedOutputFormat
 
   // Group models by vendor using apiVendorName
   const groupedModels: { [vendor: string]: ModelWithVendorName[] } = {};

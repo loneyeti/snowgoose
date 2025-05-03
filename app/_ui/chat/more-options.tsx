@@ -74,12 +74,7 @@ export default function MoreOptions({
   onBackgroundChange,
 }: MoreOptionsProps) {
   // --- Existing State ---
-  const [selectedOutputFormat, setSelectedOutputFormat] = useState<
-    number | undefined
-  >(
-    currentOutputFormat ||
-      (outputFormats.length > 0 ? outputFormats[0].id : undefined)
-  );
+  // Removed internal selectedOutputFormat state - rely on currentOutputFormat prop
   const [selectedMCPTool, setSelectedMCPTool] = useState<number | undefined>(
     currentMCPTool ?? 0
   );
@@ -92,11 +87,7 @@ export default function MoreOptions({
     useState<ImageBackground>(currentBackground);
 
   // --- Existing Effects ---
-  useEffect(() => {
-    if (currentOutputFormat !== undefined) {
-      setSelectedOutputFormat(currentOutputFormat);
-    }
-  }, [currentOutputFormat]);
+  // Removed useEffect for selectedOutputFormat
 
   useEffect(() => {
     // Keep only one useEffect for currentMCPTool
@@ -172,7 +163,8 @@ export default function MoreOptions({
                 >
                   {/* Dark mode: Adjust button text */}
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-100">
-                    {outputFormats.find((f) => f.id === selectedOutputFormat)
+                    {/* Display based on currentOutputFormat prop */}
+                    {outputFormats.find((f) => f.id === currentOutputFormat)
                       ?.name ||
                       (outputFormats.length > 0
                         ? outputFormats[0].name
@@ -208,12 +200,12 @@ export default function MoreOptions({
                           <button
                             key={format.id}
                             type="button"
-                            className={`flex items-center w-full px-3 py-2 rounded-md cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 ${format.id === selectedOutputFormat ? "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200" : "text-slate-700 dark:text-slate-200"}`}
+                            className={`flex items-center w-full px-3 py-2 rounded-md cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 ${format.id === currentOutputFormat ? "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200" : "text-slate-700 dark:text-slate-200"}`}
                             onClick={() => {
-                              // Update local state
-                              setSelectedOutputFormat(format.id);
+                              // Remove local state update
+                              // setSelectedOutputFormat(format.id);
 
-                              // Notify parent component
+                              // Notify parent component directly
                               if (onOutputFormatChange) {
                                 const event = {
                                   target: {
@@ -227,7 +219,8 @@ export default function MoreOptions({
                             }}
                           >
                             <span className="text-sm">{format.name}</span>
-                            {format.id === selectedOutputFormat && (
+                            {/* Check against currentOutputFormat prop */}
+                            {format.id === currentOutputFormat && (
                               // Dark mode: Adjust checkmark color
                               <MaterialSymbol
                                 icon="check"

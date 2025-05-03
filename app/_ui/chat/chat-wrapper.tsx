@@ -450,8 +450,10 @@ export default function ChatWrapper({
                           <MoreOptions
                             outputFormats={outputFormats}
                             mcpTools={mcpTools}
-                            currentOutputFormat={selectedOutputFormat} // Pass string state variable
-                            currentMCPTool={selectedMCPTool} // Pass string state variable
+                            // Pass the state variable from the hook directly
+                            currentOutputFormat={selectedOutputFormat}
+                            // Pass the state variable from the hook directly
+                            currentMCPTool={selectedMCPTool}
                             disableSelection={disableSelection}
                             showFileUpload={showFileUpload} // Pass hook result
                             showMCPTools={showMCPTools} // Pass hook result
@@ -543,8 +545,10 @@ export default function ChatWrapper({
                           <MoreOptions
                             outputFormats={outputFormats}
                             mcpTools={mcpTools}
-                            currentOutputFormat={currentChat?.outputFormatId}
-                            currentMCPTool={currentChat?.mcpToolId}
+                            // Pass the state variable from the hook directly
+                            currentOutputFormat={selectedOutputFormat}
+                            // Pass the state variable from the hook directly
+                            currentMCPTool={selectedMCPTool}
                             disableSelection={disableSelection}
                             showFileUpload={showFileUpload}
                             showMCPTools={showMCPTools}
