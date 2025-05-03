@@ -190,7 +190,11 @@ export class ChatRepository extends BaseRepository {
       editOptions: chat.openaiImageEditOptions,
       hasVisionUrl: !!chat.visionUrl,
     });
-
+    /*
+    console.log(
+      `This is the actual chat object before being sent to snowgander: ${JSON.stringify(chat)}`
+    );
+    */
     // Always call sendChat, passing the chat object as prepared by chat-actions.ts
     const response = await adapter.sendChat(chat);
 
@@ -316,7 +320,7 @@ export class ChatRepository extends BaseRepository {
 
     // Initial chat completion call
     log.info("Sending initial chat request to adapter.");
-    // Removed console.log for chat object before sending
+    //console.log(`Sending inital chat: ${JSON.stringify(chat)}`);
     // Pass vendorName to sendChatAndUpdateCost
     const initialResponse: ChatResponse = await this.sendChatAndUpdateCost(
       chat,
@@ -324,7 +328,6 @@ export class ChatRepository extends BaseRepository {
       vendorName
     );
     log.info("Initial response received from adapter.");
-    // Removed console.log for initial response object
 
     // Process initial response content for ImageDataBlocks
     initialResponse.content = await this.processResponseContent(
@@ -343,7 +346,6 @@ export class ChatRepository extends BaseRepository {
         toolName: toolUseBlock.name,
         toolUseId: toolUseBlock.id, // Log the ID received from AI
       });
-      // Removed console.log for tool use requested
 
       // --- Extract and validate the toolUseId ---
       // Check if the ID exists and is a non-empty string, as required by vendors like Anthropic
@@ -362,7 +364,6 @@ export class ChatRepository extends BaseRepository {
       }
       const toolUseIdString = toolUseBlock.id; // ID is present and is a string
       log.info("Extracted and validated toolUseId", { toolUseIdString });
-      // Removed console.log
 
       // --- End Extract ---
 
@@ -370,7 +371,6 @@ export class ChatRepository extends BaseRepository {
         log.info("Parsing tool arguments from tool_use input.");
         const toolArgs = JSON.parse(toolUseBlock.input);
         log.info("Parsed tool arguments successfully.", { toolArgs });
-        // Removed console.log
 
         // Execute the tool using MCPManager
         log.info("Executing tool via MCP Manager", {
@@ -382,7 +382,6 @@ export class ChatRepository extends BaseRepository {
           toolArgs
         );
         log.info("Received tool execution result from MCP Manager.");
-        // Removed console.log
 
         // Construct ToolResultBlock
         log.info("Constructing ToolResultBlock.");
@@ -414,18 +413,16 @@ export class ChatRepository extends BaseRepository {
         chat.mcpToolId = 0; // Or null, depending on expected type, 0 seems safer based on initialization
         log.info("Cleared MCP tool information before final adapter call.");
 
-        // Removed console.log for chat object before final sending
-
         // Call sendChat again with the updated history but without tools enabled
         log.info("Sending final chat request to adapter after tool use.");
         // Pass vendorName to sendChatAndUpdateCost
+        // console.log(`Tool Use detected. Sending Chat: ${JSON.stringify(chat)}`);
         const finalResponse = await this.sendChatAndUpdateCost(
           chat,
           adapter,
           vendorName
         );
         log.info("Received final response from adapter after tool use.");
-        // Removed console.log for final response object
 
         // Process final response content for ImageDataBlocks
         finalResponse.content = await this.processResponseContent(

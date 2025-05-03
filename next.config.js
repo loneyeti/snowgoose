@@ -6,7 +6,7 @@ const { resolve } = require("path");
 module.exports = withAxiom({
   output: "standalone",
   // Add the local package to transpilePackages
-  transpilePackages: ["snowgander"],
+  // transpilePackages: ["snowgander"],
   webpack: (config, _) => (
     (config.resolve.symlinks = false),
     {
@@ -22,7 +22,7 @@ module.exports = withAxiom({
     serverActions: {
       bodySizeLimit: "10mb",
     },
-    externalDir: true,
+    // externalDir: true,
   },
 });
 /*
