@@ -227,21 +227,24 @@ export class ChatRepository extends BaseRepository {
 
     // --- Cost Calculation and User Usage Update ---
     let cost = 0;
-    if (response.usage) {
-      const model = await prisma.model.findUnique({
-        where: { id: chat.modelId },
-      });
-      if (!model) {
-        throw new Error("Model not found for cost calculation");
-      }
+    // Check if the usage object and the totalCost field exist in the response from snowgander.
+    if (response.usage && typeof response.usage.totalCost === "number") {
+      // Log the usage object from snowgander for debugging purposes.
+      console.log(
+        "Received usage object from snowgander:",
+        JSON.stringify(response.usage, null, 2)
+      );
 
-      const inputCost = model.inputTokenCost ?? 0;
-      const outputCost = model.outputTokenCost ?? 0;
-      const inputTokens = (response.usage as any).inputTokens ?? 0; // Temporary cast
-      const outputTokens = (response.usage as any).outputTokens ?? 0; // Temporary cast
-      cost =
-        (inputTokens / 1000000) * inputCost +
-        (outputTokens / 1000000) * outputCost;
+      // Directly use the totalCost provided by snowgander.
+      cost = response.usage.totalCost;
+    } else {
+      // Log a warning if usage information is missing.
+      console.warn(
+        "Usage information or totalCost not found in the response from snowgander. Defaulting to 0.",
+        {
+          usageObject: response.usage,
+        }
+      );
     }
 
     console.log(`Prompt cost: ${cost}`);
