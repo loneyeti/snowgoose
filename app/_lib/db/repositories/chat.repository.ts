@@ -20,6 +20,7 @@ import {
   ImageDataBlock,
   AIVendorAdapter,
   OpenAIImageGenerationOptions, // Added ImageDataBlock import from snowgander
+  AIRequestOptions,
 } from "snowgander"; // Added MCPAvailableTool, ToolUseBlock, ContentBlock
 import { getApiVendor } from "../../server_actions/api_vendor.actions";
 import { mcpManager } from "../../mcp/manager"; // Import MCP Manager
@@ -161,55 +162,97 @@ export class ChatRepository extends BaseRepository {
     };
   }
 
-  // Add vendorName parameter
   private async sendChatAndUpdateCost(
     chat: LocalChat,
     adapter: AIVendorAdapter,
-    vendorName: string // Add vendorName parameter
+    vendorName: string
   ): Promise<ChatResponse> {
+    const startTime = Date.now();
+    let response: ChatResponse;
     const user = await getCurrentAPIUser();
-    let log = new Logger({ source: "chat-repository" }).with({
-      userId: `${user?.id}`,
-    }); // Use let for potential reassignment with userId
-    log.info("sendChatAndUpdateCost repository method started.");
-    if (!user) {
-      log.error("No user found");
-      throw new Error("Unauthorized");
-    }
-
-    // The 'chat' object received from chat-actions.ts should now contain
-    // either openaiImageGenerationOptions or openaiImageEditOptions (or neither)
-    // correctly populated. We no longer need to conditionally create/delete them here.
-    // The snowgander adapter is responsible for interpreting these options based on
-    // the presence of visionUrl and the specific options object provided.
-
-    log.info("Passing chat object to adapter", {
-      hasGenerationOptions: !!chat.openaiImageGenerationOptions,
-      hasEditOptions: !!chat.openaiImageEditOptions,
-      generationOptions: chat.openaiImageGenerationOptions,
-      editOptions: chat.openaiImageEditOptions,
-      hasVisionUrl: !!chat.visionUrl,
+    const log = new Logger({ source: "chat-repository" }).with({
+      userId: user?.id ? String(user.id) : "unknown",
     });
-    /*
-    console.log(
-      `This is the actual chat object before being sent to snowgander: ${JSON.stringify(chat)}`
-    );
-    */
-    // Always call sendChat, passing the chat object as prepared by chat-actions.ts
-    const response = await adapter.sendChat(chat);
 
+    // --- Legacy Path for dedicated OpenAI Image Generation ---
+    // This is preserved as per the requirements.
+    if (vendorName === "openai-image") {
+      const options = this.createOpenAIImageGenerationOptions(chat);
+      response = await (adapter as any).generateImage(options); // Temporary cast until types are updated
+    }
+    // --- New Unified Path for all other models ---
+    else {
+      // Get model details from database to ensure we have all properties
+      const model = await prisma.model.findUnique({
+        where: { id: chat.modelId },
+      });
+      if (!model) {
+        throw new Error("Model not found");
+      }
+
+      // START OF CHANGE: Build the tools array conditionally
+      const tools: AIRequestOptions["tools"] = [];
+      if (model.isImageGeneration && vendorName === "openai") {
+        tools.push({ type: "image_generation" });
+      }
+
+      // Add the web search tool if the flag is set
+      if (chat.useWebSearch) {
+        log.info("Web search enabled, adding tool to request.", {
+          model: model.apiName,
+        });
+        tools.push({ type: "web_search_preview" });
+      }
+      // END OF CHANGE
+
+      // Construct messages array from chat history
+      const messages: Message[] = chat.responseHistory.map((chatResponse) => ({
+        role: chatResponse.role,
+        content: chatResponse.content,
+      }));
+
+      // Construct the unified request options
+      const options: AIRequestOptions = {
+        model: model.apiName,
+        messages: messages,
+        tools: tools.length > 0 ? tools : undefined,
+      };
+      console.log(`Chat options: ${JSON.stringify(options)}`);
+      // Use the new unified generateResponse method
+      response = await adapter.generateResponse(options);
+    }
+
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+
+    // --- Cost Calculation and User Usage Update ---
+    let cost = 0;
     if (response.usage) {
-      log.info(
-        `Response cost ${response.usage.totalCost}. Adding to user usage.`
-      );
-      await updateUserUsage(user.id, response.usage.totalCost);
-    } else {
-      log.warn("Response generated no usage.");
+      const model = await prisma.model.findUnique({
+        where: { id: chat.modelId },
+      });
+      if (!model) {
+        throw new Error("Model not found for cost calculation");
+      }
+
+      const inputCost = model.inputTokenCost ?? 0;
+      const outputCost = model.outputTokenCost ?? 0;
+      const inputTokens = (response.usage as any).inputTokens ?? 0; // Temporary cast
+      const outputTokens = (response.usage as any).outputTokens ?? 0; // Temporary cast
+      cost =
+        (inputTokens / 1000000) * inputCost +
+        (outputTokens / 1000000) * outputCost;
     }
-    if (response.content[0].type == "error") {
-      const privateerr = response.content[0].privateMessage;
-      console.error(`Error block received: ${privateerr}`);
+
+    console.log(`Prompt cost: ${cost}`);
+
+    if (cost > 0 && user) {
+      await updateUserUsage(user.id, cost);
     }
+
+    log.info(
+      `Chat sent to ${vendorName}. Duration: ${duration}ms, Cost: $${cost.toFixed(6)}`
+    );
     return response;
   }
 
@@ -262,190 +305,82 @@ export class ChatRepository extends BaseRepository {
     }
     // --- End Usage Limit Check ---
 
-    log.info("Getting AI vendor adapter", { modelId: chat.modelId });
-    // Destructure the result from getVendorFactory
-    const { adapter, vendorName } = await this.getVendorFactory(chat);
-    log.info("AI vendor adapter obtained successfully.", { vendorName });
-
-    // --- MCP Tool Handling ---
-    let selectedMCPToolRecord: MCPTool | null = null;
-    chat.mcpAvailableTools = []; // Initialize as empty
-    log.info("Starting MCP tool handling", { mcpToolId: chat.mcpToolId });
-
-    if (chat.mcpToolId && chat.mcpToolId !== 0) {
-      log.info("Chat included MCP tool, attempting to find record.");
-      // Use the correct findById method
-      selectedMCPToolRecord = await mcpToolRepository.findById(chat.mcpToolId);
-      if (selectedMCPToolRecord) {
-        log.info("Found MCP tool record in DB", {
-          toolName: selectedMCPToolRecord.name,
-        });
-        try {
-          // Get detailed tool definitions from the manager
-          log.info("Fetching tool definitions from MCP Manager.");
-          const availableToolsInfo = await mcpManager.getAvailableTools(
-            selectedMCPToolRecord
-          );
-          log.info("Received tool definitions from MCP Manager", {
-            count: availableToolsInfo.length,
-          });
-          // Find the specific tool definition
-          const formattedTools = availableToolsInfo.map((tool) => ({
-            name: tool.name,
-            description: tool.description || `Tool: ${tool.name}`,
-            input_schema: tool.inputSchema,
-          }));
-          if (formattedTools && formattedTools.length > 0) {
-            chat.mcpAvailableTools = formattedTools;
-            log.info("Formatted and added available tools to chat object.");
-          } else {
-            log.warn(
-              `Tool definitions formatted incorrectly or not found via mcpManager for tool: ${selectedMCPToolRecord.name}`
-            );
-          }
-        } catch (error) {
-          log.error(
-            `Error fetching tool definitions for ${selectedMCPToolRecord.name}`,
-            { error: String(error) }
-          );
-          // Proceed without the tool if definition fetch fails
-        }
-      } else {
-        log.warn(`MCPTool record not found for ID: ${chat.mcpToolId}`);
-      }
-    } else {
-      log.info("No MCP tool ID provided or it was 0.");
+    // Get the model details to properly access vendor name
+    const model = await prisma.model.findUnique({
+      where: { id: chat.modelId },
+      include: { apiVendor: true },
+    });
+    if (!model || !model.apiVendor) {
+      throw new Error("Model or Vendor not found");
     }
-    // --- End MCP Tool Handling ---
+    const vendorName = model.apiVendor.name.toLowerCase();
 
-    // Initial chat completion call
-    log.info("Sending initial chat request to adapter.");
-    //console.log(`Sending inital chat: ${JSON.stringify(chat)}`);
-    // Pass vendorName to sendChatAndUpdateCost
-    const initialResponse: ChatResponse = await this.sendChatAndUpdateCost(
-      chat,
-      adapter,
-      vendorName
-    );
-    log.info("Initial response received from adapter.");
+    // Get the adapter and vendor name
+    const { adapter } = await this.getVendorFactory(chat);
 
-    // Process initial response content for ImageDataBlocks
-    initialResponse.content = await this.processResponseContent(
-      initialResponse.content
+    // --- Initial Call to AI ---
+    let response = await this.sendChatAndUpdateCost(chat, adapter, vendorName);
+
+    // --- Handle Multi-Turn for MCP Tool Use ---
+    const toolUseBlock = response.content.find(
+      (block): block is ToolUseBlock => block.type === "tool_use"
     );
 
-    // Check for ToolUseBlock in the initial response
-    // Add explicit type ContentBlock for 'block' parameter
-    log.info("Checking initial response for tool_use block.");
-    const toolUseBlock = initialResponse.content.find(
-      (block: ContentBlock): block is ToolUseBlock => block.type === "tool_use"
-    );
-
-    if (toolUseBlock && selectedMCPToolRecord) {
-      log.info("Tool use block found in initial response", {
+    if (toolUseBlock && chat.mcpToolId) {
+      log.info("Tool use detected, calling MCP tool.", {
         toolName: toolUseBlock.name,
-        toolUseId: toolUseBlock.id, // Log the ID received from AI
       });
 
-      // --- Extract and validate the toolUseId ---
-      // Check if the ID exists and is a non-empty string, as required by vendors like Anthropic
-      if (
-        !toolUseBlock.id ||
-        typeof toolUseBlock.id !== "string" ||
-        toolUseBlock.id.trim() === ""
-      ) {
-        log.error(
-          "ToolUseBlock received from AI is missing the required 'id' field for tool processing flow."
-        );
-        // Throw an error because the subsequent ToolResultBlock requires a valid string ID.
-        throw new Error(
-          "Tool use requested by AI is missing the required 'id'. Cannot proceed."
-        );
+      const mcpTool = await mcpToolRepository.findById(chat.mcpToolId);
+      if (!mcpTool) {
+        throw new Error("MCP Tool not found for tool use block.");
       }
-      const toolUseIdString = toolUseBlock.id; // ID is present and is a string
-      log.info("Extracted and validated toolUseId", { toolUseIdString });
 
-      // --- End Extract ---
-
-      try {
-        log.info("Parsing tool arguments from tool_use input.");
-        const toolArgs = JSON.parse(toolUseBlock.input);
-        log.info("Parsed tool arguments successfully.", { toolArgs });
-
-        // Execute the tool using MCPManager
-        log.info("Executing tool via MCP Manager", {
-          toolName: toolUseBlock.name,
-        });
-        const toolExecutionResult = await mcpManager.callTool(
-          selectedMCPToolRecord,
-          toolUseBlock.name,
-          toolArgs
-        );
-        log.info("Received tool execution result from MCP Manager.");
-
-        // Construct ToolResultBlock
-        log.info("Constructing ToolResultBlock.");
-        // Construct ToolResultBlock using the validated string ID
-        const toolResultBlock: ToolResultBlock = {
-          type: "tool_result",
-          toolUseId: toolUseIdString, // Use the validated string ID here
-          content: toolExecutionResult.content as ContentBlock[], // Assuming result structure matches
-          // isError is not part of the standard ToolResultBlock type
-        };
-
-        // Update chat history according to standard multi-turn tool use flow:
-        // 1. Add the assistant's message that requested the tool use
-        chat.responseHistory.push(initialResponse);
-        // 2. Add a user message containing the tool result
-        const toolResultMessage: Message = {
-          role: "user", // Per Anthropic's flow for tool results
-          content: [toolResultBlock],
-          // Usage might not be applicable here or should be zeroed
-        };
-        chat.responseHistory.push(toolResultMessage);
-        log.info(
-          "Updated chat history with initial response and tool result message."
-        );
-
-        // Clear tool information before the final call to prevent re-sending tools
-        // This was the first fix and should remain.
-        chat.mcpAvailableTools = [];
-        chat.mcpToolId = 0; // Or null, depending on expected type, 0 seems safer based on initialization
-        log.info("Cleared MCP tool information before final adapter call.");
-
-        // Call sendChat again with the updated history but without tools enabled
-        log.info("Sending final chat request to adapter after tool use.");
-        // Pass vendorName to sendChatAndUpdateCost
-        // console.log(`Tool Use detected. Sending Chat: ${JSON.stringify(chat)}`);
-        const finalResponse = await this.sendChatAndUpdateCost(
-          chat,
-          adapter,
-          vendorName
-        );
-        log.info("Received final response from adapter after tool use.");
-
-        // Process final response content for ImageDataBlocks
-        finalResponse.content = await this.processResponseContent(
-          finalResponse.content
-        );
-
-        return finalResponse;
-      } catch (error) {
-        log.error("Error processing tool use", { error: String(error) });
-        // Optionally, return an error message or the initial response
-        // For now, return the initial response (already processed for images)
-        log.warn(
-          "Returning initial response due to error during tool processing."
-        );
-        return initialResponse;
-      }
-    } else {
-      log.info(
-        "No tool use block found or no MCP tool selected, returning initial response."
+      // Parse the tool input JSON string to object
+      const toolInput = JSON.parse(toolUseBlock.input);
+      const toolResult = await mcpManager.callTool(
+        mcpTool,
+        toolUseBlock.name,
+        toolInput
       );
-      // If no tool use or no selected tool record, return the initial response (already processed for images)
-      return initialResponse;
+
+      if (!toolUseBlock.id) {
+        throw new Error(
+          "Received a ToolUseBlock from the AI without a tool use ID."
+        );
+      }
+      const toolUseIdString = toolUseBlock.id;
+
+      const toolResultBlock: ToolResultBlock = {
+        type: "tool_result",
+        toolUseId: toolUseIdString,
+        content: [{ type: "text", text: JSON.stringify(toolResult) }],
+      };
+
+      // Create updated chat history for the final call
+      const updatedHistory = [
+        ...chat.responseHistory,
+        { role: "assistant", content: response.content },
+        { role: "user", content: [toolResultBlock] },
+      ];
+
+      const finalChat: LocalChat = {
+        ...chat,
+        responseHistory: updatedHistory,
+      };
+
+      log.info("Sending tool results back to the model.");
+      response = await this.sendChatAndUpdateCost(
+        finalChat,
+        adapter,
+        vendorName
+      );
     }
+
+    // --- Process final response content (e.g., upload generated images) ---
+    response.content = await this.processResponseContent(response.content);
+
+    return response;
   }
 }
 

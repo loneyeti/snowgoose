@@ -5,7 +5,9 @@ import {
   Chat,
   LocalChat,
   OpenAIImageGenerationOptions,
-} from "../model"; // Added OpenAIImageGenerationOptions
+  ContentBlock,
+  ImageBlock,
+} from "../model"; // Added OpenAIImageGenerationOptions, ContentBlock, ImageBlock
 import { chatRepository } from "../db/repositories/chat.repository";
 import { getModel } from "./model.actions";
 import { getRenderTypeName } from "./render-type.actions";
@@ -36,6 +38,9 @@ export async function createChat(
       .optional(),
     imageQuality: z.enum(["auto", "low", "medium", "high"]).optional(),
     imageBackground: z.enum(["auto", "opaque", "transparent"]).optional(),
+    // START OF CHANGE: Modify Zod schema to correctly parse the string "true"
+    useWebSearch: z.preprocess((val) => val === "true", z.boolean()).optional(),
+    // END OF CHANGE
   });
 
   const {
@@ -50,6 +55,7 @@ export async function createChat(
     imageSize,
     imageQuality,
     imageBackground,
+    useWebSearch,
   } = FormSchema.parse({
     model: formData.get("model"),
     personaId: formData.get("persona"),
@@ -62,7 +68,9 @@ export async function createChat(
     imageSize: formData.get("imageSize") || undefined, // Use undefined if null/empty
     imageQuality: formData.get("imageQuality") || undefined,
     imageBackground: formData.get("imageBackground") || undefined,
-    // Parse the new hidden field
+    // Parse the web search toggle
+    useWebSearch: formData.get("useWebSearch"),
+    // Parse the vision URL from previous response
     visionUrlFromPrevious:
       (formData.get("visionUrlFromPrevious") as string | null) || null,
   });
@@ -74,6 +82,7 @@ export async function createChat(
     imageSize,
     imageQuality,
     imageBackground,
+    useWebSearch, // Log the parsed boolean
     visionUrlFromPrevious: formData.get("visionUrlFromPrevious"), // Log the received value
   });
 
@@ -109,11 +118,53 @@ export async function createChat(
   }
   // --- End Usage Limit Check ---
 
+  // START OF RESTRUCTURED LOGIC
+
+  let visionUrl: string | null = null;
+  const previousVisionUrl = formData.get("visionUrlFromPrevious") as
+    | string
+    | null;
+  const uploadedFile = formData.get("image") as File | null;
+
+  if (previousVisionUrl && previousVisionUrl.trim() !== "") {
+    log.info("Using vision URL from previous response", {
+      url: previousVisionUrl,
+    });
+    visionUrl = previousVisionUrl;
+  } else if (uploadedFile && uploadedFile.name !== "undefined") {
+    log.info("Attempting new file upload.");
+    try {
+      const uploadURL = await supabaseUploadFile(
+        generateUniqueFilename(uploadedFile.name),
+        uploadedFile
+      );
+      if (uploadURL) {
+        log.info("New file uploaded successfully", { uploadURL });
+        visionUrl = uploadURL;
+      }
+    } catch (error) {
+      log.error("Problem uploading new file", {
+        fileName: uploadedFile.name,
+        error: String(error),
+      });
+    }
+  }
+
+  // Now, construct the user's message content with both text and image if available
+  const userMessageContent: ContentBlock[] = [{ type: "text", text: prompt }];
+  if (visionUrl) {
+    const imageBlock: ImageBlock = { type: "image", url: visionUrl };
+    userMessageContent.push(imageBlock);
+  }
+
+  // Create the final user response object and add it to history
   const userChatResponse: ChatResponse = {
     role: "user",
-    content: [{ type: "text", text: prompt }],
+    content: userMessageContent,
   };
   responseHistory.push(userChatResponse);
+
+  // END OF RESTRUCTURED LOGIC
 
   // Get Render Type (eg: markdown, html, etc)
   let renderTypeName = "";
@@ -206,28 +257,24 @@ export async function createChat(
     model: modelObj.apiName,
     modelId: modelObj.id,
     prompt,
-    visionUrl: null,
+    visionUrl: visionUrl, // Pass the determined visionUrl
     maxTokens,
     budgetTokens,
     systemPrompt: systemPrompt,
     mcpToolId: mcpTool, // Add the mcpToolId directly to the chat object
+    useWebSearch: useWebSearch, // Add web search flag
     // Initialize options conditionally based on file upload
     openaiImageGenerationOptions: undefined, // Initialize as undefined
     openaiImageEditOptions: undefined, // Initialize as undefined
   };
 
   // --- Vision URL Logic ---
-  const visionUrlFromPrevious = formData.get("visionUrlFromPrevious") as
-    | string
-    | null;
-  const file = formData.get("image") as File | null; // Declare file here
-
-  if (visionUrlFromPrevious && visionUrlFromPrevious.trim() !== "") {
+  if (previousVisionUrl && previousVisionUrl.trim() !== "") {
     // Priority 1: Use previous URL
     log.info("Using vision URL from previous response", {
-      url: visionUrlFromPrevious,
+      url: previousVisionUrl,
     });
-    chat.visionUrl = visionUrlFromPrevious;
+    chat.visionUrl = previousVisionUrl;
     // Apply EDIT options if provided
     if (imageSize || imageQuality) {
       chat.openaiImageEditOptions = {
@@ -247,13 +294,13 @@ export async function createChat(
         moderation: "low",
       };
     }
-  } else if (file && file.name !== "undefined") {
+  } else if (uploadedFile && uploadedFile.name !== "undefined") {
     // Priority 2: Handle new file upload
     log.info("No previous vision URL, attempting new file upload.");
     try {
       const uploadURL = await supabaseUploadFile(
-        generateUniqueFilename(file.name),
-        file
+        generateUniqueFilename(uploadedFile.name),
+        uploadedFile
       );
       if (uploadURL) {
         log.info("New file uploaded successfully", { uploadURL });
@@ -281,7 +328,7 @@ export async function createChat(
       }
     } catch (error) {
       log.error("Problem uploading new file", {
-        fileName: file.name,
+        fileName: uploadedFile.name,
         error: String(error),
       });
       // Allow chat to proceed without the image if upload fails

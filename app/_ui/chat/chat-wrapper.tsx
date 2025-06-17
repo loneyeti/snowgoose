@@ -47,6 +47,8 @@ export default function ChatWrapper({
   const [showMoreOptions, setShowMoreOptions] = useState(false);
   const toggleMoreOptions = () => setShowMoreOptions(!showMoreOptions);
   const [response, setResponse] = useState<ChatResponse[]>([]);
+  const [useWebSearch, setUseWebSearch] = useState(false);
+  const toggleWebSearch = () => setUseWebSearch((prev) => !prev);
   // Local state to manage the over-limit status immediately
   const [localIsOverLimit, setLocalIsOverLimit] = useState(initialIsOverLimit);
   const [currentChat, setCurrentChat] = useState<LocalChat | undefined>();
@@ -356,6 +358,9 @@ export default function ChatWrapper({
           <input type="hidden" name="budgetTokens" value={budgetTokens} />
         )}
         <input type="hidden" name="mcpTool" value={selectedMCPTool || "0"} />
+        {/* START OF CHANGE: Add a hidden input for the web search toggle. */}
+        <input type="hidden" name="useWebSearch" value={String(useWebSearch)} />
+        {/* END OF CHANGE */}
         {/* Hidden input for vision URL from previous response */}
         <input
           type="hidden"
@@ -467,6 +472,9 @@ export default function ChatWrapper({
                             onOutputFormatChange={outputFormatChange}
                             onMCPToolChange={mcpToolChange}
                             showImageOptions={shouldShowImageOptions} // Pass the conditional flag here
+                            showWebSearch={selectedModelVendor === "openai"}
+                            useWebSearch={useWebSearch}
+                            onWebSearchChange={toggleWebSearch}
                           />
                         </div>
                         {/* Section for Utility Icons */}
@@ -562,6 +570,9 @@ export default function ChatWrapper({
                             onOutputFormatChange={outputFormatChange}
                             onMCPToolChange={mcpToolChange}
                             showImageOptions={shouldShowImageOptions} // Pass the conditional flag here too
+                            showWebSearch={selectedModelVendor === "openai"}
+                            useWebSearch={useWebSearch}
+                            onWebSearchChange={toggleWebSearch}
                           />
                         </div>
                       </Popover.Panel>

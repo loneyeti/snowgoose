@@ -45,6 +45,7 @@ export interface LocalChat extends Chat {
   renderTypeName: string;
   openaiImageGenerationOptions?: OpenAIImageGenerationOptions;
   openaiImageEditOptions?: OpenAIImageEditOptions;
+  useWebSearch?: boolean;
 }
 
 export interface Persona {

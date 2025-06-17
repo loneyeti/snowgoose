@@ -45,6 +45,9 @@ interface MoreOptionsProps {
   onSizeChange?: (value: ImageSize) => void;
   onQualityChange?: (value: ImageQuality) => void;
   onBackgroundChange?: (value: ImageBackground) => void;
+  showWebSearch: boolean;
+  useWebSearch: boolean;
+  onWebSearchChange: () => void;
 }
 
 export default function MoreOptions({
@@ -72,6 +75,9 @@ export default function MoreOptions({
   onSizeChange,
   onQualityChange,
   onBackgroundChange,
+  showWebSearch,
+  useWebSearch,
+  onWebSearchChange,
 }: MoreOptionsProps) {
   // --- Existing State ---
   // Removed internal selectedOutputFormat state - rely on currentOutputFormat prop
@@ -559,6 +565,36 @@ export default function MoreOptions({
             />
           </div>
         </>
+      )}
+
+      {/* --- Web Search Toggle --- */}
+      {showWebSearch && (
+        <div className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+          <label
+            htmlFor="web-search-toggle"
+            className="text-sm font-medium text-slate-700 dark:text-slate-300"
+          >
+            Web Search
+          </label>
+          <button
+            type="button"
+            id="web-search-toggle"
+            className={`${
+              useWebSearch ? "bg-indigo-600" : "bg-gray-200 dark:bg-gray-600"
+            } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`}
+            role="switch"
+            aria-checked={useWebSearch}
+            onClick={onWebSearchChange}
+            disabled={disableSelection}
+          >
+            <span
+              aria-hidden="true"
+              className={`${
+                useWebSearch ? "translate-x-5" : "translate-x-0"
+              } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+            />
+          </button>
+        </div>
       )}
 
       {/* --- Token Sliders (Existing) --- */}
