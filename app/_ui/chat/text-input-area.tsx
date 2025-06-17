@@ -122,6 +122,10 @@ export default function TextInputArea({
 
     // Clear the input after submission
     setPromptVal("");
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   return (
@@ -197,7 +201,12 @@ export default function TextInputArea({
             <button
               type="button"
               className="ml-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
-              onClick={() => setSelectedFile(null)}
+              onClick={() => {
+                setSelectedFile(null);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = "";
+                }
+              }}
             >
               <MaterialSymbol icon="close" size={14} />
             </button>

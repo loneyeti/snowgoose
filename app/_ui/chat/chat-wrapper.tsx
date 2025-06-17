@@ -183,11 +183,6 @@ export default function ChatWrapper({
     fetchUsageLimits();
   };
 
-  const resetChat = () => {
-    log.info("Chat reset");
-    setResponse([]);
-  };
-
   const updateShowSpinner = (showSpinner: boolean) => {
     setShowConversationSpinner(showSpinner);
   };
@@ -485,11 +480,11 @@ export default function ChatWrapper({
                           {/* Render UtilityIconRow inside mobile popover */}
                           {/* Pass the 'close' function from Popover */}
                           <UtilityIconRow
-                            resetChat={resetChat}
+                            resetChat={handleReset}
                             toggleHistory={toggleHistory}
                             user={user}
                             chat={currentChat}
-                            closePopover={close} // Pass the close function here
+                            closePopover={close}
                           />
                         </div>
                       </div>
@@ -617,7 +612,7 @@ export default function ChatWrapper({
                 </div>
               )}
               <UtilityIconRow
-                resetChat={resetChat}
+                resetChat={handleReset}
                 toggleHistory={toggleHistory}
                 chat={currentChat}
                 user={user}

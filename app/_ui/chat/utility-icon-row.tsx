@@ -40,14 +40,17 @@ export default function UtilityIconRow({
     // Use flex-wrap, center on mobile, justify-end on larger screens. Add gap.
     <div className="flex flex-row flex-wrap justify-center sm:justify-end items-center gap-2">
       {/* Dark mode: Adjust icon colors and hover states. Removed basis-1/5, adjusted padding/rounding */}
-      <Link
-        href="/chat"
-        onClick={resetChat}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          resetChat();
+        }}
         title="New Chat"
         className="text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 p-2 rounded-md transition-colors inline-flex justify-center items-center"
       >
         <MaterialSymbol icon="add" size={24} />
-      </Link>
+      </button>
       <button
         onClick={(e) => {
           e.preventDefault();
