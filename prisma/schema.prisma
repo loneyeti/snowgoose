@@ -11,15 +11,6 @@ model AlembicVersion {
   version_num String @id(map: "alembic_version_pkc") @db.VarChar(32)
 }
 
-/**
- * model APIKey {
- * id   Int    @id @default(autoincrement())
- * name String @db.VarChar(255)
- * key  String @db.VarChar(255)
- * @@map("api_key")
- * }
- */
-
 model APIVendor {
   id     Int     @id @default(autoincrement())
   name   String  @db.VarChar(255)
@@ -48,18 +39,20 @@ model MCPTool {
 }
 
 model Model {
-  id                Int            @id @default(autoincrement())
-  apiName           String         @map("api_name") @db.VarChar(255)
-  name              String         @db.VarChar(255)
-  isVision          Boolean        @map("is_vision")
-  isImageGeneration Boolean        @map("is_image_generation")
-  apiVendorId       Int?           @map("api_vendor_id")
-  isThinking        Boolean        @default(false) @map("is_thinking")
-  inputTokenCost    Float?         @map("input_token_cost")
-  outputTokenCost   Float?         @map("output_token_cost")
-  paidOnly          Boolean        @default(false) @map("paid_only") // New field for paid-only models
-  apiVendor         APIVendor?     @relation(fields: [apiVendorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  userSettings      UserSettings[]
+  id                   Int            @id @default(autoincrement())
+  apiName              String         @map("api_name") @db.VarChar(255)
+  name                 String         @db.VarChar(255)
+  isVision             Boolean        @map("is_vision")
+  isImageGeneration    Boolean        @map("is_image_generation")
+  apiVendorId          Int?           @map("api_vendor_id")
+  isThinking           Boolean        @default(false) @map("is_thinking")
+  inputTokenCost       Float?         @map("input_token_cost")
+  outputTokenCost      Float?         @map("output_token_cost")
+  imageOutputTokenCost Float?         @map("image_output_token_cost")
+  webSearchCost        Float?         @map("web_search_cost")
+  paidOnly             Boolean        @default(false) @map("paid_only")
+  apiVendor            APIVendor?     @relation(fields: [apiVendorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  userSettings         UserSettings[]
 
   @@map("model")
 }
@@ -108,33 +101,25 @@ model UserSettings {
 model User {
   id       Int      @id @default(autoincrement())
   username String   @unique @db.VarChar(250)
-  //password      String                @db.VarChar(250)
   email    String?  @db.VarChar(250)
   isAdmin  Boolean? @map("is_admin")
-  authId   String?  @unique @db.Uuid // Foreign key to auth.users(id)
+  authId   String?  @unique @db.Uuid
 
-  // Usage Tracking (Existing)
-  // renewalDate   DateTime?          // REMOVED
   periodUsage Float? @default(0.0)
   totalUsage  Float? @default(0.0)
 
-  // Stripe Subscription Fields (New)
   stripeCustomerId            String?   @unique @map("stripe_customer_id")
   stripeSubscriptionId        String?   @unique @map("stripe_subscription_id")
   stripePriceId               String?   @map("stripe_price_id")
   stripeCurrentPeriodBegin    DateTime? @map("stripe_current_period_begin")
   stripeCurrentPeriodEnd      DateTime? @map("stripe_current_period_end")
   stripeSubscriptionStartDate DateTime? @map("stripe_subscription_start_date")
-  stripeSubscriptionStatus    String?   @map("stripe_subscription_status") // Tracks the current status from Stripe (e.g., active, past_due, canceled)
-  stripeCancelAtPeriodEnd     Boolean?  @map("stripe_cancel_at_period_end") // Tracks if cancellation is scheduled at period end
+  stripeSubscriptionStatus    String?   @map("stripe_subscription_status")
+  stripeCancelAtPeriodEnd     Boolean?  @map("stripe_cancel_at_period_end")
 
-  // Field for overriding limits
   hasUnlimitedCredits Boolean? @default(false) @map("has_unlimited_credits")
+  onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
 
-  // Onboarding (Joyride)
-  onboardingCompleted Boolean @default(false) @map("onboarding_completed")
-
-  // Relations (Existing)
   conversations ConversationHistory[]
   outputFormats OutputFormat[]
   personas      Persona[]
@@ -145,9 +130,9 @@ model User {
 
 model SubscriptionPlan {
   id            Int     @id @default(autoincrement())
-  stripePriceId String? @unique @map("stripe_price_id") // Links to Stripe Price (Optional for non-Stripe plans like Free Tier)
-  name          String // e.g., "Pro Tier", "Free Tier"
-  usageLimit    Float // The usage limit for the period
+  stripePriceId String? @unique @map("stripe_price_id")
+  name          String
+  usageLimit    Float
 
   @@map("subscription_plan")
 }

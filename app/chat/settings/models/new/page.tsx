@@ -63,13 +63,41 @@ export default async function NewModel() {
             ></input>
           </div>
           <div className="py-2">
-            <label className="text-gray-700 text-xs" htmlFor="input_token_cost">
-              Input Token Cost
+            <label
+              className="text-gray-700 text-xs"
+              htmlFor="output_token_cost"
+            >
+              Output Token Cost
             </label>
             <input
               type="number"
               step="0.000001"
-              name="input_token_cost"
+              name="output_token_cost"
+              className="block w-full mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
+            ></input>
+          </div>
+          <div className="py-2">
+            <label
+              className="text-gray-700 text-xs"
+              htmlFor="image_output_token_cost"
+            >
+              Image Output Token Cost
+            </label>
+            <input
+              type="number"
+              step="0.000001"
+              name="image_output_token_cost"
+              className="block w-full mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
+            ></input>
+          </div>
+          <div className="py-2">
+            <label className="text-gray-700 text-xs" htmlFor="web_search_cost">
+              Web Search Cost
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              name="web_search_cost"
               className="block w-full mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
             ></input>
           </div>

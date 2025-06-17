@@ -84,6 +84,8 @@ export interface ModelPost {
   apiVendorId: number;
   inputTokenCost?: number;
   outputTokenCost?: number;
+  imageOutputTokenCost?: number;
+  webSearchCost?: number;
 }
 /*
 export interface Model {

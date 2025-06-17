@@ -105,6 +105,11 @@ async function main() {
       isImageGeneration: false,
       isThinking: false,
       apiVendorId: openaiVendor.id,
+      inputTokenCost: 0.00003,
+      outputTokenCost: 0.00006,
+      imageOutputTokenCost: 0.00012,
+      webSearchCost: 0.01,
+      paidOnly: false,
     },
     create: {
       apiName: "gpt-4o",
@@ -113,6 +118,11 @@ async function main() {
       isImageGeneration: false,
       isThinking: false,
       apiVendorId: openaiVendor.id,
+      inputTokenCost: 0.00003,
+      outputTokenCost: 0.00006,
+      imageOutputTokenCost: 0.00012,
+      webSearchCost: 0.01,
+      paidOnly: false,
     },
   });
 
@@ -125,6 +135,11 @@ async function main() {
       isImageGeneration: false,
       isThinking: false,
       apiVendorId: openaiVendor.id,
+      inputTokenCost: 0.0000015,
+      outputTokenCost: 0.000002,
+      imageOutputTokenCost: null,
+      webSearchCost: 0.01,
+      paidOnly: false,
     },
     create: {
       apiName: "gpt-3.5-turbo",
@@ -133,6 +148,11 @@ async function main() {
       isImageGeneration: false,
       isThinking: false,
       apiVendorId: openaiVendor.id,
+      inputTokenCost: 0.0000015,
+      outputTokenCost: 0.000002,
+      imageOutputTokenCost: null,
+      webSearchCost: 0.01,
+      paidOnly: false,
     },
   });
 
@@ -145,6 +165,11 @@ async function main() {
       isImageGeneration: false,
       isThinking: false,
       apiVendorId: anthropicVendor.id,
+      inputTokenCost: 0.000015,
+      outputTokenCost: 0.000075,
+      imageOutputTokenCost: null,
+      webSearchCost: 0.01,
+      paidOnly: true,
     },
     create: {
       apiName: "claude-3-opus-20240229",
@@ -153,6 +178,11 @@ async function main() {
       isImageGeneration: false,
       isThinking: false,
       apiVendorId: anthropicVendor.id,
+      inputTokenCost: 0.000015,
+      outputTokenCost: 0.000075,
+      imageOutputTokenCost: null,
+      webSearchCost: 0.01,
+      paidOnly: true,
     },
   });
 
@@ -165,6 +195,11 @@ async function main() {
       isImageGeneration: false,
       isThinking: false,
       apiVendorId: anthropicVendor.id,
+      inputTokenCost: 0.000003,
+      outputTokenCost: 0.000015,
+      imageOutputTokenCost: null,
+      webSearchCost: 0.01,
+      paidOnly: false,
     },
     create: {
       apiName: "claude-3-5-sonnet-20240620",
@@ -173,6 +208,11 @@ async function main() {
       isImageGeneration: false,
       isThinking: false,
       apiVendorId: anthropicVendor.id,
+      inputTokenCost: 0.000003,
+      outputTokenCost: 0.000015,
+      imageOutputTokenCost: null,
+      webSearchCost: 0.01,
+      paidOnly: false,
     },
   });
 
@@ -185,6 +225,11 @@ async function main() {
       isImageGeneration: false,
       isThinking: true,
       apiVendorId: anthropicVendor.id,
+      inputTokenCost: 0.000003,
+      outputTokenCost: 0.000015,
+      imageOutputTokenCost: null,
+      webSearchCost: 0.01,
+      paidOnly: false,
     },
     create: {
       apiName: "claude-3-7-sonnet-20250219",
@@ -193,6 +238,11 @@ async function main() {
       isImageGeneration: false,
       isThinking: true,
       apiVendorId: anthropicVendor.id,
+      inputTokenCost: 0.000003,
+      outputTokenCost: 0.000015,
+      imageOutputTokenCost: null,
+      webSearchCost: 0.01,
+      paidOnly: false,
     },
   });
 
@@ -205,6 +255,11 @@ async function main() {
       isImageGeneration: true,
       isThinking: false,
       apiVendorId: googleVendor.id,
+      inputTokenCost: 0.0000005,
+      outputTokenCost: 0.0000015,
+      imageOutputTokenCost: 0.0000025,
+      webSearchCost: 0.01,
+      paidOnly: false,
     },
     create: {
       apiName: "gemini-2.0-flash-exp",
@@ -213,6 +268,11 @@ async function main() {
       isImageGeneration: true,
       isThinking: false,
       apiVendorId: googleVendor.id,
+      inputTokenCost: 0.0000005,
+      outputTokenCost: 0.0000015,
+      imageOutputTokenCost: 0.0000025,
+      webSearchCost: 0.01,
+      paidOnly: false,
     },
   });
 
@@ -225,6 +285,11 @@ async function main() {
       isImageGeneration: false,
       isThinking: false,
       apiVendorId: openRouterVendor.id,
+      inputTokenCost: 0.000001,
+      outputTokenCost: 0.000002,
+      imageOutputTokenCost: null,
+      webSearchCost: 0.01,
+      paidOnly: false,
     },
     create: {
       apiName: "deepseek/deepseek-chat",
@@ -233,6 +298,11 @@ async function main() {
       isImageGeneration: false,
       isThinking: false,
       apiVendorId: openRouterVendor.id,
+      inputTokenCost: 0.000001,
+      outputTokenCost: 0.000002,
+      imageOutputTokenCost: null,
+      webSearchCost: 0.01,
+      paidOnly: false,
     },
   });
 

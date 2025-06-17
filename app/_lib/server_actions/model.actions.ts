@@ -14,7 +14,6 @@ import { getApiVendor } from "./api_vendor.actions";
 
 // Model Functions
 export async function getModels() {
-  // You can add any business logic or caching here
   return modelRepository.findAll();
 }
 
@@ -38,6 +37,8 @@ export async function getModelAdaptorOptions(model: Model) {
     isThinking: model.isThinking,
     inputTokenCost: model.inputTokenCost ?? undefined,
     outputTokenCost: model.outputTokenCost ?? undefined,
+    imageOutputTokenCost: model.imageOutputTokenCost ?? undefined,
+    webSearchCost: model.webSearchCost ?? undefined,
   };
   const name = await getModelAPIName(model);
   if (!name) {
@@ -48,7 +49,7 @@ export async function getModelAdaptorOptions(model: Model) {
 
 export async function createModel(formData: FormData) {
   const formValues = CreateModelFormSchema.parse({
-    apiName: formData.get("api_name"), // Already mapping correctly
+    apiName: formData.get("api_name"),
     name: formData.get("name"),
     isVision: formData.get("is_vision") === "on" ? true : false,
     isImageGeneration:
@@ -61,7 +62,13 @@ export async function createModel(formData: FormData) {
     outputTokenCost: formData.get("output_token_cost")
       ? parseFloat(formData.get("output_token_cost") as string)
       : null,
-    paidOnly: formData.get("paid_only") === "on" ? true : false, // Add paidOnly parsing
+    imageOutputTokenCost: formData.get("image_output_token_cost")
+      ? parseFloat(formData.get("image_output_token_cost") as string)
+      : null,
+    webSearchCost: formData.get("web_search_cost")
+      ? parseFloat(formData.get("web_search_cost") as string)
+      : null,
+    paidOnly: formData.get("paid_only") === "on" ? true : false,
   });
 
   try {
@@ -80,6 +87,14 @@ export async function createModel(formData: FormData) {
         formValues.outputTokenCost !== null
           ? formValues.outputTokenCost
           : undefined,
+      imageOutputTokenCost:
+        formValues.imageOutputTokenCost !== null
+          ? formValues.imageOutputTokenCost
+          : undefined,
+      webSearchCost:
+        formValues.webSearchCost !== null
+          ? formValues.webSearchCost
+          : undefined,
     };
 
     await modelRepository.create({
@@ -91,22 +106,23 @@ export async function createModel(formData: FormData) {
       isThinking: model.isThinking,
       inputTokenCost: model.inputTokenCost,
       outputTokenCost: model.outputTokenCost,
-      paidOnly: formValues.paidOnly, // Pass parsed paidOnly value
+      imageOutputTokenCost: model.imageOutputTokenCost,
+      webSearchCost: model.webSearchCost,
+      paidOnly: formValues.paidOnly,
     });
   } catch (error) {
-    console.error("Failed to create Model:", error); // Log detailed error
-    throw new Error("Unable to create Model."); // Throw generic error
+    console.error("Failed to create Model:", error);
+    throw new Error("Unable to create Model.");
   }
-  revalidatePath("/chat/settings/models"); // Corrected path
+  revalidatePath("/chat/settings/models");
   revalidatePath("/chat");
-
   redirect("/chat/settings/models");
 }
 
 export async function updateModel(formData: FormData) {
   const formValues = UpdateModelFormSchema.parse({
     id: formData.get("id"),
-    apiName: formData.get("api_name"), // Already mapping correctly
+    apiName: formData.get("api_name"),
     name: formData.get("name"),
     isVision: formData.get("is_vision") === "on" ? true : false,
     isImageGeneration:
@@ -119,7 +135,13 @@ export async function updateModel(formData: FormData) {
     outputTokenCost: formData.get("output_token_cost")
       ? parseFloat(formData.get("output_token_cost") as string)
       : null,
-    paidOnly: formData.get("paid_only") === "on" ? true : false, // Add paidOnly parsing
+    imageOutputTokenCost: formData.get("image_output_token_cost")
+      ? parseFloat(formData.get("image_output_token_cost") as string)
+      : null,
+    webSearchCost: formData.get("web_search_cost")
+      ? parseFloat(formData.get("web_search_cost") as string)
+      : null,
+    paidOnly: formData.get("paid_only") === "on" ? true : false,
   });
 
   try {
@@ -138,15 +160,22 @@ export async function updateModel(formData: FormData) {
         formValues.outputTokenCost !== null
           ? formValues.outputTokenCost
           : undefined,
-      paidOnly: formValues.paidOnly, // Pass parsed paidOnly value
+      imageOutputTokenCost:
+        formValues.imageOutputTokenCost !== null
+          ? formValues.imageOutputTokenCost
+          : undefined,
+      webSearchCost:
+        formValues.webSearchCost !== null
+          ? formValues.webSearchCost
+          : undefined,
+      paidOnly: formValues.paidOnly,
     });
   } catch (error) {
-    console.error("Failed to update Model:", error); // Log detailed error
-    throw new Error("Unable to update Model."); // Throw generic error
+    console.error("Failed to update Model:", error);
+    throw new Error("Unable to update Model.");
   }
-  revalidatePath("/chat/settings/models"); // Corrected path
+  revalidatePath("/chat/settings/models");
   revalidatePath("/chat");
-
   redirect("/chat/settings/models");
 }
 
@@ -154,10 +183,9 @@ export async function deleteModel(id: number) {
   try {
     await modelRepository.delete(id);
   } catch (error) {
-    console.error("Failed to delete Model:", error); // Log detailed error
-    throw new Error("Unable to delete Model."); // Throw generic error
+    console.error("Failed to delete Model:", error);
+    throw new Error("Unable to delete Model.");
   }
-  revalidatePath("/chat/settings/models"); // Corrected path
+  revalidatePath("/chat/settings/models");
   revalidatePath("/chat");
-  // Consider if redirect is needed after delete failure
 }

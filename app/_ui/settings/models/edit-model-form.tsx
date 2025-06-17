@@ -97,6 +97,33 @@ export default function EditModelForm({ model }: { model: Model }) {
             ></input>
           </div>
           <div className="py-2">
+            <label
+              className="text-gray-700 text-xs"
+              htmlFor="image_output_token_cost"
+            >
+              Image Output Token Cost
+            </label>
+            <input
+              type="number"
+              step="0.000001"
+              name="image_output_token_cost"
+              defaultValue={(model as any).imageOutputTokenCost || undefined}
+              className="block w-full mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
+            ></input>
+          </div>
+          <div className="py-2">
+            <label className="text-gray-700 text-xs" htmlFor="web_search_cost">
+              Web Search Cost
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              name="web_search_cost"
+              defaultValue={(model as any).webSearchCost || undefined}
+              className="block w-full mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
+            ></input>
+          </div>
+          <div className="py-2">
             <label className="text-gray-700 text-xs" htmlFor="api_vendor_id">
               API Vendor
             </label>

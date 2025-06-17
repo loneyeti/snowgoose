@@ -47,7 +47,9 @@ export const CreateModelFormSchema = z.object({
   apiVendorId: z.coerce.number(),
   inputTokenCost: z.coerce.number().optional().nullable(),
   outputTokenCost: z.coerce.number().optional().nullable(),
-  paidOnly: z.boolean().default(false), // Added paidOnly field
+  imageOutputTokenCost: z.coerce.number().optional().nullable(),
+  webSearchCost: z.coerce.number().optional().nullable(),
+  paidOnly: z.boolean().default(false),
 });
 
 export const UpdateModelFormSchema = z.object({
@@ -60,7 +62,9 @@ export const UpdateModelFormSchema = z.object({
   apiVendorId: z.coerce.number(),
   inputTokenCost: z.coerce.number().optional().nullable(),
   outputTokenCost: z.coerce.number().optional().nullable(),
-  paidOnly: z.boolean(), // Added paidOnly field
+  imageOutputTokenCost: z.coerce.number().optional().nullable(),
+  webSearchCost: z.coerce.number().optional().nullable(),
+  paidOnly: z.boolean(),
 });
 
 export const UpdateUserSettingsSchema = z.object({
