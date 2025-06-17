@@ -54,7 +54,7 @@
     "remark-html": "^16.0.1",
     "resend": "^4.4.0",
     "sharp": "^0.33.2",
-    "snowgander": "^0.1.1",
+    "snowgander": "^0.1.2",
     "sonner": "^2.0.2",
     "stripe": "^18.0.0",
     "zod": "^3.22.4"

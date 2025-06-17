@@ -136,30 +136,19 @@ export class ChatRepository extends BaseRepository {
       apiName: model.apiName,
       isVision: model.isVision,
       isImageGeneration: model.isImageGeneration,
-      isThinking: model.isThinking, // Use isThinking
+      isThinking: model.isThinking,
       inputTokenCost: model.inputTokenCost ?? undefined,
       outputTokenCost: model.outputTokenCost ?? undefined,
+      imageOutputTokenCost: model.imageOutputTokenCost ?? undefined,
+      webSearchCost: model.webSearchCost ?? undefined,
     };
+
+    console.log(`Model Config: ${JSON.stringify(modelConfig)}`);
 
     // Get the appropriate AI vendor adapter using vendor name and model config
     const adapter = AIVendorFactory.getAdapter(apiVendor.name, modelConfig);
     // Return both adapter and vendor name
     return { adapter, vendorName: apiVendor.name };
-  }
-
-  private createOpenAIImageGenerationOptions(
-    chat: LocalChat
-  ): OpenAIImageGenerationOptions {
-    // Use options from chat object if available, otherwise use defaults
-    const options = chat.openaiImageGenerationOptions;
-    return {
-      n: 1, // Always generate 1 image for now
-      quality: options?.quality || "auto", // Default to auto
-      size: options?.size || "auto", // Default to auto
-      background: options?.background || "auto", // Default to auto
-      moderation: "low",
-      // user, output_compression, moderation could be added here if needed later
-    };
   }
 
   private async sendChatAndUpdateCost(
@@ -174,53 +163,67 @@ export class ChatRepository extends BaseRepository {
       userId: user?.id ? String(user.id) : "unknown",
     });
 
-    // --- Legacy Path for dedicated OpenAI Image Generation ---
-    // This is preserved as per the requirements.
-    if (vendorName === "openai-image") {
-      const options = this.createOpenAIImageGenerationOptions(chat);
-      response = await (adapter as any).generateImage(options); // Temporary cast until types are updated
+    // Get model details from database to ensure we have all properties
+    const model = await prisma.model.findUnique({
+      where: { id: chat.modelId },
+    });
+    if (!model) {
+      throw new Error("Model not found");
     }
-    // --- New Unified Path for all other models ---
-    else {
-      // Get model details from database to ensure we have all properties
-      const model = await prisma.model.findUnique({
-        where: { id: chat.modelId },
-      });
-      if (!model) {
-        throw new Error("Model not found");
-      }
 
-      // START OF CHANGE: Build the tools array conditionally
-      const tools: AIRequestOptions["tools"] = [];
-      if (model.isImageGeneration && vendorName === "openai") {
-        tools.push({ type: "image_generation" });
-      }
-
-      // Add the web search tool if the flag is set
-      if (chat.useWebSearch) {
-        log.info("Web search enabled, adding tool to request.", {
-          model: model.apiName,
-        });
-        tools.push({ type: "web_search_preview" });
-      }
-      // END OF CHANGE
-
-      // Construct messages array from chat history
-      const messages: Message[] = chat.responseHistory.map((chatResponse) => ({
-        role: chatResponse.role,
-        content: chatResponse.content,
-      }));
-
-      // Construct the unified request options
-      const options: AIRequestOptions = {
+    // Prepare tools for the request
+    const tools: AIRequestOptions["tools"] = [];
+    if (model.isImageGeneration && vendorName === "openai") {
+      // For models like GPT-4o that can generate images via tool use
+      tools.push({ type: "image_generation" });
+    }
+    if (chat.useWebSearch) {
+      log.info("Web search enabled, adding tool to request.", {
         model: model.apiName,
-        messages: messages,
-        tools: tools.length > 0 ? tools : undefined,
-      };
-      console.log(`Chat options: ${JSON.stringify(options)}`);
-      // Use the new unified generateResponse method
-      response = await adapter.generateResponse(options);
+      });
+      tools.push({ type: "web_search_preview" });
     }
+
+    // Prepare messages from history
+    const messages: Message[] = chat.responseHistory.map((chatResponse) => ({
+      role: chatResponse.role,
+      content: chatResponse.content,
+    }));
+
+    // Build a complete AIRequestOptions object from the LocalChat object
+    const options: AIRequestOptions = {
+      model: model.apiName,
+      messages: messages,
+      modelId: chat.modelId,
+      systemPrompt: chat.systemPrompt ?? undefined,
+      maxTokens: chat.maxTokens ?? undefined,
+      budgetTokens: chat.budgetTokens ?? undefined,
+      thinkingMode:
+        model.isThinking && chat.budgetTokens && chat.budgetTokens > 1023
+          ? true
+          : false,
+      tools: tools.length > 0 ? tools : undefined,
+      visionUrl: chat.visionUrl ?? undefined,
+      prompt: chat.prompt,
+      // Pass through specific options for OpenAI image APIs
+      openaiImageGenerationOptions: chat.openaiImageGenerationOptions,
+      openaiImageEditOptions: chat.openaiImageEditOptions,
+    };
+
+    log.info(`Sending unified request to snowgander.`, {
+      options: JSON.stringify({
+        ...options,
+        // Avoid logging potentially large message history
+        messages: `[${options.messages.length} messages]`,
+      }),
+    });
+
+    console.log(`Options for request: ${JSON.stringify(options)}`);
+
+    // Make the single, unified call to generate a response
+    response = await adapter.generateResponse(options);
+
+    console.log(`Response: ${JSON.stringify(response)}`);
 
     const endTime = Date.now();
     const duration = endTime - startTime;
@@ -245,6 +248,12 @@ export class ChatRepository extends BaseRepository {
           usageObject: response.usage,
         }
       );
+    }
+
+    // OpenAI does not yet report the usage of image generation into its usage API object
+    // so we must hard-code it here. Hopefully that changes soon.
+    if (response.usage?.didGenerateImage) {
+      cost = cost + 0.25;
     }
 
     console.log(`Prompt cost: ${cost}`);

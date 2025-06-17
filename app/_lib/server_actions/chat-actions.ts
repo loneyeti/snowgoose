@@ -392,6 +392,7 @@ export async function createChat(
     log.error("Failed to send Chat via repository", { error: String(error) });
     // Note: The specific "Usage limit exceeded" error is now caught *before* this block.
     // This block catches errors from chatRepository.sendChat itself.
+    console.log(`Error: ${error}`);
     throw new Error("Failed to process chat request. Please try again.");
   }
   log.info("createChat action finished successfully.");
