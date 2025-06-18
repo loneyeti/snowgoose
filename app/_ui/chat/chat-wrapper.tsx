@@ -4,7 +4,7 @@ import Conversation from "./conversation";
 import OptionsBar from "./options-bar";
 import MoreOptions from "./more-options";
 import TextInputArea from "./text-input-area";
-import React, { useState, useEffect, Fragment } from "react";
+import React, { useState, useEffect, Fragment, useRef } from "react";
 import { useModelState } from "./hooks/useModelState";
 import { useThinkingState } from "./hooks/useThinkingState";
 import { useFormSubmission } from "./hooks/useFormSubmission";
@@ -28,7 +28,8 @@ import { useMCPToolState } from "./hooks/useMCPToolState";
 // Import the server action instead of the repository
 import { getUserUsageLimitsAction } from "@/app/_lib/server_actions/user.actions";
 import { useLogger } from "next-axiom";
-import { ImageBlock } from "@/app/_lib/model"; // Import ImageBlock
+import { toast } from "sonner";
+import { ImageBlock, ContentBlock, TextBlock } from "@/app/_lib/model"; // Import ContentBlock types
 
 export default function ChatWrapper({
   userPersonas,
@@ -46,7 +47,14 @@ export default function ChatWrapper({
   const log = useLogger().with({ userId: user.id });
   const [showMoreOptions, setShowMoreOptions] = useState(false);
   const toggleMoreOptions = () => setShowMoreOptions(!showMoreOptions);
-  const [response, setResponse] = useState<ChatResponse[]>([]);
+
+  // This state now holds the complete history of finalized messages.
+  const [responseHistory, setResponseHistory] = useState<ChatResponse[]>([]);
+  // This state will hold the message currently being streamed from the AI.
+  const [streamingResponse, setStreamingResponse] =
+    useState<ChatResponse | null>(null);
+  const streamingResponseRef = useRef<ChatResponse | null>(null);
+
   const [useWebSearch, setUseWebSearch] = useState(false);
   const [useImageGeneration, setUseImageGeneration] = useState(false);
   const toggleWebSearch = () => setUseWebSearch((prev) => !prev);
@@ -152,7 +160,7 @@ export default function ChatWrapper({
     let lastImageUrl: string | null = null;
     if (chat) {
       if (!chat.imageURL) {
-        setResponse(chat.responseHistory);
+        setResponseHistory(chat.responseHistory);
         // Check the last message in the history for an ImageBlock
         const lastMessage =
           chat.responseHistory[chat.responseHistory.length - 1];
@@ -179,7 +187,7 @@ export default function ChatWrapper({
       setCurrentChat(chat);
       setRenderTypeName(`${chat.renderTypeName}`);
     } else {
-      setResponse([]);
+      setResponseHistory([]);
       lastImageUrl = null; // Reset on error or empty chat
     }
     // Update the state for the next turn's input
@@ -192,37 +200,178 @@ export default function ChatWrapper({
     setShowConversationSpinner(showSpinner);
   };
 
-  const {
-    isSubmitting,
-    handleSubmit: submitForm,
-    handleReset,
-  } = useFormSubmission({
-    responseHistory: response,
-    updateMessage,
-    updateShowSpinner,
-    // Define the callback function and add logging
-    onUsageLimitError: () => {
-      log.warn("Usage limit reached for user.");
-      setLocalIsOverLimit(true); // Set local state immediately on error
-    },
-  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Custom form submission handler to avoid double submissions
-  const handleFormSubmit = async (formData: FormData) => {
-    log.info("Chat form submitted", {
-      model: formData.get("model"),
-      persona: formData.get("persona"),
-      outputFormat: formData.get("outputFormat"),
-      mcpTool: formData.get("mcpTool"),
-      maxTokens: formData.get("maxTokens"),
-      budgetTokens: formData.get("budgetTokens"),
-      // Add logging for image options
-      imageSize: formData.get("imageSize"),
-      imageQuality: formData.get("imageQuality"),
-      imageBackground: formData.get("imageBackground"),
+  // Helper function to convert file to base64
+  const fileToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
     });
-    // Prevent double submission by handling it only here
-    await submitForm(formData);
+
+  const handleFormSubmit = async (formData: FormData) => {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    setStreamingResponse(null);
+    streamingResponseRef.current = null; // Reset the ref
+
+    const prompt = formData.get("prompt") as string;
+    const imageFile = formData.get("image") as File | null;
+
+    let visionUrlForDisplay: string | null = visionUrlFromLastResponse;
+    let base64ImageData: string | undefined = undefined;
+
+    if (imageFile && imageFile.size > 0) {
+      visionUrlForDisplay = URL.createObjectURL(imageFile);
+      try {
+        base64ImageData = await fileToBase64(imageFile);
+      } catch (error) {
+        toast.error("Failed to read image file.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    const userMessageContent: ContentBlock[] = [{ type: "text", text: prompt }];
+    if (visionUrlForDisplay) {
+      userMessageContent.push({ type: "image", url: visionUrlForDisplay });
+    }
+    const userMessage: ChatResponse = {
+      role: "user",
+      content: userMessageContent,
+    };
+
+    const updatedHistory = [...responseHistory, userMessage];
+    setResponseHistory(updatedHistory);
+
+    const chatPayload: LocalChat = {
+      responseHistory: updatedHistory,
+      modelId: parseInt(selectedModel),
+      personaId: parseInt(selectedPersona),
+      outputFormatId: selectedOutputFormat || 0,
+      renderTypeName: renderTypeName,
+      prompt: prompt,
+      maxTokens: maxTokens,
+      budgetTokens: budgetTokens,
+      systemPrompt:
+        (personas.find((p) => p.id === parseInt(selectedPersona))?.prompt ||
+          "") +
+        " " +
+        (outputFormats.find((o) => o.id === selectedOutputFormat)?.prompt ||
+          ""),
+      visionUrl: visionUrlFromLastResponse,
+      imageData: base64ImageData,
+      useImageGeneration,
+      useWebSearch,
+      model: models.find((m) => m.id === parseInt(selectedModel))?.name || "",
+      imageURL: imageURL,
+    };
+
+    try {
+      const response = await fetch("/api/chat/stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(chatPayload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.publicMessage || `Error: ${response.statusText}`
+        );
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("Failed to get response reader");
+
+      const decoder = new TextDecoder();
+      streamingResponseRef.current = { role: "assistant", content: [] };
+      setStreamingResponse({ ...streamingResponseRef.current });
+
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() || "";
+
+        for (const part of parts) {
+          if (part.trim() === "") continue;
+          try {
+            if (!streamingResponseRef.current) continue; // Safety check
+            const parsedChunk: ContentBlock = JSON.parse(part);
+            const currentContent = streamingResponseRef.current.content;
+
+            if (parsedChunk.type === "text") {
+              const lastBlock = currentContent[currentContent.length - 1];
+              if (lastBlock && lastBlock.type === "text") {
+                lastBlock.text += parsedChunk.text;
+              } else {
+                currentContent.push({ type: "text", text: parsedChunk.text });
+              }
+            } else if (parsedChunk.type === "image") {
+              setVisionUrlFromLastResponse(parsedChunk.url);
+              currentContent.push(parsedChunk);
+            } else {
+              currentContent.push(parsedChunk);
+            }
+          } catch (e) {
+            console.warn("Could not parse stream chunk:", part);
+          }
+        }
+
+        // After processing a batch of parts, trigger a re-render
+        if (streamingResponseRef.current) {
+          setStreamingResponse({ ...streamingResponseRef.current });
+        }
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred.";
+      toast.error(errorMessage);
+      const errorResponse: ChatResponse = {
+        role: "assistant",
+        content: [
+          {
+            type: "error",
+            publicMessage: errorMessage,
+            privateMessage: errorMessage,
+          },
+        ],
+      };
+      setResponseHistory((prev) => [...prev, errorResponse]);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    // When submission finishes, finalize the state from the ref.
+    if (!isSubmitting && streamingResponseRef.current) {
+      const finalResponse = streamingResponseRef.current;
+      const finalHistory = [...responseHistory, finalResponse];
+
+      setResponseHistory(finalHistory);
+      setCurrentChat((prev) => ({
+        ...(prev as LocalChat),
+        responseHistory: finalHistory,
+      }));
+      setStreamingResponse(null); // Clear the temporary streaming display object
+      streamingResponseRef.current = null; // Clear the ref
+    }
+  }, [isSubmitting]);
+
+  // New handleReset function
+  const handleReset = () => {
+    setResponseHistory([]);
+    setCurrentChat(undefined);
+    setVisionUrlFromLastResponse(null);
+    // You may want to reset other state here as well
   };
 
   function populateHistory(history: ConversationHistory) {
@@ -296,7 +445,7 @@ export default function ChatWrapper({
     // Depend only on user.id to refetch when the user changes
   }, [user?.id]);
 
-  const disableSelection = response.length > 0;
+  const disableSelection = responseHistory.length > 0;
 
   const modelChange = (event: React.ChangeEvent) => {
     const target = event.target as HTMLSelectElement;
@@ -678,7 +827,7 @@ export default function ChatWrapper({
         {/* Use flex-grow and min-h-0 to manage height correctly */}
         <div className="flex flex-col flex-grow overflow-hidden min-h-0">
           {/* Welcome Message - Centered using flex-1 only when shown */}
-          {response.length === 0 && !showConversationSpinner && (
+          {responseHistory.length === 0 && !showConversationSpinner && (
             <div className="flex-1 flex flex-col justify-center items-center text-center p-4 transition-opacity duration-300 ease-out">
               {/* Dark mode: Adjust welcome text color */}
               <h1 className="text-3xl text-slate-600 dark:text-slate-300 font-thin">
@@ -693,10 +842,14 @@ export default function ChatWrapper({
           {/* Conversation Area - Always takes available space (flex-1) when active and scrolls */}
           {/* Conditionally apply flex-1 based on whether welcome message is shown */}
           <div
-            className={`max-w-3xl w-full mx-auto overflow-y-auto p-2 lg:p-4 ${response.length > 0 || showConversationSpinner ? "flex-1" : ""}`}
+            className={`max-w-3xl w-full mx-auto overflow-y-auto p-2 lg:p-4 ${responseHistory.length > 0 || showConversationSpinner ? "flex-1" : ""}`}
           >
             <Conversation
-              chats={response}
+              chats={
+                streamingResponse
+                  ? [...responseHistory, streamingResponse]
+                  : responseHistory
+              }
               showSpinner={showConversationSpinner}
               imageURL={imageURL}
               renderTypeName={renderTypeName}

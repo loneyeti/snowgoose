@@ -241,9 +241,11 @@ export default function Conversation({
             <p>&nbsp;</p>
           )}
         </div>
-        {showSpinner === true && (
-          <div className="flex justify-center items-center w-full py-4">
-            <Spinner spinnerSize={SpinnerSize.md} />
+        {showSpinner && (
+          <div className="p-2">
+            <div className="flex justify-start items-center">
+              <Spinner spinnerSize={SpinnerSize.md} />
+            </div>
           </div>
         )}
       </div>
