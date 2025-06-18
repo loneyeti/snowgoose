@@ -8,12 +8,11 @@ import {
   LocalChat,
   ModelConfig,
   ContentBlock,
+  ImageBlock,
 } from "@/app/_lib/model";
 import { getCurrentAPIUser } from "@/app/_lib/auth";
 import { userRepository } from "@/app/_lib/db/repositories/user.repository";
 import { getModel } from "@/app/_lib/server_actions/model.actions";
-import { getPersona } from "@/app/_lib/server_actions/persona.actions";
-import { getOutputFormat } from "@/app/_lib/server_actions/output-format.actions";
 import { AIVendorFactory, AIRequestOptions, Message } from "snowgander";
 import prisma from "@/app/_lib/db/prisma";
 import { updateUserUsage } from "@/app/_lib/server_actions/user.actions";
@@ -77,6 +76,39 @@ export async function POST(req: NextRequest) {
       finalVisionUrl = await uploadBase64Image(base64Data, mimeType);
     }
 
+    // START: MODIFICATION
+    // The code below is the fix. It finds the temporary blob: URL in the chat history
+    // and replaces it with the permanent public URL we just obtained from Supabase.
+
+    // Find the last message in the history, which is the user's current prompt
+    const lastMessage = chat.responseHistory[chat.responseHistory.length - 1];
+
+    // Check if the last message exists and its content is an array of blocks
+    if (lastMessage && Array.isArray(lastMessage.content)) {
+      // Find the image block in the last message's content
+      const imageBlockIndex = lastMessage.content.findIndex(
+        (block): block is ImageBlock => block.type === "image"
+      );
+
+      // If an image block is found and we have a valid finalVisionUrl
+      if (imageBlockIndex !== -1 && finalVisionUrl) {
+        // Get the image block (now properly typed as ImageBlock)
+        const imageBlock = lastMessage.content[imageBlockIndex] as ImageBlock;
+
+        // If the URL is a temporary blob URL, replace it with the public Supabase URL
+        if (imageBlock.url && imageBlock.url.startsWith("blob:")) {
+          log.info(
+            `Replacing blob URL ${imageBlock.url} with public URL ${finalVisionUrl}`
+          );
+          // Create a new content block with the updated URL to maintain immutability
+          const updatedImageBlock = { ...imageBlock, url: finalVisionUrl };
+          // Replace the old image block with the updated one in the content array
+          lastMessage.content[imageBlockIndex] = updatedImageBlock;
+        }
+      }
+    }
+    // END: MODIFICATION
+
     const model = await getModel(chat.modelId);
     if (!model || !model.apiVendorId) {
       throw new Error("Model or Model Vendor not found");
@@ -102,21 +134,38 @@ export async function POST(req: NextRequest) {
     initializeAIVendors();
     const adapter = AIVendorFactory.getAdapter(apiVendor.name, modelConfig);
 
-    // The client now sends the complete history, including the latest user prompt.
+    // This now uses the sanitized chat history with the correct public URL.
     const messages: Message[] = chat.responseHistory.map((chatResponse) => ({
       role: chatResponse.role,
       content: chatResponse.content,
     }));
 
-    // FIX: Do not push user prompt again here. It's already in chat.responseHistory.
+    // Prepare tools for the request
+    const tools: AIRequestOptions["tools"] = [];
+    if (
+      chat.useImageGeneration &&
+      model.isImageGeneration &&
+      apiVendor.name === "openai"
+    ) {
+      log.info("Image generation enabled, adding tool to request.", {
+        model: model.apiName,
+      });
+      tools.push({ type: "image_generation", partial_images: 1 });
+    }
+    if (chat.useWebSearch) {
+      log.info("Web search enabled, adding tool to request.", {
+        model: model.apiName,
+      });
+      tools.push({ type: "web_search_preview" });
+    }
 
     const options: AIRequestOptions = {
       model: model.apiName,
       messages: messages,
       systemPrompt: chat.systemPrompt ?? undefined,
       maxTokens: chat.maxTokens ?? undefined,
-      visionUrl: finalVisionUrl ?? undefined, // Use the potentially new public URL
-      tools: undefined,
+      visionUrl: finalVisionUrl ?? undefined, // Pass the public URL here as well for compatibility
+      tools: tools,
     };
 
     if (!adapter.streamResponse) {
