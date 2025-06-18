@@ -44,6 +44,7 @@ model Model {
   name                 String         @db.VarChar(255)
   isVision             Boolean        @map("is_vision")
   isImageGeneration    Boolean        @map("is_image_generation")
+  isWebSearch          Boolean?       @default(false) @map("is_web_search")
   apiVendorId          Int?           @map("api_vendor_id")
   isThinking           Boolean        @default(false) @map("is_thinking")
   inputTokenCost       Float?         @map("input_token_cost")

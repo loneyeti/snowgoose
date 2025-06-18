@@ -48,6 +48,7 @@ export class ModelRepository extends BaseRepository {
     name: string;
     isVision: boolean;
     isImageGeneration: boolean;
+    isWebSearch?: boolean;
     isThinking: boolean;
     apiVendorId: number;
     inputTokenCost?: number | null;
@@ -75,6 +76,7 @@ export class ModelRepository extends BaseRepository {
       name?: string;
       isVision?: boolean;
       isImageGeneration?: boolean;
+      isWebSearch?: boolean;
       isThinking?: boolean;
       apiVendorId?: number;
       inputTokenCost?: number | null;

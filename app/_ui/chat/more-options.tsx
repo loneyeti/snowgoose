@@ -48,6 +48,9 @@ interface MoreOptionsProps {
   showWebSearch: boolean;
   useWebSearch: boolean;
   onWebSearchChange: () => void;
+  showImageGeneration: boolean;
+  useImageGeneration: boolean;
+  onImageGenerationChange: () => void;
 }
 
 export default function MoreOptions({
@@ -78,6 +81,9 @@ export default function MoreOptions({
   showWebSearch,
   useWebSearch,
   onWebSearchChange,
+  showImageGeneration,
+  useImageGeneration,
+  onImageGenerationChange,
 }: MoreOptionsProps) {
   // --- Existing State ---
   // Removed internal selectedOutputFormat state - rely on currentOutputFormat prop
@@ -565,6 +571,38 @@ export default function MoreOptions({
             />
           </div>
         </>
+      )}
+
+      {/* --- Image Generation Toggle --- */}
+      {showImageGeneration && (
+        <div className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+          <label
+            htmlFor="image-generation-toggle"
+            className="text-sm font-medium text-slate-700 dark:text-slate-300"
+          >
+            Image Generation
+          </label>
+          <button
+            type="button"
+            id="image-generation-toggle"
+            className={`${
+              useImageGeneration
+                ? "bg-indigo-600"
+                : "bg-gray-200 dark:bg-gray-600"
+            } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`}
+            role="switch"
+            aria-checked={useImageGeneration}
+            onClick={onImageGenerationChange}
+            disabled={disableSelection}
+          >
+            <span
+              aria-hidden="true"
+              className={`${
+                useImageGeneration ? "translate-x-5" : "translate-x-0"
+              } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+            />
+          </button>
+        </div>
       )}
 
       {/* --- Web Search Toggle --- */}

@@ -8,6 +8,8 @@ interface ModelState {
   showFileUpload: boolean;
   showMCPTools: boolean;
   showTokenSliders: boolean;
+  showWebSearchToggle: boolean;
+  showImageGenerationToggle: boolean;
 }
 
 interface UseModelStateProps {
@@ -31,6 +33,9 @@ export function useModelState({
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [showMCPTools, setShowMCPTools] = useState(false);
   const [showTokenSliders, setShowTokenSliders] = useState(false);
+  const [showWebSearchToggle, setShowWebSearchToggle] = useState(false);
+  const [showImageGenerationToggle, setShowImageGenerationToggle] =
+    useState(false);
 
   useEffect(() => {
     if (selectedModel !== "") {
@@ -43,6 +48,8 @@ export function useModelState({
         setShowMCPTools(vendor?.name === "anthropic");
         setShowFileUpload(!!model.isVision);
         setShowTokenSliders(!!model.isThinking);
+        setShowWebSearchToggle(model.isWebSearch ?? false);
+        setShowImageGenerationToggle(model.isImageGeneration);
       }
     }
   }, [selectedModel, models, apiVendors]);
@@ -57,6 +64,8 @@ export function useModelState({
     showFileUpload,
     showMCPTools,
     showTokenSliders,
+    showWebSearchToggle,
+    showImageGenerationToggle,
     updateSelectedModel,
   };
 }

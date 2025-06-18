@@ -40,6 +40,9 @@ export async function createChat(
     imageBackground: z.enum(["auto", "opaque", "transparent"]).optional(),
     // START OF CHANGE: Modify Zod schema to correctly parse the string "true"
     useWebSearch: z.preprocess((val) => val === "true", z.boolean()).optional(),
+    useImageGeneration: z
+      .preprocess((val) => val === "true", z.boolean())
+      .optional(),
     // END OF CHANGE
   });
 
@@ -56,6 +59,7 @@ export async function createChat(
     imageQuality,
     imageBackground,
     useWebSearch,
+    useImageGeneration,
   } = FormSchema.parse({
     model: formData.get("model"),
     personaId: formData.get("persona"),
@@ -70,6 +74,7 @@ export async function createChat(
     imageBackground: formData.get("imageBackground") || undefined,
     // Parse the web search toggle
     useWebSearch: formData.get("useWebSearch"),
+    useImageGeneration: formData.get("useImageGeneration"),
     // Parse the vision URL from previous response
     visionUrlFromPrevious:
       (formData.get("visionUrlFromPrevious") as string | null) || null,
@@ -263,10 +268,15 @@ export async function createChat(
     systemPrompt: systemPrompt,
     mcpToolId: mcpTool, // Add the mcpToolId directly to the chat object
     useWebSearch: useWebSearch, // Add web search flag
+    useImageGeneration: useImageGeneration, // Add image generation flag
     // Initialize options conditionally based on file upload
     openaiImageGenerationOptions: undefined, // Initialize as undefined
     openaiImageEditOptions: undefined, // Initialize as undefined
   };
+
+  console.log(
+    `Server Action UseImageGeneration is: ${chat.useImageGeneration}`
+  );
 
   // --- Vision URL Logic ---
   if (previousVisionUrl && previousVisionUrl.trim() !== "") {
@@ -338,7 +348,7 @@ export async function createChat(
     // Priority 3: No previous URL and no new file upload
     log.info("No previous vision URL and no new file uploaded.");
     // If the selected model is for image generation, ensure generation options are set.
-    if (modelObj.isImageGeneration) {
+    if (modelObj.isImageGeneration && useImageGeneration) {
       // Ensure the options object is created for generation models, using form values or sensible defaults.
       chat.openaiImageGenerationOptions = {
         n: 1, // We always generate one image

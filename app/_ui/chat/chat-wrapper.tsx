@@ -48,7 +48,9 @@ export default function ChatWrapper({
   const toggleMoreOptions = () => setShowMoreOptions(!showMoreOptions);
   const [response, setResponse] = useState<ChatResponse[]>([]);
   const [useWebSearch, setUseWebSearch] = useState(false);
+  const [useImageGeneration, setUseImageGeneration] = useState(false);
   const toggleWebSearch = () => setUseWebSearch((prev) => !prev);
+  const toggleImageGeneration = () => setUseImageGeneration((prev) => !prev);
   // Local state to manage the over-limit status immediately
   const [localIsOverLimit, setLocalIsOverLimit] = useState(initialIsOverLimit);
   const [currentChat, setCurrentChat] = useState<LocalChat | undefined>();
@@ -76,6 +78,8 @@ export default function ChatWrapper({
     showFileUpload,
     showMCPTools,
     showTokenSliders,
+    showWebSearchToggle,
+    showImageGenerationToggle,
     updateSelectedModel,
   } = useModelState({
     models,
@@ -84,7 +88,8 @@ export default function ChatWrapper({
   });
 
   // Determine if image options should be shown based on the selected model's vendor
-  const shouldShowImageOptions = selectedModelVendor === "openai-image";
+  const shouldShowImageOptions =
+    showImageGenerationToggle && useImageGeneration;
 
   function getModelName(): string {
     const model = models.find((model) => model.id === parseInt(selectedModel));
@@ -355,6 +360,11 @@ export default function ChatWrapper({
         <input type="hidden" name="mcpTool" value={selectedMCPTool || "0"} />
         {/* START OF CHANGE: Add a hidden input for the web search toggle. */}
         <input type="hidden" name="useWebSearch" value={String(useWebSearch)} />
+        <input
+          type="hidden"
+          name="useImageGeneration"
+          value={String(useImageGeneration)}
+        />
         {/* END OF CHANGE */}
         {/* Hidden input for vision URL from previous response */}
         <input
@@ -467,9 +477,12 @@ export default function ChatWrapper({
                             onOutputFormatChange={outputFormatChange}
                             onMCPToolChange={mcpToolChange}
                             showImageOptions={shouldShowImageOptions} // Pass the conditional flag here
-                            showWebSearch={selectedModelVendor === "openai"}
+                            showWebSearch={showWebSearchToggle}
                             useWebSearch={useWebSearch}
                             onWebSearchChange={toggleWebSearch}
+                            showImageGeneration={showImageGenerationToggle}
+                            useImageGeneration={useImageGeneration}
+                            onImageGenerationChange={toggleImageGeneration}
                           />
                         </div>
                         {/* Section for Utility Icons */}
@@ -565,9 +578,12 @@ export default function ChatWrapper({
                             onOutputFormatChange={outputFormatChange}
                             onMCPToolChange={mcpToolChange}
                             showImageOptions={shouldShowImageOptions} // Pass the conditional flag here too
-                            showWebSearch={selectedModelVendor === "openai"}
+                            showWebSearch={showWebSearchToggle}
                             useWebSearch={useWebSearch}
                             onWebSearchChange={toggleWebSearch}
+                            showImageGeneration={showImageGenerationToggle}
+                            useImageGeneration={useImageGeneration}
+                            onImageGenerationChange={toggleImageGeneration}
                           />
                         </div>
                       </Popover.Panel>

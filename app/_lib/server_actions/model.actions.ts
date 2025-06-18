@@ -7,7 +7,7 @@ import {
   UpdateModelFormSchema,
   CreateModelFormSchema,
 } from "@/app/_lib/form-schemas";
-import { ModelConfig } from "snowgander";
+import { ModelConfig } from "@/app/_lib/model";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getApiVendor } from "./api_vendor.actions";
@@ -34,6 +34,7 @@ export async function getModelAdaptorOptions(model: Model) {
     apiName: model.apiName,
     isVision: model.isVision,
     isImageGeneration: model.isImageGeneration,
+    isWebSearch: model.isWebSearch ?? undefined,
     isThinking: model.isThinking,
     inputTokenCost: model.inputTokenCost ?? undefined,
     outputTokenCost: model.outputTokenCost ?? undefined,
@@ -54,6 +55,7 @@ export async function createModel(formData: FormData) {
     isVision: formData.get("is_vision") === "on" ? true : false,
     isImageGeneration:
       formData.get("is_image_generation") === "on" ? true : false,
+    isWebSearch: formData.get("is_web_search") === "on" ? true : false,
     isThinking: formData.get("is_thinking") === "on" ? true : false,
     apiVendorId: formData.get("api_vendor_id"),
     inputTokenCost: formData.get("input_token_cost")
@@ -102,6 +104,7 @@ export async function createModel(formData: FormData) {
       name: model.name,
       isVision: model.isVision,
       isImageGeneration: model.isImageGeneration,
+      isWebSearch: formValues.isWebSearch,
       apiVendorId: model.apiVendorId ?? undefined,
       isThinking: model.isThinking,
       inputTokenCost: model.inputTokenCost,
@@ -127,6 +130,7 @@ export async function updateModel(formData: FormData) {
     isVision: formData.get("is_vision") === "on" ? true : false,
     isImageGeneration:
       formData.get("is_image_generation") === "on" ? true : false,
+    isWebSearch: formData.get("is_web_search") === "on" ? true : false,
     isThinking: formData.get("is_thinking") === "on" ? true : false,
     apiVendorId: formData.get("api_vendor_id"),
     inputTokenCost: formData.get("input_token_cost")
@@ -150,6 +154,7 @@ export async function updateModel(formData: FormData) {
       name: formValues.name,
       isVision: formValues.isVision,
       isImageGeneration: formValues.isImageGeneration,
+      isWebSearch: formValues.isWebSearch,
       apiVendorId: formValues.apiVendorId ?? undefined,
       isThinking: formValues.isThinking,
       inputTokenCost:

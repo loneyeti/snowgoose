@@ -11,8 +11,14 @@ import {
   TextBlock,
   ImageBlock,
   OpenAIImageGenerationOptions,
-  OpenAIImageEditOptions, // Import directly now
+  OpenAIImageEditOptions,
+  ModelConfig as BaseModelConfig, // Import directly now
 } from "snowgander";
+
+// Extend the ModelConfig interface to include isWebSearch
+export interface ModelConfig extends BaseModelConfig {
+  isWebSearch?: boolean;
+}
 
 // Re-export Prisma types for consistent usage
 export type { Model, User };
@@ -46,6 +52,7 @@ export interface LocalChat extends Chat {
   openaiImageGenerationOptions?: OpenAIImageGenerationOptions;
   openaiImageEditOptions?: OpenAIImageEditOptions;
   useWebSearch?: boolean;
+  useImageGeneration?: boolean;
 }
 
 export interface Persona {

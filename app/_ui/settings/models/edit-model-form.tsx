@@ -59,6 +59,17 @@ export default function EditModelForm({ model }: { model: Model }) {
             ></input>
           </div>
           <div className="py-2">
+            <label className="text-gray-700 text-xs" htmlFor="is_web_search">
+              Is Web Search
+            </label>
+            <input
+              type="checkbox"
+              name="is_web_search"
+              defaultChecked={model.isWebSearch || false}
+              className="block mt-0 px-3 border border-gray-200 focus:ring-0 focus:border-black rounded-md"
+            ></input>
+          </div>
+          <div className="py-2">
             <label className="text-gray-700 text-xs" htmlFor="is_thinking">
               Is Thinking
             </label>

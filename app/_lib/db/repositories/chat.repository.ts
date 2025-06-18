@@ -11,7 +11,6 @@ import {
 } from "../../model"; // Removed Message, ToolResultBlock, Added ImageBlock
 import {
   AIVendorFactory,
-  ModelConfig,
   Message, // Added Message import from snowgander
   ToolResultBlock, // Added ToolResultBlock import from snowgander
   MCPAvailableTool,
@@ -22,6 +21,7 @@ import {
   OpenAIImageGenerationOptions, // Added ImageDataBlock import from snowgander
   AIRequestOptions,
 } from "snowgander"; // Added MCPAvailableTool, ToolUseBlock, ContentBlock
+import { ModelConfig } from "../../model";
 import { getApiVendor } from "../../server_actions/api_vendor.actions";
 import { mcpManager } from "../../mcp/manager"; // Import MCP Manager
 import { mcpToolRepository } from "./mcp-tool.repository"; // Import MCP Tool Repository
@@ -136,6 +136,7 @@ export class ChatRepository extends BaseRepository {
       apiName: model.apiName,
       isVision: model.isVision,
       isImageGeneration: model.isImageGeneration,
+      isWebSearch: model.isWebSearch ?? undefined,
       isThinking: model.isThinking,
       inputTokenCost: model.inputTokenCost ?? undefined,
       outputTokenCost: model.outputTokenCost ?? undefined,
@@ -171,10 +172,19 @@ export class ChatRepository extends BaseRepository {
       throw new Error("Model not found");
     }
 
+    console.log(
+      `These need to be true to generate an image. OpenAI? ${vendorName === "openai"}. Image Gen Model? ${model.isImageGeneration}. User Added Image Gen? ${chat.useImageGeneration}`
+    );
     // Prepare tools for the request
     const tools: AIRequestOptions["tools"] = [];
-    if (model.isImageGeneration && vendorName === "openai") {
-      // For models like GPT-4o that can generate images via tool use
+    if (
+      chat.useImageGeneration &&
+      model.isImageGeneration &&
+      vendorName === "openai"
+    ) {
+      log.info("Image generation enabled, adding tool to request.", {
+        model: model.apiName,
+      });
       tools.push({ type: "image_generation" });
     }
     if (chat.useWebSearch) {
