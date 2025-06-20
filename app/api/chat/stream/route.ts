@@ -1,14 +1,16 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import {
   initializeAIVendors,
   chatRepository,
 } from "@/app/_lib/db/repositories/chat.repository";
 import {
-  ChatResponse,
   LocalChat,
   ModelConfig,
   ContentBlock,
   ImageBlock,
+  ImageDataBlock,
+  ErrorBlock,
+  ImageGenerationCallBlock,
 } from "@/app/_lib/model";
 import { getCurrentAPIUser } from "@/app/_lib/auth";
 import { userRepository } from "@/app/_lib/db/repositories/user.repository";
@@ -19,24 +21,9 @@ import { updateUserUsage } from "@/app/_lib/server_actions/user.actions";
 import { Logger } from "next-axiom";
 import { uploadBase64Image } from "@/app/_lib/storage";
 
-function iteratorToStream(iterator: AsyncGenerator<ContentBlock>) {
-  return new ReadableStream({
-    async pull(controller) {
-      const { value, done } = await iterator.next();
-
-      if (done) {
-        controller.close();
-      } else {
-        const chunk = JSON.stringify(value) + "\n\n";
-        controller.enqueue(new TextEncoder().encode(chunk));
-      }
-    },
-  });
-}
-
 export async function POST(req: NextRequest) {
-  const log = new Logger({ source: "chat-stream-api" });
-  console.log("Using streaming API route for chat.");
+  const log = new Logger({ source: "chat-stream-api-unified" });
+  console.log("Using unified streaming API route for all chat.");
 
   try {
     const user = await getCurrentAPIUser();
@@ -65,49 +52,34 @@ export async function POST(req: NextRequest) {
     }
 
     const chat: LocalChat = await req.json();
-    let finalVisionUrl = chat.visionUrl ?? null;
 
-    // If new image data is present, upload it and get a public URL
+    // If there is new image data, upload it and replace the base64 with a URL.
+    // This is for *new* vision requests, not edits.
     if (chat.imageData) {
       const mimeType = chat.imageData.substring(5, chat.imageData.indexOf(";"));
       const base64Data = chat.imageData.substring(
         chat.imageData.indexOf(",") + 1
       );
-      finalVisionUrl = await uploadBase64Image(base64Data, mimeType);
-    }
+      const finalVisionUrl = await uploadBase64Image(base64Data, mimeType);
 
-    // START: MODIFICATION
-    // The code below is the fix. It finds the temporary blob: URL in the chat history
-    // and replaces it with the permanent public URL we just obtained from Supabase.
-
-    // Find the last message in the history, which is the user's current prompt
-    const lastMessage = chat.responseHistory[chat.responseHistory.length - 1];
-
-    // Check if the last message exists and its content is an array of blocks
-    if (lastMessage && Array.isArray(lastMessage.content)) {
-      // Find the image block in the last message's content
-      const imageBlockIndex = lastMessage.content.findIndex(
-        (block): block is ImageBlock => block.type === "image"
-      );
-
-      // If an image block is found and we have a valid finalVisionUrl
-      if (imageBlockIndex !== -1 && finalVisionUrl) {
-        // Get the image block (now properly typed as ImageBlock)
-        const imageBlock = lastMessage.content[imageBlockIndex] as ImageBlock;
-
-        // If the URL is a temporary blob URL, replace it with the public Supabase URL
-        if (imageBlock.url && imageBlock.url.startsWith("blob:")) {
+      // Find the last user message and update the image block with the new URL
+      const lastMessage = chat.responseHistory[chat.responseHistory.length - 1];
+      if (lastMessage && Array.isArray(lastMessage.content)) {
+        const imageBlockIndex = lastMessage.content.findIndex(
+          (block): block is ImageBlock => block.type === "image"
+        );
+        if (imageBlockIndex !== -1) {
+          const imageBlock = lastMessage.content[imageBlockIndex] as ImageBlock;
           log.info(
             `Replacing blob URL ${imageBlock.url} with public URL ${finalVisionUrl}`
           );
-          // Create a new content block with the updated URL to maintain immutability
-          const updatedImageBlock = { ...imageBlock, url: finalVisionUrl };
-          // Replace the old image block with the updated one in the content array
-          lastMessage.content[imageBlockIndex] = updatedImageBlock;
+          lastMessage.content[imageBlockIndex] = {
+            ...imageBlock,
+            url: finalVisionUrl,
+          };
         }
       }
     }
-    // END: MODIFICATION
 
     const model = await getModel(chat.modelId);
     if (!model || !model.apiVendorId) {
@@ -134,28 +106,18 @@ export async function POST(req: NextRequest) {
     initializeAIVendors();
     const adapter = AIVendorFactory.getAdapter(apiVendor.name, modelConfig);
 
-    // This now uses the sanitized chat history with the correct public URL.
     const messages: Message[] = chat.responseHistory.map((chatResponse) => ({
       role: chatResponse.role,
       content: chatResponse.content,
     }));
 
-    // Prepare tools for the request
     const tools: AIRequestOptions["tools"] = [];
-    if (
-      chat.useImageGeneration &&
-      model.isImageGeneration &&
-      apiVendor.name === "openai"
-    ) {
-      log.info("Image generation enabled, adding tool to request.", {
-        model: model.apiName,
-      });
+    if (chat.useImageGeneration && model.isImageGeneration) {
+      log.info("Image generation enabled, adding tool to request.");
       tools.push({ type: "image_generation", partial_images: 1 });
     }
     if (chat.useWebSearch) {
-      log.info("Web search enabled, adding tool to request.", {
-        model: model.apiName,
-      });
+      log.info("Web search enabled, adding tool to request.");
       tools.push({ type: "web_search_preview" });
     }
 
@@ -164,18 +126,88 @@ export async function POST(req: NextRequest) {
       messages: messages,
       systemPrompt: chat.systemPrompt ?? undefined,
       maxTokens: chat.maxTokens ?? undefined,
-      visionUrl: finalVisionUrl ?? undefined, // Pass the public URL here as well for compatibility
-      tools: tools,
+      tools: tools.length > 0 ? tools : undefined,
     };
 
+    // --- UNIFIED STREAMING PATH FOR ALL RESPONSES ---
+    log.info("Handling all requests via the streaming path.", {
+      model: model.apiName,
+    });
     if (!adapter.streamResponse) {
       throw new Error("This adapter does not support streaming.");
     }
+
     const stream = adapter.streamResponse(options);
+    await updateUserUsage(user.id, 0.0001); // Initial small cost for starting a chat
 
-    await updateUserUsage(user.id, 0.0001);
+    const finalImagesToUpload = new Map<
+      string,
+      { base64Data: string; mimeType: string }
+    >();
 
-    const readableStream = iteratorToStream(stream);
+    const readableStream = new ReadableStream({
+      async pull(controller) {
+        const { value, done } = await stream.next();
+
+        if (done) {
+          // The AI stream has finished. Now, upload the final version of each image.
+          log.info("Main AI stream finished. Uploading final images.", {
+            count: finalImagesToUpload.size,
+          });
+          for (const [id, { base64Data, mimeType }] of Array.from(
+            finalImagesToUpload.entries()
+          )) {
+            try {
+              const imageUrl = await uploadBase64Image(base64Data, mimeType);
+              const finalImageBlock: ImageBlock = {
+                type: "image",
+                url: imageUrl,
+                generationId: id,
+              };
+              const chunkString = JSON.stringify(finalImageBlock) + "\n\n";
+              controller.enqueue(new TextEncoder().encode(chunkString));
+              log.info(
+                "Successfully uploaded and enqueued final image block.",
+                { generationId: id }
+              );
+            } catch (e) {
+              log.error("Failed to upload final streamed image data", {
+                error: String(e),
+                generationId: id,
+              });
+              // Send an error to the client if upload fails
+              const errorBlock = {
+                type: "error",
+                publicMessage: "Failed to save final generated image.",
+              };
+              const chunkString = JSON.stringify(errorBlock) + "\n\n";
+              controller.enqueue(new TextEncoder().encode(chunkString));
+            }
+          }
+          const completeSignal = { type: "stream-complete" };
+          const completeChunkString = JSON.stringify(completeSignal) + "\n\n";
+          controller.enqueue(new TextEncoder().encode(completeChunkString));
+          controller.close(); // Close the stream after all uploads are done
+          return;
+        }
+
+        // We have a new chunk from the AI.
+        const chunkToEnqueue = value;
+
+        // If it's a fuzzy image chunk with an ID, track its latest version for the final upload.
+        if (chunkToEnqueue.type === "image_data" && chunkToEnqueue.id) {
+          finalImagesToUpload.set(chunkToEnqueue.id, {
+            base64Data: chunkToEnqueue.base64Data,
+            mimeType: chunkToEnqueue.mimeType,
+          });
+        }
+
+        // IMPORTANT: Pass the original chunk (e.g., ImageDataBlock, TextBlock) directly to the client.
+        // This lets the client render the fuzzy previews as they arrive.
+        const chunkString = JSON.stringify(chunkToEnqueue) + "\n\n";
+        controller.enqueue(new TextEncoder().encode(chunkString));
+      },
+    });
 
     return new Response(readableStream, {
       headers: {

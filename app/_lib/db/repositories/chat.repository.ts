@@ -73,41 +73,72 @@ const subscriptionPlanRepo = new SubscriptionPlanRepository();
 
 export class ChatRepository extends BaseRepository {
   // Helper function to process content blocks and upload images
-  private async processResponseContent(
+  public async processResponseContent(
     content: ContentBlock[]
   ): Promise<ContentBlock[]> {
     const processedContent: ContentBlock[] = [];
     // Note: Using a new logger instance here, might want to pass the main one if userId is needed
     const log = new Logger({ source: "chat-repository-processContent" });
     log.info("Processing response content for image data blocks.");
+
+    // First, identify which image_data blocks are final (not previews)
+    const imageDataById = new Map<string, ImageDataBlock>();
+
+    for (const block of content) {
+      if (block.type === "image_data") {
+        const imageDataBlock = block as ImageDataBlock;
+        if (imageDataBlock.id) {
+          imageDataById.set(imageDataBlock.id, imageDataBlock);
+        } else {
+          // No ID means it's not part of a preview sequence
+          imageDataById.set(`no-id-${Math.random()}`, imageDataBlock);
+        }
+      }
+    }
+
     for (const block of content) {
       if (block.type === "image_data") {
         // Type guard for ImageDataBlock
         const imageDataBlock = block as ImageDataBlock;
-        try {
-          log.info("Uploading image data from response block", {
-            mimeType: imageDataBlock.mimeType,
-          });
-          const imageUrl = await uploadBase64Image(
-            imageDataBlock.base64Data,
-            imageDataBlock.mimeType
-          );
-          const imageBlock: ImageBlock = { type: "image", url: imageUrl };
-          processedContent.push(imageBlock);
-          log.info("Image uploaded successfully from response block", {
-            imageUrl,
-          });
-        } catch (error) {
-          log.error("Failed to upload image from ImageDataBlock", {
-            error: String(error),
-          });
-          // Optionally push an error message block or skip the block
-          // For now, skipping the block if upload fails
+        const mapKey = imageDataBlock.id || `no-id-${Math.random()}`;
+        // Only process if this is the final version for this ID
+        if (imageDataById.get(mapKey) === imageDataBlock) {
+          try {
+            console.log(
+              `Uploading image to supabase: ${imageDataBlock.type} - ${imageDataBlock.id}`
+            );
+            log.info("Uploading image data from response block", {
+              mimeType: imageDataBlock.mimeType,
+            });
+            const imageUrl = await uploadBase64Image(
+              imageDataBlock.base64Data,
+              imageDataBlock.mimeType
+            );
+            const imageBlock: ImageBlock = {
+              type: "image",
+              url: imageUrl,
+              generationId: imageDataBlock.id ?? undefined,
+            };
+            processedContent.push(imageBlock);
+            log.info("Image uploaded successfully from response block", {
+              imageUrl,
+              generationId: imageDataBlock.id, // Log the ID for verification
+            });
+          } catch (error) {
+            log.error("Failed to upload image from ImageDataBlock", {
+              error: String(error),
+            });
+            // Optionally push an error message block or skip the block
+            // For now, skipping the block if upload fails
+          }
         }
       } else {
         processedContent.push(block);
       }
     }
+    console.log(
+      `Returning processed content: ${JSON.stringify(processedContent)}`
+    );
     return processedContent;
   }
 

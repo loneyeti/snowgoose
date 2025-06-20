@@ -7,7 +7,6 @@ import TextInputArea from "./text-input-area";
 import React, { useState, useEffect, Fragment, useRef } from "react";
 import { useModelState } from "./hooks/useModelState";
 import { useThinkingState } from "./hooks/useThinkingState";
-import { useFormSubmission } from "./hooks/useFormSubmission";
 import { Popover, Transition } from "@headlessui/react";
 import {
   LocalChat,
@@ -15,7 +14,7 @@ import {
   ChatUserSession,
   ChatWrapperProps,
   UserUsageLimits,
-} from "../../_lib/model";
+} from "@/app/_lib/model";
 import UtilityIconRow from "./utility-icon-row";
 import { getHistory } from "../../_lib/server_actions/history.actions";
 import { ConversationHistory, User } from "@prisma/client"; // Import User type if needed, or adjust based on actual user prop type
@@ -29,7 +28,45 @@ import { useMCPToolState } from "./hooks/useMCPToolState";
 import { getUserUsageLimitsAction } from "@/app/_lib/server_actions/user.actions";
 import { useLogger } from "next-axiom";
 import { toast } from "sonner";
-import { ImageBlock, ContentBlock, TextBlock } from "@/app/_lib/model"; // Import ContentBlock types
+import { ImageBlock, ContentBlock } from "@/app/_lib/model";
+
+function deduplicateImageBlocks(content: ContentBlock[]): ContentBlock[] {
+  const imageMap = new Map<string, ContentBlock>();
+  const result: ContentBlock[] = [];
+
+  // First pass: collect all image-related blocks by ID
+  for (const block of content) {
+    if (block.type === "image" && block.generationId) {
+      imageMap.set(block.generationId, block);
+    } else if (block.type === "image_data" && block.id) {
+      // Only keep if we don't already have a final image for this ID
+      if (!imageMap.has(block.id)) {
+        imageMap.set(block.id, block);
+      }
+    }
+  }
+
+  // Second pass: build result, skipping duplicates
+  const seenIds = new Set<string>();
+  for (const block of content) {
+    if (block.type === "image" && block.generationId) {
+      if (!seenIds.has(block.generationId)) {
+        result.push(block);
+        seenIds.add(block.generationId);
+      }
+    } else if (block.type === "image_data" && block.id) {
+      if (!seenIds.has(block.id)) {
+        result.push(block);
+        seenIds.add(block.id);
+      }
+    } else {
+      // Non-image blocks pass through
+      result.push(block);
+    }
+  }
+
+  return result;
+}
 
 export default function ChatWrapper({
   userPersonas,
@@ -45,6 +82,7 @@ export default function ChatWrapper({
   isOverLimit: initialIsOverLimit = false, // Rename prop for clarity, default false
 }: ChatWrapperProps) {
   const log = useLogger().with({ userId: user.id });
+  const [isStreamComplete, setIsStreamComplete] = useState(false);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
   const toggleMoreOptions = () => setShowMoreOptions(!showMoreOptions);
 
@@ -53,7 +91,6 @@ export default function ChatWrapper({
   // This state will hold the message currently being streamed from the AI.
   const [streamingResponse, setStreamingResponse] =
     useState<ChatResponse | null>(null);
-  const streamingResponseRef = useRef<ChatResponse | null>(null);
 
   const [useWebSearch, setUseWebSearch] = useState(false);
   const [useImageGeneration, setUseImageGeneration] = useState(false);
@@ -70,9 +107,15 @@ export default function ChatWrapper({
   const [renderTypeName, setRenderTypeName] = useState("");
   const [hidePersonas] = useState(false);
   const [hideOutputFormats] = useState(false);
-  const [visionUrlFromLastResponse, setVisionUrlFromLastResponse] = useState<
-    string | null
-  >(null); // State for last image URL
+  interface LastImageInfo {
+    url: string | null;
+    generationId: string | null;
+  }
+
+  const [lastAssistantImage, setLastAssistantImage] = useState<LastImageInfo>({
+    url: null,
+    generationId: null,
+  });
   const personas = [...(userPersonas || []), ...(globalPersonas || [])];
   const [userUsageLimits, setUserUsageLimits] = useState<UserUsageLimits>({
     userPeriodUsage: 0.0,
@@ -156,12 +199,17 @@ export default function ChatWrapper({
   };
 
   // Define updateMessage before useFormSubmission
+  const [lastImageGenerationId, setLastImageGenerationId] = useState<
+    string | null
+  >(null);
+
   const updateMessage = (chat: LocalChat | undefined) => {
     let lastImageUrl: string | null = null;
+    let lastImageId: string | null = null;
+
     if (chat) {
       if (!chat.imageURL) {
         setResponseHistory(chat.responseHistory);
-        // Check the last message in the history for an ImageBlock
         const lastMessage =
           chat.responseHistory[chat.responseHistory.length - 1];
         if (
@@ -169,30 +217,38 @@ export default function ChatWrapper({
           lastMessage.role !== "user" &&
           Array.isArray(lastMessage.content)
         ) {
+          // Find the ImageBlock in the last assistant message
           const imageBlock = lastMessage.content.find(
             (block): block is ImageBlock => block.type === "image"
           );
+
           if (imageBlock) {
             lastImageUrl = imageBlock.url;
-            log.info("Found ImageBlock URL in last response", {
-              url: lastImageUrl,
-            });
+            // The generationId should be on the ImageBlock
+            if (imageBlock.generationId) {
+              lastImageId = imageBlock.generationId;
+              log.info("Found ImageBlock with generationId in last response", {
+                id: lastImageId,
+              });
+            }
           }
         }
       } else {
         setImageURL(chat.imageURL);
-        // If it was a DALL-E response, clear any previous vision URL
         lastImageUrl = null;
+        lastImageId = null;
       }
       setCurrentChat(chat);
       setRenderTypeName(`${chat.renderTypeName}`);
     } else {
       setResponseHistory([]);
-      lastImageUrl = null; // Reset on error or empty chat
+      lastImageUrl = null;
+      lastImageId = null;
     }
-    // Update the state for the next turn's input
-    setVisionUrlFromLastResponse(lastImageUrl);
-    // Fetch updated usage limits after processing the message
+
+    setLastAssistantImage({ url: lastImageUrl, generationId: lastImageId });
+    // This state is now redundant since we use lastAssistantImage, but we'll leave it for the hidden input
+    setLastImageGenerationId(lastImageId);
     fetchUsageLimits();
   };
 
@@ -216,12 +272,15 @@ export default function ChatWrapper({
 
     setIsSubmitting(true);
     setStreamingResponse(null);
-    streamingResponseRef.current = null; // Reset the ref
+    setIsStreamComplete(false);
 
     const prompt = formData.get("prompt") as string;
     const imageFile = formData.get("image") as File | null;
 
-    let visionUrlForDisplay: string | null = visionUrlFromLastResponse;
+    // Get the generation ID from our state
+    const imageToEditId = lastAssistantImage.generationId;
+
+    let visionUrlForDisplay: string | null = null;
     let base64ImageData: string | undefined = undefined;
 
     if (imageFile && imageFile.size > 0) {
@@ -233,16 +292,36 @@ export default function ChatWrapper({
         setIsSubmitting(false);
         return;
       }
+    } else if (imageToEditId) {
+      // If we are editing, use the previous image's URL for display
+      visionUrlForDisplay = lastAssistantImage.url;
     }
 
     const userMessageContent: ContentBlock[] = [{ type: "text", text: prompt }];
-    if (visionUrlForDisplay) {
+
+    // If there's a new image upload, it's a vision request.
+    if (visionUrlForDisplay && !imageToEditId) {
       userMessageContent.push({ type: "image", url: visionUrlForDisplay });
     }
+
+    // *** THIS IS THE CRITICAL FIX ***
+    // If we have an ID for an image to edit, add the 'image_generation_call' block.
+    // This is for multi-turn editing.
+    if (imageToEditId) {
+      userMessageContent.push({
+        type: "image_generation_call",
+        id: imageToEditId,
+      });
+    }
+
     const userMessage: ChatResponse = {
       role: "user",
       content: userMessageContent,
     };
+
+    // Important: When we start a new submission, we clear the previous image ID
+    // so it's not accidentally used again for a different request.
+    setLastAssistantImage({ url: null, generationId: null });
 
     const updatedHistory = [...responseHistory, userMessage];
     setResponseHistory(updatedHistory);
@@ -262,7 +341,7 @@ export default function ChatWrapper({
         " " +
         (outputFormats.find((o) => o.id === selectedOutputFormat)?.prompt ||
           ""),
-      visionUrl: visionUrlFromLastResponse,
+      visionUrl: null, // This is for new uploads, handled by imageData
       imageData: base64ImageData,
       useImageGeneration,
       useWebSearch,
@@ -284,50 +363,148 @@ export default function ChatWrapper({
         );
       }
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("Failed to get response reader");
+      // Check if the response is a stream or a single JSON object
+      const contentType = response.headers.get("content-type");
 
-      const decoder = new TextDecoder();
-      streamingResponseRef.current = { role: "assistant", content: [] };
-      setStreamingResponse({ ...streamingResponseRef.current });
+      if (contentType && contentType.includes("application/json")) {
+        // --- HANDLE NON-STREAMED JSON RESPONSE (FOR IMAGES) ---
+        const finalContent: ContentBlock[] = await response.json();
+        const finalResponse: ChatResponse = {
+          role: "assistant",
+          content: finalContent,
+        };
+        // Add the complete response to history at once
+        setResponseHistory((prev) => [...prev, finalResponse]);
+      } else {
+        // --- HANDLE STREAMED RESPONSE (FOR TEXT) ---
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error("Failed to get response reader");
 
-      let buffer = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        const decoder = new TextDecoder();
 
-        buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split("\n\n");
-        buffer = parts.pop() || "";
+        // Initialize the streaming response directly in state
+        setStreamingResponse({ role: "assistant", content: [] });
 
-        for (const part of parts) {
-          if (part.trim() === "") continue;
-          try {
-            if (!streamingResponseRef.current) continue; // Safety check
-            const parsedChunk: ContentBlock = JSON.parse(part);
-            const currentContent = streamingResponseRef.current.content;
+        let buffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-            if (parsedChunk.type === "text") {
-              const lastBlock = currentContent[currentContent.length - 1];
-              if (lastBlock && lastBlock.type === "text") {
-                lastBlock.text += parsedChunk.text;
-              } else {
-                currentContent.push({ type: "text", text: parsedChunk.text });
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop() || "";
+
+          if (parts.length > 0) {
+            // Use the functional update form of setState for reliability
+            setStreamingResponse((prevResponse) => {
+              if (!prevResponse) return { role: "assistant", content: [] };
+
+              // Create a deep copy to ensure immutability
+              const newContent: ContentBlock[] = JSON.parse(
+                JSON.stringify(prevResponse.content)
+              );
+
+              for (const part of parts) {
+                if (part.trim() === "") continue;
+                try {
+                  const parsedChunk = JSON.parse(part);
+
+                  // Handle the stream-complete signal
+                  if (parsedChunk.type === "stream-complete") {
+                    setIsStreamComplete(true);
+                    continue;
+                  }
+                  const lastBlock =
+                    newContent.length > 0
+                      ? newContent[newContent.length - 1]
+                      : null;
+
+                  // --- START: New stream processing logic ---
+                  switch (parsedChunk.type) {
+                    case "text":
+                      if (lastBlock && lastBlock.type === "text") {
+                        // Append text to the last block if it's also a text block
+                        lastBlock.text += parsedChunk.text;
+                      } else {
+                        // Otherwise, push a new text block
+                        newContent.push(parsedChunk);
+                      }
+                      break;
+
+                    case "image_data": {
+                      // This is a blurry preview chunk.
+                      console.log("Received PARTIAL image_data block:", {
+                        id: parsedChunk.id,
+                        hasData: !!parsedChunk.base64Data,
+                        dataLength: parsedChunk.base64Data?.length,
+                      });
+                      const id = parsedChunk.id;
+                      if (id) {
+                        // Check if a previous version of this preview exists.
+                        const indexToReplace = newContent.findIndex(
+                          (b) => b.type === "image_data" && b.id === id
+                        );
+                        if (indexToReplace !== -1) {
+                          // A blurrier version exists. Replace it with this new, less-blurry one.
+                          newContent[indexToReplace] = parsedChunk;
+                        } else {
+                          // This is the first preview for this image ID. Add it to the array.
+                          newContent.push(parsedChunk);
+                        }
+                      } else {
+                        // Fallback: If the preview has no ID, just add it.
+                        newContent.push(parsedChunk);
+                      }
+                      break;
+                    }
+
+                    case "image": {
+                      // This is the FINAL, high-resolution image chunk.
+                      console.log("Received FINAL image block:", {
+                        generationId: parsedChunk.generationId,
+                        url: parsedChunk.url,
+                      });
+                      const generationId = parsedChunk.generationId;
+                      if (generationId) {
+                        // Find the blurry `image_data` preview that has the matching ID.
+                        const indexToReplace = newContent.findIndex(
+                          (b) =>
+                            b.type === "image_data" && b.id === generationId
+                        );
+
+                        if (indexToReplace !== -1) {
+                          // We found the preview! Replace it in the array with the final image.
+                          // This is the key to fixing the bug.
+                          newContent[indexToReplace] = parsedChunk;
+                        } else {
+                          // Fallback: If no preview was found (which is unlikely),
+                          // add the final image to ensure it's not lost.
+                          newContent.push(parsedChunk);
+                        }
+                      } else {
+                        // Fallback for a final image that somehow has no generationId.
+                        newContent.push(parsedChunk);
+                      }
+                      break;
+                    }
+
+                    default:
+                      // For all other block types (e.g., 'thinking', 'error'),
+                      // simply add them to the content array.
+                      newContent.push(parsedChunk);
+                      break;
+                  }
+                  // --- END: New stream processing logic ---
+                } catch (e) {
+                  console.warn("Could not parse stream chunk:", part, e);
+                }
               }
-            } else if (parsedChunk.type === "image") {
-              setVisionUrlFromLastResponse(parsedChunk.url);
-              currentContent.push(parsedChunk);
-            } else {
-              currentContent.push(parsedChunk);
-            }
-          } catch (e) {
-            console.warn("Could not parse stream chunk:", part);
+              // Return a new state object with the updated content
+              return prevResponse
+                ? { ...prevResponse, content: newContent }
+                : { role: "assistant", content: newContent };
+            });
           }
-        }
-
-        // After processing a batch of parts, trigger a re-render
-        if (streamingResponseRef.current) {
-          setStreamingResponse({ ...streamingResponseRef.current });
         }
       }
     } catch (error) {
@@ -351,26 +528,34 @@ export default function ChatWrapper({
   };
 
   useEffect(() => {
-    // When submission finishes, finalize the state from the ref.
-    if (!isSubmitting && streamingResponseRef.current) {
-      const finalResponse = streamingResponseRef.current;
-      const finalHistory = [...responseHistory, finalResponse];
-
+    // When submission finishes, finalize the state.
+    if (!isSubmitting && streamingResponse && isStreamComplete) {
+      // Clean up the streaming response to remove duplicate images
+      const cleanedStreamingResponse: ChatResponse = {
+        ...streamingResponse,
+        content: deduplicateImageBlocks(streamingResponse.content),
+      };
+      // Combine the history with the fully streamed response
+      const finalHistory = [...responseHistory, cleanedStreamingResponse];
       setResponseHistory(finalHistory);
+
+      // Update the currentChat state for context in the next turn
       setCurrentChat((prev) => ({
         ...(prev as LocalChat),
         responseHistory: finalHistory,
       }));
-      setStreamingResponse(null); // Clear the temporary streaming display object
-      streamingResponseRef.current = null; // Clear the ref
+
+      // Clear the temporary streaming display object
+      setStreamingResponse(null);
+      setIsStreamComplete(false);
     }
-  }, [isSubmitting]);
+  }, [isSubmitting, isStreamComplete, streamingResponse]);
 
   // New handleReset function
   const handleReset = () => {
     setResponseHistory([]);
     setCurrentChat(undefined);
-    setVisionUrlFromLastResponse(null);
+    setLastAssistantImage({ url: null, generationId: null });
     // You may want to reset other state here as well
   };
 
@@ -515,12 +700,7 @@ export default function ChatWrapper({
           value={String(useImageGeneration)}
         />
         {/* END OF CHANGE */}
-        {/* Hidden input for vision URL from previous response */}
-        <input
-          type="hidden"
-          name="visionUrlFromPrevious"
-          value={visionUrlFromLastResponse || ""}
-        />
+        {/* These hidden inputs are no longer needed as the data is now handled in the message history */}
         {/* Enhanced top bar - Minimal mobile header */}
         {/* Dark mode: Adjust background, border */}
         {/* Single row, justify-between. Increased padding on sm+ */}

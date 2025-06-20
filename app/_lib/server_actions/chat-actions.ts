@@ -7,7 +7,7 @@ import {
   OpenAIImageGenerationOptions,
   ContentBlock,
   ImageBlock,
-} from "../model"; // Added OpenAIImageGenerationOptions, ContentBlock, ImageBlock
+} from "../model";
 import { chatRepository } from "../db/repositories/chat.repository";
 import { getModel } from "./model.actions";
 import { getRenderTypeName } from "./render-type.actions";
@@ -16,34 +16,32 @@ import { getApiVendor } from "./api_vendor.actions";
 import { getPersona } from "./persona.actions";
 import { supabaseUploadFile } from "../storage";
 import { generateUniqueFilename } from "../utils";
-import { FormSchema as BaseFormSchema } from "../form-schemas"; // Rename original schema
-import { z } from "zod"; // Import Zod
+import { FormSchema as BaseFormSchema } from "../form-schemas";
+import { z } from "zod";
 import { getOutputFormat } from "./output-format.actions";
-import { getCurrentAPIUser } from "../auth"; // Import correct auth helper
-import { userRepository } from "../db/repositories/user.repository"; // Import user repository
-import { Logger } from "next-axiom"; // Import Axiom Logger
+import { getCurrentAPIUser } from "../auth";
+import { userRepository } from "../db/repositories/user.repository";
+import { Logger } from "next-axiom";
 import { use } from "react";
 
 export async function createChat(
   formData: FormData,
   responseHistory: ChatResponse[]
 ) {
-  let log = new Logger({ source: "chat-action" }).with({ userId: "" }); // Use let instead of const
+  let log = new Logger({ source: "chat-action" }).with({ userId: "" });
   log.info("createChat action started");
 
-  // Extend the base schema to include image options
   const FormSchema = BaseFormSchema.extend({
     imageSize: z
       .enum(["auto", "1024x1024", "1024x1536", "1536x1024"])
       .optional(),
     imageQuality: z.enum(["auto", "low", "medium", "high"]).optional(),
     imageBackground: z.enum(["auto", "opaque", "transparent"]).optional(),
-    // START OF CHANGE: Modify Zod schema to correctly parse the string "true"
     useWebSearch: z.preprocess((val) => val === "true", z.boolean()).optional(),
     useImageGeneration: z
       .preprocess((val) => val === "true", z.boolean())
       .optional(),
-    // END OF CHANGE
+    lastImageGenerationId: z.string().optional(),
   });
 
   const {
@@ -53,13 +51,13 @@ export async function createChat(
     prompt,
     maxTokens,
     budgetTokens,
-    mcpTool, // Keep parsing the mcpTool ID from the form
-    // Add new image options
+    mcpTool,
     imageSize,
     imageQuality,
     imageBackground,
     useWebSearch,
     useImageGeneration,
+    lastImageGenerationId,
   } = FormSchema.parse({
     model: formData.get("model"),
     personaId: formData.get("persona"),
@@ -68,17 +66,16 @@ export async function createChat(
     maxTokens: formData.get("maxTokens") || null,
     budgetTokens: formData.get("budgetTokens") || null,
     mcpTool: formData.get("mcpTool") || 0,
-    // Parse new image options from form data
-    imageSize: formData.get("imageSize") || undefined, // Use undefined if null/empty
+    imageSize: formData.get("imageSize") || undefined,
     imageQuality: formData.get("imageQuality") || undefined,
     imageBackground: formData.get("imageBackground") || undefined,
-    // Parse the web search toggle
     useWebSearch: formData.get("useWebSearch"),
     useImageGeneration: formData.get("useImageGeneration"),
-    // Parse the vision URL from previous response
     visionUrlFromPrevious:
       (formData.get("visionUrlFromPrevious") as string | null) || null,
+    lastImageGenerationId: formData.get("lastImageGenerationId") || undefined,
   });
+
   log.info("Parsed form data", {
     model,
     personaId,
@@ -87,43 +84,32 @@ export async function createChat(
     imageSize,
     imageQuality,
     imageBackground,
-    useWebSearch, // Log the parsed boolean
-    visionUrlFromPrevious: formData.get("visionUrlFromPrevious"), // Log the received value
+    useWebSearch,
+    visionUrlFromPrevious: formData.get("visionUrlFromPrevious"),
   });
 
   let user = undefined;
 
-  // --- Usage Limit Check ---
   try {
-    // Get the full user object from our DB using the helper
     user = await getCurrentAPIUser();
     if (!user) {
-      // getCurrentAPIUser returns null if not authenticated or user doesn't exist in DB yet
       log.error("Authentication required or user not found in DB.");
       throw new Error("Authentication required or user not found.");
     }
-    // Add user ID to logger context
     log = log.with({ userId: user.id });
-
-    // Check usage limit before proceeding using the user's DB ID
     await userRepository.checkUsageLimit(user.id);
     log.info("Usage limit check passed.");
   } catch (error) {
-    // Re-throw the specific error message if it's the usage limit one
     if (
       error instanceof Error &&
       error.message.startsWith("Usage limit exceeded")
     ) {
       log.warn("Usage limit exceeded for user.");
-      throw error; // Let the calling code handle this specific error
+      throw error;
     }
-    // Otherwise, log and throw a generic error
     log.error("Failed to verify user usage limits", { error: String(error) });
     throw new Error("Failed to verify user usage limits.");
   }
-  // --- End Usage Limit Check ---
-
-  // START OF RESTRUCTURED LOGIC
 
   let visionUrl: string | null = null;
   const previousVisionUrl = formData.get("visionUrlFromPrevious") as
@@ -155,23 +141,33 @@ export async function createChat(
     }
   }
 
-  // Now, construct the user's message content with both text and image if available
   const userMessageContent: ContentBlock[] = [{ type: "text", text: prompt }];
-  if (visionUrl) {
+
+  // PRIORITY 1: Check for an image generation ID for editing
+  if (lastImageGenerationId && lastImageGenerationId.trim() !== "") {
+    log.info("This is an image edit request. Including reference ID.", {
+      id: lastImageGenerationId,
+    });
+    userMessageContent.push({
+      type: "image_generation_call",
+      id: lastImageGenerationId,
+    });
+  }
+  // PRIORITY 2: If not editing, check for a NEWLY uploaded image for vision
+  else if (visionUrl) {
+    log.info("This is a new vision request. Including image URL.", {
+      url: visionUrl,
+    });
     const imageBlock: ImageBlock = { type: "image", url: visionUrl };
     userMessageContent.push(imageBlock);
   }
 
-  // Create the final user response object and add it to history
   const userChatResponse: ChatResponse = {
     role: "user",
     content: userMessageContent,
   };
   responseHistory.push(userChatResponse);
 
-  // END OF RESTRUCTURED LOGIC
-
-  // Get Render Type (eg: markdown, html, etc)
   let renderTypeName = "";
   if (outputFormatId) {
     try {
@@ -181,8 +177,7 @@ export async function createChat(
         outputFormatId,
         error: String(error),
       });
-      // Allow chat to proceed without render type if needed
-      renderTypeName = "markdown"; // Default or fallback render type
+      renderTypeName = "markdown";
     }
   }
 
@@ -191,10 +186,8 @@ export async function createChat(
     throw new Error(`Model with ID ${model} not found`);
   }
 
-  // --- Paid Model Check ---
   if (modelObj.paidOnly) {
     log.info("Selected model is paid-only. Checking user access.");
-    // User object should be guaranteed to exist here due to earlier checks
     const hasActiveSubscription =
       user &&
       user.stripeSubscriptionId &&
@@ -203,28 +196,23 @@ export async function createChat(
 
     if (!hasActiveSubscription && !hasUnlimited) {
       log.warn(
-        "User attempted to use a paid-only model without required access (no active subscription or unlimited credits).",
+        "User attempted to use a paid-only model without required access.",
         { userId: user?.id }
       );
-      // Throw a specific error message
       throw new Error(
-        "This model requires an active paid subscription or special access. Please upgrade your plan or contact support."
+        "This model requires an active paid subscription or special access."
       );
     } else if (hasUnlimited) {
-      log.info(
-        "User has unlimited credits. Access granted for paid-only model.",
-        { userId: user.id }
-      );
+      log.info("User has unlimited credits. Access granted.", {
+        userId: user.id,
+      });
     } else {
-      log.info(
-        "User has an active subscription. Access granted for paid-only model.",
-        { userId: user.id }
-      );
+      log.info("User has an active subscription. Access granted.", {
+        userId: user.id,
+      });
     }
   }
-  // --- End Paid Model Check ---
 
-  // Get persona prompt if personaId exists
   let systemPrompt;
   if (personaId) {
     try {
@@ -232,8 +220,6 @@ export async function createChat(
       systemPrompt = persona?.prompt;
     } catch (error) {
       log.error("Error fetching persona", { personaId, error: String(error) });
-      // Allow chat to proceed without persona prompt
-      // personaPrompt remains undefined, which is handled later
     }
   }
   let outputFormatPrompt;
@@ -246,10 +232,7 @@ export async function createChat(
         outputFormatId,
         error: String(error),
       });
-      // Allow chat to proceed without output format prompt
-      // outputFormatPrompt remains undefined
     }
-    // Combine prompts safely, handling undefined cases
     systemPrompt = [systemPrompt, outputFormatPrompt].filter(Boolean).join(" ");
   }
 
@@ -262,117 +245,56 @@ export async function createChat(
     model: modelObj.apiName,
     modelId: modelObj.id,
     prompt,
-    visionUrl: visionUrl, // Pass the determined visionUrl
+    visionUrl: visionUrl,
     maxTokens,
     budgetTokens,
     systemPrompt: systemPrompt,
-    mcpToolId: mcpTool, // Add the mcpToolId directly to the chat object
-    useWebSearch: useWebSearch, // Add web search flag
-    useImageGeneration: useImageGeneration, // Add image generation flag
-    // Initialize options conditionally based on file upload
-    openaiImageGenerationOptions: undefined, // Initialize as undefined
-    openaiImageEditOptions: undefined, // Initialize as undefined
+    mcpToolId: mcpTool,
+    useWebSearch: useWebSearch,
+    useImageGeneration: useImageGeneration,
+    openaiImageGenerationOptions: undefined,
+    openaiImageEditOptions: undefined,
   };
 
-  console.log(
-    `Server Action UseImageGeneration is: ${chat.useImageGeneration}`
-  );
-
-  // --- Vision URL Logic ---
   if (previousVisionUrl && previousVisionUrl.trim() !== "") {
-    // Priority 1: Use previous URL
-    log.info("Using vision URL from previous response", {
-      url: previousVisionUrl,
-    });
     chat.visionUrl = previousVisionUrl;
-    // Apply EDIT options if provided
-    if (imageSize || imageQuality) {
-      chat.openaiImageEditOptions = {
-        size: imageSize,
-        quality: imageQuality,
-        moderation: "low",
-        user: `${user.id}`,
-      };
-      log.info(
-        "Populated OpenAI Image Edit options (size, quality) for previous image URL",
-        { options: chat.openaiImageEditOptions }
-      );
-    } else {
-      chat.openaiImageEditOptions = {
-        size: "auto",
-        quality: "auto",
-        moderation: "low",
-      };
-    }
+    chat.openaiImageEditOptions = {
+      size: imageSize || "auto",
+      quality: imageQuality || "auto",
+      moderation: "low",
+      user: `${user.id}`,
+    };
   } else if (uploadedFile && uploadedFile.name !== "undefined") {
-    // Priority 2: Handle new file upload
-    log.info("No previous vision URL, attempting new file upload.");
     try {
       const uploadURL = await supabaseUploadFile(
         generateUniqueFilename(uploadedFile.name),
         uploadedFile
       );
       if (uploadURL) {
-        log.info("New file uploaded successfully", { uploadURL });
         chat.visionUrl = uploadURL;
-        // Apply EDIT options if provided
-        if (imageSize || imageQuality) {
-          chat.openaiImageEditOptions = {
-            size: imageSize,
-            quality: imageQuality,
-            moderation: "low",
-            user: `${user.id}`,
-          };
-          log.info(
-            "Populated OpenAI Image Edit options (size, quality) for new upload",
-            { options: chat.openaiImageEditOptions }
-          );
-        } else {
-          chat.openaiImageEditOptions = {
-            size: "auto",
-            quality: "auto",
-            moderation: "low",
-            user: `${user.id}`,
-          };
-        }
+        chat.openaiImageEditOptions = {
+          size: imageSize || "auto",
+          quality: imageQuality || "auto",
+          moderation: "low",
+          user: `${user.id}`,
+        };
       }
     } catch (error) {
       log.error("Problem uploading new file", {
         fileName: uploadedFile.name,
         error: String(error),
       });
-      // Allow chat to proceed without the image if upload fails
-      // chat.visionUrl remains null
     }
-  } else {
-    // Priority 3: No previous URL and no new file upload
-    log.info("No previous vision URL and no new file uploaded.");
-    // If the selected model is for image generation, ensure generation options are set.
-    if (modelObj.isImageGeneration && useImageGeneration) {
-      // Ensure the options object is created for generation models, using form values or sensible defaults.
-      chat.openaiImageGenerationOptions = {
-        n: 1, // We always generate one image
-        size: imageSize || "1024x1024", // Default size if not provided
-        quality: imageQuality || "auto", // Default quality to 'auto' if not provided
-        // 'background' is not a standard OpenAI param, removed.
-        // Let snowgander handle 'auto' values if passed from the form.
-        user: `${user.id}`, // Pass user ID
-      };
-      log.info(
-        "Populated OpenAI Image Generation options (using defaults if needed)",
-        {
-          options: chat.openaiImageGenerationOptions,
-        }
-      );
-    } else {
-      log.info("Model is not image generation, skipping generation options.");
-    }
+  } else if (modelObj.isImageGeneration && useImageGeneration) {
+    chat.openaiImageGenerationOptions = {
+      n: 1,
+      size: imageSize || "1024x1024",
+      quality: imageQuality || "auto",
+      user: `${user.id}`,
+    };
   }
-  // --- End Vision URL Logic ---
 
-  // Send chat request
   try {
-    // The repository now handles fetching the tool based on chat.mcpToolId
     log.info("Sending chat to repository", {
       model: chat.model,
       modelId: chat.modelId,
@@ -384,24 +306,19 @@ export async function createChat(
     const result = await chatRepository.sendChat(chat);
     log.info("Received response from repository");
 
-    // Handle DALL-E response or standard chat response
     if (chat.model !== "dall-e-3") {
       responseHistory.push(result as ChatResponse);
       chat.responseHistory = responseHistory;
-      // Clear image data after sending while keeping the URL in response history
       if (chat.visionUrl) {
         chat.imageURL = null;
       }
-      log.info("Handled standard chat response"); // Moved log here
+      log.info("Handled standard chat response");
     } else {
       chat.imageURL = result as string;
       log.info("Handled DALL-E response");
     }
-    // Removed the incorrect extra 'else' block
   } catch (error) {
     log.error("Failed to send Chat via repository", { error: String(error) });
-    // Note: The specific "Usage limit exceeded" error is now caught *before* this block.
-    // This block catches errors from chatRepository.sendChat itself.
     console.log(`Error: ${error}`);
     throw new Error("Failed to process chat request. Please try again.");
   }
