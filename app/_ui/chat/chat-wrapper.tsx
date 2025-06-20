@@ -424,6 +424,8 @@ export default function ChatWrapper({
                       : null;
 
                   // --- START: New stream processing logic ---
+                  // Replace the entire switch statement inside handleFormSubmit -> setStreamingResponse
+
                   switch (parsedChunk.type) {
                     case "meta":
                       // Handle the new MetaBlock type
@@ -432,7 +434,7 @@ export default function ChatWrapper({
                         parsedChunk.responseId
                       );
                       setPreviousResponseId(parsedChunk.responseId);
-                      continue;
+                      continue; // Use continue to skip to the next part of the loop
 
                     case "text":
                       if (lastBlock && lastBlock.type === "text") {
@@ -443,6 +445,19 @@ export default function ChatWrapper({
                         newContent.push(parsedChunk);
                       }
                       break;
+
+                    // --- START: ADDED THINKING AGGREGATION ---
+                    case "thinking":
+                      // Check if the last block in the content array is also a thinking block.
+                      if (lastBlock && lastBlock.type === "thinking") {
+                        // If so, append the new thinking text to it.
+                        lastBlock.thinking += parsedChunk.thinking;
+                      } else {
+                        // Otherwise, this is the first thinking chunk, so push it as a new block.
+                        newContent.push(parsedChunk);
+                      }
+                      break;
+                    // --- END: ADDED THINKING AGGREGATION ---
 
                     case "image_data": {
                       // This is a blurry preview chunk.
@@ -494,7 +509,6 @@ export default function ChatWrapper({
 
                         if (indexToReplace !== -1) {
                           // We found the preview! Replace it in the array with the final image.
-                          // This is the key to fixing the bug.
                           newContent[indexToReplace] = parsedChunk;
                         } else {
                           // Fallback: If no preview was found (which is unlikely),
@@ -509,7 +523,7 @@ export default function ChatWrapper({
                     }
 
                     default:
-                      // For all other block types (e.g., 'thinking', 'error'),
+                      // For all other non-streaming block types (e.g., 'error', 'tool_use'),
                       // simply add them to the content array.
                       newContent.push(parsedChunk);
                       break;
@@ -577,6 +591,8 @@ export default function ChatWrapper({
     setCurrentChat(undefined);
     setLastAssistantImage({ url: null, generationId: null });
     setPreviousResponseId(undefined);
+    setUseWebSearch(false);
+    setUseImageGeneration(false);
     // You may want to reset other state here as well
   };
 

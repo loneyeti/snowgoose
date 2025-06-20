@@ -123,6 +123,8 @@ export async function POST(req: NextRequest) {
       messages: messages,
       systemPrompt: chat.systemPrompt ?? undefined,
       maxTokens: chat.maxTokens ?? undefined,
+      thinkingMode: (chat.budgetTokens ?? 0) > 0 && model.isThinking,
+      budgetTokens: chat.budgetTokens ?? undefined,
       tools: tools.length > 0 ? tools : undefined,
       previousResponseId: chat.previousResponseId,
     };
