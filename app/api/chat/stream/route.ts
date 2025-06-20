@@ -127,6 +127,7 @@ export async function POST(req: NextRequest) {
       budgetTokens: chat.budgetTokens ?? undefined,
       tools: tools.length > 0 ? tools : undefined,
       previousResponseId: chat.previousResponseId,
+      useImageGeneration: chat.useImageGeneration, // <-- ADD THIS LINE
     };
 
     // --- UNIFIED STREAMING PATH FOR ALL RESPONSES ---
