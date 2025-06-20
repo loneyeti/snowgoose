@@ -14,6 +14,7 @@ import {
   ToolUseBlock,
   ToolResultBlock,
   ErrorBlock,
+  MetaBlock,
   OpenAIImageGenerationOptions,
   OpenAIImageEditOptions,
   ModelConfig as BaseModelConfig,
@@ -41,6 +42,7 @@ export type {
   ToolUseBlock,
   ToolResultBlock,
   ErrorBlock,
+  MetaBlock,
   OpenAIImageGenerationOptions,
   OpenAIImageEditOptions,
 };
@@ -62,6 +64,7 @@ export interface LocalChat extends Chat {
   personaId: number;
   outputFormatId: number;
   renderTypeName: string;
+  previousResponseId?: string;
   openaiImageGenerationOptions?: OpenAIImageGenerationOptions;
   openaiImageEditOptions?: OpenAIImageEditOptions;
   useWebSearch?: boolean;

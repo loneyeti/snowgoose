@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  initializeAIVendors,
-  chatRepository,
-} from "@/app/_lib/db/repositories/chat.repository";
+import { initializeAIVendors } from "@/app/_lib/db/repositories/chat.repository";
 import {
   LocalChat,
   ModelConfig,
@@ -127,6 +124,7 @@ export async function POST(req: NextRequest) {
       systemPrompt: chat.systemPrompt ?? undefined,
       maxTokens: chat.maxTokens ?? undefined,
       tools: tools.length > 0 ? tools : undefined,
+      previousResponseId: chat.previousResponseId,
     };
 
     // --- UNIFIED STREAMING PATH FOR ALL RESPONSES ---
@@ -136,6 +134,10 @@ export async function POST(req: NextRequest) {
     if (!adapter.streamResponse) {
       throw new Error("This adapter does not support streaming.");
     }
+
+    console.log(
+      `Starting stream with these options: ${JSON.stringify(options)}`
+    );
 
     const stream = adapter.streamResponse(options);
     await updateUserUsage(user.id, 0.0001); // Initial small cost for starting a chat
@@ -151,6 +153,7 @@ export async function POST(req: NextRequest) {
 
         if (done) {
           // The AI stream has finished. Now, upload the final version of each image.
+          console.log("Uploading image to supabase");
           log.info("Main AI stream finished. Uploading final images.", {
             count: finalImagesToUpload.size,
           });
@@ -166,6 +169,10 @@ export async function POST(req: NextRequest) {
               };
               const chunkString = JSON.stringify(finalImageBlock) + "\n\n";
               controller.enqueue(new TextEncoder().encode(chunkString));
+              console.log(
+                "Successfully uploaded and enqueued final image block.",
+                { generationId: id }
+              );
               log.info(
                 "Successfully uploaded and enqueued final image block.",
                 { generationId: id }

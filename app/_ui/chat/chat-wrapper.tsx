@@ -107,6 +107,9 @@ export default function ChatWrapper({
   const [renderTypeName, setRenderTypeName] = useState("");
   const [hidePersonas] = useState(false);
   const [hideOutputFormats] = useState(false);
+  const [previousResponseId, setPreviousResponseId] = useState<
+    string | undefined
+  >();
   interface LastImageInfo {
     url: string | null;
     generationId: string | null;
@@ -345,6 +348,7 @@ export default function ChatWrapper({
       imageData: base64ImageData,
       useImageGeneration,
       useWebSearch,
+      previousResponseId: previousResponseId,
       model: models.find((m) => m.id === parseInt(selectedModel))?.name || "",
       imageURL: imageURL,
     };
@@ -421,6 +425,15 @@ export default function ChatWrapper({
 
                   // --- START: New stream processing logic ---
                   switch (parsedChunk.type) {
+                    case "meta":
+                      // Handle the new MetaBlock type
+                      console.log(
+                        "Received MetaBlock with responseId:",
+                        parsedChunk.responseId
+                      );
+                      setPreviousResponseId(parsedChunk.responseId);
+                      continue;
+
                     case "text":
                       if (lastBlock && lastBlock.type === "text") {
                         // Append text to the last block if it's also a text block
@@ -440,20 +453,27 @@ export default function ChatWrapper({
                       });
                       const id = parsedChunk.id;
                       if (id) {
-                        // Check if a previous version of this preview exists.
                         const indexToReplace = newContent.findIndex(
                           (b) => b.type === "image_data" && b.id === id
                         );
                         if (indexToReplace !== -1) {
-                          // A blurrier version exists. Replace it with this new, less-blurry one.
                           newContent[indexToReplace] = parsedChunk;
                         } else {
-                          // This is the first preview for this image ID. Add it to the array.
                           newContent.push(parsedChunk);
                         }
                       } else {
-                        // Fallback: If the preview has no ID, just add it.
-                        newContent.push(parsedChunk);
+                        // Fallback for null ID: Replace the LAST ImageDataBlock.
+                        // This assumes only one image is being generated at a time.
+                        const lastImageDataIndex = newContent
+                          .map((b) => b.type)
+                          .lastIndexOf("image_data");
+                        if (lastImageDataIndex !== -1) {
+                          // If we find a previous fuzzy image, replace it.
+                          newContent[lastImageDataIndex] = parsedChunk;
+                        } else {
+                          // If this is the very first fuzzy image, add it.
+                          newContent.push(parsedChunk);
+                        }
                       }
                       break;
                     }
@@ -556,6 +576,7 @@ export default function ChatWrapper({
     setResponseHistory([]);
     setCurrentChat(undefined);
     setLastAssistantImage({ url: null, generationId: null });
+    setPreviousResponseId(undefined);
     // You may want to reset other state here as well
   };
 
