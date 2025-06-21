@@ -265,7 +265,7 @@ export default function Conversation({
         </div>
         {showSpinner && (
           <div className="p-2">
-            <div className="flex justify-start items-center">
+            <div className="flex justify-center items-center">
               <Spinner spinnerSize={SpinnerSize.md} />
             </div>
           </div>

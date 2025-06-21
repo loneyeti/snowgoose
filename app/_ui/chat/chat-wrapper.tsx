@@ -274,6 +274,7 @@ export default function ChatWrapper({
     if (isSubmitting) return;
 
     setIsSubmitting(true);
+    setShowConversationSpinner(true); // <-- ADD THIS LINE
     setStreamingResponse(null);
     setIsStreamComplete(false);
 
@@ -359,6 +360,10 @@ export default function ChatWrapper({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(chatPayload),
       });
+
+      // Turn off the spinner as soon as we get a response, even before reading the body.
+      // The streaming response component will appear, which is a better UX.
+      setShowConversationSpinner(false);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -542,6 +547,7 @@ export default function ChatWrapper({
         }
       }
     } catch (error) {
+      setShowConversationSpinner(false); // <-- ADD THIS LINE
       const errorMessage =
         error instanceof Error ? error.message : "An unknown error occurred.";
       toast.error(errorMessage);
@@ -557,6 +563,7 @@ export default function ChatWrapper({
       };
       setResponseHistory((prev) => [...prev, errorResponse]);
     } finally {
+      setShowConversationSpinner(false); // <-- ADD THIS LINE
       setIsSubmitting(false);
     }
   };

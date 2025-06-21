@@ -142,21 +142,59 @@ export async function POST(req: NextRequest) {
       `Starting stream with these options: ${JSON.stringify(options)}`
     );
 
+    // --- START: NEW, CORRECTED CODE ---
     const stream = adapter.streamResponse(options);
-    await updateUserUsage(user.id, 0.0001); // Initial small cost for starting a chat
 
     const finalImagesToUpload = new Map<
       string,
       { base64Data: string; mimeType: string }
     >();
 
+    // We create a new stream that we control, allowing us to process snowgander's output
+    // before sending it to the client.
     const readableStream = new ReadableStream({
-      async pull(controller) {
-        const { value, done } = await stream.next();
+      async start(controller) {
+        try {
+          // Iterate through the stream from snowgander
+          for await (const chunk of stream) {
+            // CHECK 1: If it's the final metadata block, this is where we get the cost.
+            if (chunk.type === "meta" && chunk.usage) {
+              log.info("Received meta block with usage data. Updating user.", {
+                userId: user.id,
+                totalCost: chunk.usage.totalCost,
+              });
+              console.log(
+                "Received meta block with usage data. Updating user.",
+                {
+                  userId: user.id,
+                  totalCost: chunk.usage.totalCost,
+                }
+              );
+              console.log(`Meta block: ${JSON.stringify(chunk)}`);
+              // Securely update the user's usage on the server.
+              let totalCost = chunk.usage.totalCost;
+              if (chunk.usage.didGenerateImage) {
+                console.log("Generated image so adding on usage");
+                totalCost = totalCost + 0.25;
+              }
+              console.log(`Final total cost: ${totalCost}`);
+              await updateUserUsage(user.id, totalCost);
+            }
 
-        if (done) {
+            // CHECK 2: If it's a fuzzy image chunk, track it for final upload.
+            if (chunk.type === "image_data" && chunk.id) {
+              finalImagesToUpload.set(chunk.id, {
+                base64Data: chunk.base64Data,
+                mimeType: chunk.mimeType,
+              });
+            }
+
+            // Regardless of the chunk type, forward it to the client.
+            const chunkString = JSON.stringify(chunk) + "\n\n";
+            controller.enqueue(new TextEncoder().encode(chunkString));
+          }
+
           // The AI stream has finished. Now, upload the final version of each image.
-          console.log("Uploading image to supabase");
           log.info("Main AI stream finished. Uploading final images.", {
             count: finalImagesToUpload.size,
           });
@@ -172,10 +210,6 @@ export async function POST(req: NextRequest) {
               };
               const chunkString = JSON.stringify(finalImageBlock) + "\n\n";
               controller.enqueue(new TextEncoder().encode(chunkString));
-              console.log(
-                "Successfully uploaded and enqueued final image block.",
-                { generationId: id }
-              );
               log.info(
                 "Successfully uploaded and enqueued final image block.",
                 { generationId: id }
@@ -185,7 +219,6 @@ export async function POST(req: NextRequest) {
                 error: String(e),
                 generationId: id,
               });
-              // Send an error to the client if upload fails
               const errorBlock = {
                 type: "error",
                 publicMessage: "Failed to save final generated image.",
@@ -197,25 +230,22 @@ export async function POST(req: NextRequest) {
           const completeSignal = { type: "stream-complete" };
           const completeChunkString = JSON.stringify(completeSignal) + "\n\n";
           controller.enqueue(new TextEncoder().encode(completeChunkString));
-          controller.close(); // Close the stream after all uploads are done
-          return;
-        }
-
-        // We have a new chunk from the AI.
-        const chunkToEnqueue = value;
-
-        // If it's a fuzzy image chunk with an ID, track its latest version for the final upload.
-        if (chunkToEnqueue.type === "image_data" && chunkToEnqueue.id) {
-          finalImagesToUpload.set(chunkToEnqueue.id, {
-            base64Data: chunkToEnqueue.base64Data,
-            mimeType: chunkToEnqueue.mimeType,
+        } catch (error) {
+          log.error("Error while processing stream on server", {
+            error: String(error),
           });
+          // Send an error to the client if something goes wrong on the server
+          const errorBlock = {
+            type: "error",
+            publicMessage:
+              "An internal server error occurred during streaming.",
+          };
+          const chunkString = JSON.stringify(errorBlock) + "\n\n";
+          controller.enqueue(new TextEncoder().encode(chunkString));
+        } finally {
+          // All done, close the stream to the client.
+          controller.close();
         }
-
-        // IMPORTANT: Pass the original chunk (e.g., ImageDataBlock, TextBlock) directly to the client.
-        // This lets the client render the fuzzy previews as they arrive.
-        const chunkString = JSON.stringify(chunkToEnqueue) + "\n\n";
-        controller.enqueue(new TextEncoder().encode(chunkString));
       },
     });
 
@@ -226,6 +256,7 @@ export async function POST(req: NextRequest) {
         Connection: "keep-alive",
       },
     });
+    // --- END: NEW, CORRECTED CODE ---
   } catch (error) {
     log.error("Error in chat stream API", { error: String(error) });
     const errorMessage =
