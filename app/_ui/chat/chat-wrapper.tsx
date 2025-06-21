@@ -788,9 +788,9 @@ export default function ChatWrapper({
                     leaveTo="opacity-0 translate-y-1"
                   >
                     {/* Removed max-w-sm, Increased z-index significantly */}
-                    <Popover.Panel className="absolute right-0 z-50 mt-2 w-[calc(100vw-2rem)] origin-top-right rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10 focus:outline-none">
+                    <Popover.Panel className="absolute right-0 z-50 mt-2 w-[calc(100vw-2rem)] origin-top-right rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10 focus:outline-none max-h-[80dvh] flex flex-col">
                       {/* Container for both OptionsBar and MoreOptions */}
-                      <div className="p-3 space-y-3">
+                      <div className="p-3 space-y-3 overflow-y-auto flex-grow">
                         {/* Render OptionsBar inside mobile popover */}
                         <div className="border-b border-slate-200 dark:border-slate-700 pb-3">
                           <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 px-1">
