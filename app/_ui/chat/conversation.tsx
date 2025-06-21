@@ -1,10 +1,14 @@
 import { useState } from "react"; // Import useState
-import { ChatResponse, ContentBlock } from "../../_lib/model";
+import {
+  ChatResponse,
+  ContentBlock,
+  ImageDataBlock,
+  ErrorBlock,
+} from "../../_lib/model";
 import { SpinnerSize, Spinner } from "../spinner";
 import MarkdownComponent from "../markdown-parser";
 import CopyButton from "../copy-button"; // Import the CopyButton
 import { isContentBlockArray } from "../../_lib/utils";
-import { ErrorBlock } from "snowgander/dist/types";
 
 interface ConversationProps {
   chats: ChatResponse[];
@@ -106,7 +110,7 @@ export default function Conversation({
                         return (
                           // Wrap in relative container for button positioning
                           <div
-                            key={blockIndex}
+                            key={`image-gen-${block.generationId || blockIndex}`}
                             className="relative group w-full my-4"
                           >
                             {/* eslint-disable @next/next/no-img-element */}
@@ -192,6 +196,24 @@ export default function Conversation({
                             </button>
                           </div>
                         );
+                      case "image_data":
+                        return (
+                          <div
+                            key={`image-gen-${block.id || blockIndex}`}
+                            className="relative group w-full my-4"
+                          >
+                            {/* eslint-disable @next/next/no-img-element */}
+                            <img
+                              src={`data:${block.mimeType};base64,${block.base64Data}`}
+                              className="w-full h-auto max-w-full rounded-md"
+                              alt="AI Generated image from data"
+                            />
+                            <CopyButton
+                              textToCopy={block.base64Data}
+                              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150"
+                            />
+                          </div>
+                        );
                       case "text":
                         return (
                           // Wrap in relative container for button positioning
@@ -241,9 +263,11 @@ export default function Conversation({
             <p>&nbsp;</p>
           )}
         </div>
-        {showSpinner === true && (
-          <div className="flex justify-center items-center w-full py-4">
-            <Spinner spinnerSize={SpinnerSize.md} />
+        {showSpinner && (
+          <div className="p-2">
+            <div className="flex justify-center items-center">
+              <Spinner spinnerSize={SpinnerSize.md} />
+            </div>
           </div>
         )}
       </div>

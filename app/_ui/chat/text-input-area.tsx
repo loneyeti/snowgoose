@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { MaterialSymbol } from "react-material-symbols";
+import { Spinner, SpinnerSize } from "../spinner";
 
 interface TextInputAreaProps {
   onSubmit: (formData: FormData) => void;
@@ -183,12 +184,17 @@ export default function TextInputArea({
             type="button"
             onClick={handleButtonClick}
           >
-            {/* Dark mode: Adjust submit button colors (bg, text, hover, disabled) */}
-            <MaterialSymbol
-              className="align-middle text-slate-50 dark:text-slate-800 bg-slate-400 dark:bg-slate-500 hover:bg-slate-500 dark:hover:bg-slate-400 transition-colors rounded-full p-1 disabled:bg-slate-300 dark:disabled:bg-slate-600"
-              icon="arrow_upward"
-              size={24}
-            />
+            <div className="flex h-[32px] w-[32px] items-center justify-center rounded-full bg-slate-400 p-1 align-middle transition-colors hover:bg-slate-500 dark:bg-slate-500 dark:hover:bg-slate-400 disabled:bg-slate-300 dark:disabled:bg-slate-600">
+              {isSubmitting ? (
+                <Spinner spinnerSize={SpinnerSize.sm} />
+              ) : (
+                <MaterialSymbol
+                  className="text-slate-50 dark:text-slate-800"
+                  icon="arrow_upward"
+                  size={24}
+                />
+              )}
+            </div>
           </button>
         </div>
 

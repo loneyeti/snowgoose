@@ -10,9 +10,14 @@ import {
   RedactedThinkingBlock,
   TextBlock,
   ImageBlock,
+  ImageDataBlock,
+  ToolUseBlock,
+  ToolResultBlock,
+  ErrorBlock,
+  MetaBlock,
   OpenAIImageGenerationOptions,
   OpenAIImageEditOptions,
-  ModelConfig as BaseModelConfig, // Import directly now
+  ModelConfig as BaseModelConfig,
 } from "snowgander";
 
 // Extend the ModelConfig interface to include isWebSearch
@@ -33,9 +38,19 @@ export type {
   RedactedThinkingBlock,
   TextBlock,
   ImageBlock,
+  ImageDataBlock,
+  ToolUseBlock,
+  ToolResultBlock,
+  ErrorBlock,
+  MetaBlock,
   OpenAIImageGenerationOptions,
-  OpenAIImageEditOptions, // Re-export directly
+  OpenAIImageEditOptions,
 };
+
+export interface ImageGenerationCallBlock {
+  type: "image_generation_call";
+  id: string;
+}
 
 // Define a new type that includes the vendor name
 export interface ModelWithVendorName extends Model {
@@ -49,6 +64,7 @@ export interface LocalChat extends Chat {
   personaId: number;
   outputFormatId: number;
   renderTypeName: string;
+  previousResponseId?: string;
   openaiImageGenerationOptions?: OpenAIImageGenerationOptions;
   openaiImageEditOptions?: OpenAIImageEditOptions;
   useWebSearch?: boolean;

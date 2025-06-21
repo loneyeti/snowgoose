@@ -24,6 +24,7 @@ export default function CopyButton({ textToCopy, className }: CopyButtonProps) {
 
   return (
     <button
+      type="button"
       onClick={handleCopy}
       className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${className}`}
       aria-label={isCopied ? "Copied!" : "Copy to clipboard"}

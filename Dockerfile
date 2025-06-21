@@ -1,5 +1,5 @@
 # Base image with Node.js
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 WORKDIR /app
 RUN apk add --no-cache libc6-compat # Required for Prisma on Alpine
 
