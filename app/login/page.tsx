@@ -138,10 +138,10 @@ function LoginForm() {
 
   return (
     // Use a background similar to the chat wrapper's subtle gradient or a light neutral
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
       {/* Increase max-width slightly, add more padding, rounded corners, and subtle shadow */}
       <form
-        className="w-full max-w-md space-y-6 bg-white p-10 rounded-xl shadow-lg border border-slate-100"
+        className="w-full max-w-md space-y-6 bg-white dark:bg-slate-800 p-10 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700"
         onSubmit={handleSubmit}
       >
         {/* Slightly larger logo */}
@@ -151,16 +151,16 @@ function LoginForm() {
           className="mx-auto h-14 mb-6" // Increased size and margin
         />
         {/* Adjusted heading style */}
-        <h2 className="text-center text-3xl font-semibold text-slate-800">
+        <h2 className="text-center text-3xl font-semibold text-slate-800 dark:text-slate-100">
           Snowgoose
         </h2>
-        <p className="text-center text-sm text-slate-500 mt-1 mb-6">
+        <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-1 mb-6">
           Sign in using an email link or your preferred provider.
         </p>
 
         {/* Error message display - improved styling */}
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-lg text-sm">
             {error}
           </div>
         )}
@@ -172,7 +172,7 @@ function LoginForm() {
         <div className="space-y-2">
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Email Address
           </label>
@@ -182,7 +182,7 @@ function LoginForm() {
             type="email"
             required
             placeholder="you@example.com"
-            className="block w-full p-3 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="block w-full p-3 border border-slate-300 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           />
         </div>
 
@@ -191,7 +191,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed transition duration-150 ease-in-out"
           >
             {isSubmitting ? "Sending Email Link..." : "Send Email Link"}
           </button>
@@ -203,10 +203,10 @@ function LoginForm() {
             className="absolute inset-0 flex items-center"
             aria-hidden="true"
           >
-            <div className="w-full border-t border-slate-200" />
+            <div className="w-full border-t border-slate-200 dark:border-slate-700" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-3 bg-white text-slate-500">
+            <span className="px-3 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400">
               Or continue with
             </span>
           </div>
@@ -218,7 +218,7 @@ function LoginForm() {
           <button
             type="button"
             onClick={signInWithGoogle}
-            className="w-full flex items-center justify-center py-2.5 px-4 border border-slate-300 rounded-lg shadow-sm bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+            className="w-full flex items-center justify-center py-2.5 px-4 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
           >
             <FaGoogle className="w-5 h-5 mr-3 text-red-500" />
             Sign in with Google
@@ -228,9 +228,9 @@ function LoginForm() {
           <button
             type="button"
             onClick={signInWithGithub}
-            className="w-full flex items-center justify-center py-2.5 px-4 border border-slate-300 rounded-lg shadow-sm bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+            className="w-full flex items-center justify-center py-2.5 px-4 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
           >
-            <FaGithub className="w-5 h-5 mr-3 text-slate-800" />{" "}
+            <FaGithub className="w-5 h-5 mr-3 text-slate-800 dark:text-slate-200" />{" "}
             {/* Adjusted icon color */}
             Sign in with GitHub
           </button>
