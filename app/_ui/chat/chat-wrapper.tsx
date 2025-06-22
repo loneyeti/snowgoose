@@ -1079,7 +1079,7 @@ export default function ChatWrapper({
             <TextInputArea
               onSubmit={handleFormSubmit}
               isSubmitting={isSubmitting}
-              disabled={localIsOverLimit} // Pass local disabled state
+              disabled={localIsOverLimit && !user.hasUnlimitedCredits} // Pass local disabled state
               onReset={handleReset}
               showFileUpload={showFileUpload}
             />
