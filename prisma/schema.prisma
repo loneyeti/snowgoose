@@ -106,8 +106,9 @@ model User {
   isAdmin  Boolean? @map("is_admin")
   authId   String?  @unique @db.Uuid
 
-  periodUsage Float? @default(0.0)
-  totalUsage  Float? @default(0.0)
+  periodUsage   Float? @default(0.0)
+  totalUsage    Float? @default(0.0)
+  creditBalance Float? @default(0.0)
 
   stripeCustomerId            String?   @unique @map("stripe_customer_id")
   stripeSubscriptionId        String?   @unique @map("stripe_subscription_id")
@@ -121,19 +122,32 @@ model User {
   hasUnlimitedCredits Boolean? @default(false) @map("has_unlimited_credits")
   onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
 
-  conversations ConversationHistory[]
-  outputFormats OutputFormat[]
-  personas      Persona[]
-  settings      UserSettings[]
+  conversations      ConversationHistory[]
+  outputFormats      OutputFormat[]
+  personas           Persona[]
+  settings           UserSettings[]
+  creditTransactions CreditTransaction[]
 
   @@map("users")
 }
 
 model SubscriptionPlan {
-  id            Int     @id @default(autoincrement())
-  stripePriceId String? @unique @map("stripe_price_id")
-  name          String
-  usageLimit    Float
+  id             Int     @id @default(autoincrement())
+  stripePriceId  String? @unique @map("stripe_price_id")
+  name           String
+  usageLimit     Float
+  creditsGranted Float   @default(0.0)
 
   @@map("subscription_plan")
+}
+
+model CreditTransaction {
+  id             String    @id @default(cuid())
+  userId         Int
+  user           User      @relation(fields: [userId], references: [id])
+  creditsAmount  Int // Positive for grants, negative for deductions
+  source         String // e.g., 'free-trial', 'subscription-basic', 'one-time-small', 'chat-deduction'
+  stripeChargeId String? // Optional, for linking to Stripe
+  createdAt      DateTime  @default(now())
+  expiresAt      DateTime? // Only for credit grants
 }

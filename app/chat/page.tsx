@@ -59,34 +59,9 @@ export default async function Home() {
     ...model,
     // Use the included apiVendor object if available, otherwise mark as Unknown
     apiVendorName: model.apiVendor?.name || "Unknown Vendor",
-    // Explicitly remove the nested object if it causes issues, but try keeping it first.
-    // apiVendor: undefined, // Optional: Uncomment if serialization issues persist
   }));
 
-  // --- Fetch Subscription Plan and Calculate Usage Limit Status ---
-  let plan: SubscriptionPlan | null = null;
-  let usageLimit: number | null = null;
-  let isOverLimit = false;
-
-  if (user && user.stripePriceId) {
-    try {
-      plan = await subscriptionPlanRepo.findByStripePriceId(user.stripePriceId);
-      if (plan && plan.usageLimit && plan.usageLimit > 0) {
-        usageLimit = plan.usageLimit;
-        const currentUsage = user.periodUsage ?? 0;
-        isOverLimit = currentUsage >= usageLimit;
-      }
-    } catch (error) {
-      log.error(`Failed to fetch subscription plan on page load: ${error}`);
-      // Decide how to handle error - maybe show a generic error or allow usage?
-      // For now, we'll default to not limiting usage if the check fails.
-      isOverLimit = false;
-    }
-  }
-  // --- End Usage Limit Status Calculation ---
-
   return (
-    // Remove bg-slate-50 to inherit background from body in layout
     <main>
       <div className="">
         <ChatWrapper
@@ -97,10 +72,7 @@ export default async function Home() {
           mcpTools={mcpTools}
           apiVendors={apiVendors} // Keep passing original vendors if needed elsewhere
           user={user}
-          // Pass usage limit props
-          periodUsage={user.periodUsage}
-          usageLimit={usageLimit}
-          isOverLimit={isOverLimit}
+          creditBalance={user.creditBalance ?? 0.0}
         />
       </div>
     </main>

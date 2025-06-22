@@ -350,62 +350,58 @@ export class UserRepository extends BaseRepository {
    * Throws an error if access should be denied (inactive sub, limit exceeded, user not found).
    * @param userId The ID of the user to check.
    */
-  async checkUsageLimit(userId: number): Promise<void> {
+  async checkCreditBalance(
+    userId: number,
+    costInCredits: number
+  ): Promise<void> {
     try {
-      const { user, plan } = await this.getUserPlanAndUsage(userId);
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          creditBalance: true,
+          hasUnlimitedCredits: true,
+        },
+      });
 
       if (!user) {
         throw new Error(`User with ID ${userId} not found.`);
       }
 
       const log = new Logger({ source: "user.repository" }).with({
-        userId: `${user?.id}`,
+        userId: `${user.id}`,
       });
 
-      // ---> NEW CHECK <---
-      // If user has unlimited credits, bypass all other checks
+      // Bypass checks if user has unlimited credits
       if (user.hasUnlimitedCredits === true) {
         log.info(`User ${userId} has unlimited credits. Access granted.`);
-        return; // Grant access immediately
+        return;
       }
-      // ---> END NEW CHECK <---
 
-      if (!plan) {
-        // This should theoretically be caught by getUserPlanAndUsage, but double-check
+      // Calculate usable credits (creditBalance + non-expired transactions)
+      const now = new Date();
+      const transactions = await this.prisma.creditTransaction.findMany({
+        where: {
+          userId,
+          OR: [{ expiresAt: { gt: now } }, { expiresAt: null }],
+        },
+      });
+
+      const usableCredits =
+        (user.creditBalance ?? 0) +
+        transactions.reduce((sum, t) => sum + t.creditsAmount, 0);
+
+      if (usableCredits < costInCredits) {
         throw new Error(
-          `Could not determine subscription plan for user ${userId}.`
+          `Insufficient credits. Required: ${costInCredits}, Available: ${usableCredits}`
         );
       }
 
-      // --- Status Check ---
-      // If user has a subscription ID, they must have an 'active' status to proceed
-      if (
-        user.stripeSubscriptionId &&
-        user.stripeSubscriptionStatus !== "active"
-      ) {
-        throw new Error(
-          `Subscription is not active. Current status: ${user.stripeSubscriptionStatus}`
-        );
-      }
-      // --- End Status Check ---
-
-      // --- Usage Limit Check ---
-      const userPeriodUsage = user.periodUsage ?? 0.0;
-      if (userPeriodUsage >= plan.usageLimit) {
-        // Consider creating a custom error class for better handling upstream
-        throw new Error(
-          `Usage limit exceeded. Current usage: ${userPeriodUsage}, Limit: ${plan.usageLimit}`
-        );
-      }
-      // --- End Usage Limit Check ---
-
-      // If all checks pass, the method completes successfully (returns void)
-      console.log(
-        `User ${userId} access check passed. Status: ${user.stripeSubscriptionStatus ?? "N/A (Free Tier)"}, Usage: ${userPeriodUsage}, Limit: ${plan.usageLimit}`
+      log.info(
+        `User ${userId} has sufficient credits: ${usableCredits} (cost: ${costInCredits})`
       );
     } catch (error) {
-      // Re-throw specific errors or handle generic ones
-      this.handleError(error); // Use existing handler or re-throw
+      this.handleError(error);
     }
   }
 }

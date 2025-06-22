@@ -21,11 +21,12 @@ import { ConversationHistory, User } from "@prisma/client"; // Import User type 
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
 import { getUserID } from "@/app/_lib/auth";
+import { getUserCreditBalanceAction } from "@/app/_lib/server_actions/user.actions";
 import { usePersonaState } from "./hooks/usePersonaState";
 import { useOutputFormatState } from "./hooks/useOutputFormatState";
 import { useMCPToolState } from "./hooks/useMCPToolState";
 // Import the server action instead of the repository
-import { getUserUsageLimitsAction } from "@/app/_lib/server_actions/user.actions";
+//import { getUserUsageLimitsAction } from "@/app/_lib/server_actions/user.actions";
 import { useLogger } from "next-axiom";
 import { toast } from "sonner";
 import { ImageBlock, ContentBlock } from "@/app/_lib/model";
@@ -76,10 +77,7 @@ export default function ChatWrapper({
   mcpTools,
   apiVendors,
   user,
-  // Destructure new usage limit props
-  periodUsage,
-  usageLimit,
-  isOverLimit: initialIsOverLimit = false, // Rename prop for clarity, default false
+  creditBalance,
 }: ChatWrapperProps) {
   const log = useLogger().with({ userId: user.id });
   const [isStreamComplete, setIsStreamComplete] = useState(false);
@@ -97,7 +95,8 @@ export default function ChatWrapper({
   const toggleWebSearch = () => setUseWebSearch((prev) => !prev);
   const toggleImageGeneration = () => setUseImageGeneration((prev) => !prev);
   // Local state to manage the over-limit status immediately
-  const [localIsOverLimit, setLocalIsOverLimit] = useState(initialIsOverLimit);
+  const [currentCreditBalance, setCurrentCreditBalance] =
+    useState(creditBalance);
   const [currentChat, setCurrentChat] = useState<LocalChat | undefined>();
   const [isHistoryShowing, setIsHistoryShowing] = useState(false);
   const [showConversationSpinner, setShowConversationSpinner] =
@@ -105,7 +104,7 @@ export default function ChatWrapper({
   const [history, setHistory] = useState<ConversationHistory[]>([]);
   const [imageURL, setImageURL] = useState("");
   const [renderTypeName, setRenderTypeName] = useState("");
-  const [hidePersonas] = useState(false);
+  // const [hidePersonas] = useState(false);
   const [hideOutputFormats] = useState(false);
   const [previousResponseId, setPreviousResponseId] = useState<
     string | undefined
@@ -120,10 +119,6 @@ export default function ChatWrapper({
     generationId: null,
   });
   const personas = [...(userPersonas || []), ...(globalPersonas || [])];
-  const [userUsageLimits, setUserUsageLimits] = useState<UserUsageLimits>({
-    userPeriodUsage: 0.0,
-    planUsageLimit: 0.0,
-  });
 
   // Custom hooks
   const {
@@ -179,25 +174,19 @@ export default function ChatWrapper({
     initialBudgetTokens: currentChat?.budgetTokens ?? null,
   });
 
-  // Define fetchUsageLimits function (moved earlier for updateMessage)
-  const fetchUsageLimits = async () => {
-    if (!user?.id) return; // Guard clause
-
+  const refreshCreditBalance = async () => {
+    if (!user?.id) return;
     try {
-      const fetchedUsageLimits = await getUserUsageLimitsAction(user.id);
-      if (fetchedUsageLimits) {
-        setUserUsageLimits(fetchedUsageLimits);
+      const newBalance = await getUserCreditBalanceAction(user.id);
+      if (newBalance !== null) {
+        setCurrentCreditBalance(newBalance);
       } else {
-        log.error(
-          "Failed to fetch usage limits via server action (returned null)."
-        );
-        setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 });
+        log.error("Failed to refresh credit balance (action returned null).");
       }
     } catch (error) {
-      log.error("Error calling getUserUsageLimitsAction", {
+      log.error("Error calling getUserCreditBalanceAction", {
         error: String(error),
       });
-      setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 });
     }
   };
 
@@ -252,7 +241,6 @@ export default function ChatWrapper({
     setLastAssistantImage({ url: lastImageUrl, generationId: lastImageId });
     // This state is now redundant since we use lastAssistantImage, but we'll leave it for the hidden input
     setLastImageGenerationId(lastImageId);
-    fetchUsageLimits();
   };
 
   const updateShowSpinner = (showSpinner: boolean) => {
@@ -584,6 +572,7 @@ export default function ChatWrapper({
       // Clear the temporary streaming display object
       setStreamingResponse(null);
       setIsStreamComplete(false);
+      refreshCreditBalance();
     }
   }, [isSubmitting, isStreamComplete, streamingResponse]);
 
@@ -626,46 +615,10 @@ export default function ChatWrapper({
     fetchData();
   }, [isHistoryShowing]);
 
-  // useEffect to fetch usage limits using the server action
-  useEffect(() => {
-    if (!user?.id) {
-      // Don't fetch if user ID isn't available
-      return;
-    }
-
-    const fetchUsage = async () => {
-      try {
-        // Call the server action
-        const fetchedUsageLimits = await getUserUsageLimitsAction(user.id);
-
-        if (fetchedUsageLimits) {
-          setUserUsageLimits(fetchedUsageLimits);
-        } else {
-          // Handle the case where the action returns null (e.g., error on server)
-          log.error(
-            "Failed to fetch usage limits via server action (returned null)."
-          );
-          // Optionally set state to reflect error or default values
-          setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 });
-        }
-      } catch (error) {
-        // Catch errors specifically from the action call itself (network issues, etc.)
-        // Server-side errors within the action are handled there and return null here.
-        log.error("Error calling getUserUsageLimitsAction", {
-          error: String(error),
-        });
-        setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 }); // Reset or set error state
-      }
-    };
-
-    fetchUsage();
-    // Depend only on user.id to refetch when the user changes
-  }, [user?.id]); // Keep existing dependency
-
   // useEffect to fetch usage limits on initial load or user change
   // Note: fetchUsageLimits is now defined earlier
   useEffect(() => {
-    fetchUsageLimits();
+    refreshCreditBalance();
     // Depend only on user.id to refetch when the user changes
   }, [user?.id]);
 
@@ -694,6 +647,9 @@ export default function ChatWrapper({
     log.info("MCP tool changed", { newMCPToolId: target.value });
     updateSelectedMCPTool(target.value);
   };
+
+  const isInputDisabled =
+    currentCreditBalance <= 0 && !user.hasUnlimitedCredits;
 
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden">
@@ -957,36 +913,27 @@ export default function ChatWrapper({
             {/* No ml-auto needed here, parent justify-between handles it */}
             <div className="flex items-center gap-x-3">
               {/* Subtle Credits Display */}
-              {userUsageLimits != null && (
-                <div className="flex items-center group relative">
-                  {/* Dark mode: Adjust credits display colors */}
-                  <div className="flex items-center px-2 py-0.5 rounded-full bg-slate-50 border border-slate-100 dark:bg-slate-700 dark:border-slate-600 shadow-sm">
-                    <MaterialSymbol
-                      icon="electric_bolt"
-                      size={14}
-                      className="text-slate-400 dark:text-slate-500 mr-1"
-                    />
-                    <span className="text-xs font-medium text-slate-400 dark:text-slate-300">
-                      {user.hasUnlimitedCredits
-                        ? "unlimited"
-                        : Math.max(
-                            0,
-                            Math.round(
-                              (userUsageLimits.planUsageLimit -
-                                userUsageLimits.userPeriodUsage) *
-                                100
-                            )
-                          )}
-                    </span>
-                  </div>
-                  {/* Tooltip on hover */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 w-auto hidden group-hover:block">
-                    <div className="bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 text-xs rounded py-1 px-2 whitespace-nowrap">
-                      Available credits
-                    </div>
+
+              <div className="flex items-center group relative">
+                {/* Dark mode: Adjust credits display colors */}
+                <div className="flex items-center px-2 py-0.5 rounded-full bg-slate-50 border border-slate-100 dark:bg-slate-700 dark:border-slate-600 shadow-sm">
+                  <MaterialSymbol
+                    icon="electric_bolt"
+                    size={14}
+                    className="text-slate-400 dark:text-slate-500 mr-1"
+                  />
+                  <span className="text-xs font-medium text-slate-400 dark:text-slate-300">
+                    {Math.round(currentCreditBalance)}
+                  </span>
+                </div>
+                {/* Tooltip on hover */}
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 w-auto hidden group-hover:block">
+                  <div className="bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 text-xs rounded py-1 px-2 whitespace-nowrap">
+                    Available credits
                   </div>
                 </div>
-              )}
+              </div>
+
               <UtilityIconRow
                 resetChat={handleReset}
                 toggleHistory={toggleHistory}
@@ -1064,22 +1011,16 @@ export default function ChatWrapper({
 
           {/* Text input area container - Always at the bottom, never shrinks */}
           <div className="flex-shrink-0 max-w-3xl mx-auto w-full pb-2 px-2 lg:px-0">
-            {/* Usage Limit Warning - Use local state */}
-            {localIsOverLimit &&
-              usageLimit &&
-              usageLimit > 0 &&
-              !user.hasUnlimitedCredits && (
-                <div className="mb-2 p-2 text-center text-sm text-red-700 bg-red-100 border border-red-300 dark:bg-red-900 dark:border-red-700 dark:text-red-200 rounded-md">
-                  You have reached your usage limit (
-                  {periodUsage?.toFixed(2) ?? 0} / {usageLimit.toFixed(2)}) for
-                  the current billing period. Please upgrade your plan or wait
-                  for the next cycle to continue.
-                </div>
-              )}
+            {/* Usage Limit Warning - Use the new logic */}
+            {isInputDisabled && (
+              <div className="mb-2 p-2 text-center text-sm text-red-700 bg-red-100 border border-red-300 dark:bg-red-900 dark:border-red-700 dark:text-red-200 rounded-md">
+                You have run out of credits. Please purchase more to continue.
+              </div>
+            )}
             <TextInputArea
               onSubmit={handleFormSubmit}
               isSubmitting={isSubmitting}
-              disabled={localIsOverLimit && !user.hasUnlimitedCredits} // Pass local disabled state
+              disabled={isInputDisabled} // Pass local disabled state
               onReset={handleReset}
               showFileUpload={showFileUpload}
             />

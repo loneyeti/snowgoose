@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { initializeAIVendors } from "@/app/_lib/db/repositories/chat.repository";
-import {
-  LocalChat,
-  ModelConfig,
-  ContentBlock,
-  ImageBlock,
-  ImageDataBlock,
-  ErrorBlock,
-  ImageGenerationCallBlock,
-} from "@/app/_lib/model";
+import { LocalChat, ModelConfig, ImageBlock } from "@/app/_lib/model";
 import { getCurrentAPIUser } from "@/app/_lib/auth";
 import { userRepository } from "@/app/_lib/db/repositories/user.repository";
 import { getModel } from "@/app/_lib/server_actions/model.actions";
 import { AIVendorFactory, AIRequestOptions, Message } from "snowgander";
 import prisma from "@/app/_lib/db/prisma";
-import { updateUserUsage } from "@/app/_lib/server_actions/user.actions";
+import { deductUserCredits } from "@/app/_lib/server_actions/user.actions";
 import { Logger } from "next-axiom";
 import { uploadBase64Image } from "@/app/_lib/storage";
 
@@ -29,23 +21,17 @@ export async function POST(req: NextRequest) {
     }
     log.with({ userId: user.id });
 
-    try {
-      await userRepository.checkUsageLimit(user.id);
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message.includes("Usage limit exceeded")
-      ) {
-        log.warn("User has exceeded their usage limit.", { userId: user.id });
-        return new Response(
-          JSON.stringify({
-            type: "error",
-            publicMessage: "Usage limit exceeded.",
-          }),
-          { status: 429 }
-        );
-      }
-      throw error;
+    // Simple check - just verify user has positive credit balance
+    const userWithCredits = await userRepository.findById(user.id);
+    if (!userWithCredits || (userWithCredits.creditBalance ?? 0) <= 0) {
+      log.warn("User has insufficient credits", { userId: user.id });
+      return new Response(
+        JSON.stringify({
+          type: "error",
+          publicMessage: "Insufficient credits for this request.",
+        }),
+        { status: 402 }
+      );
     }
 
     const chat: LocalChat = await req.json();
@@ -98,6 +84,7 @@ export async function POST(req: NextRequest) {
       isThinking: model.isThinking,
       inputTokenCost: model.inputTokenCost ?? undefined,
       outputTokenCost: model.outputTokenCost ?? undefined,
+      webSearchCost: model.webSearchCost ?? undefined,
     };
 
     initializeAIVendors();
@@ -163,13 +150,6 @@ export async function POST(req: NextRequest) {
                 userId: user.id,
                 totalCost: chunk.usage.totalCost,
               });
-              console.log(
-                "Received meta block with usage data. Updating user.",
-                {
-                  userId: user.id,
-                  totalCost: chunk.usage.totalCost,
-                }
-              );
               console.log(`Meta block: ${JSON.stringify(chunk)}`);
               // Securely update the user's usage on the server.
               let totalCost = chunk.usage.totalCost;
@@ -178,7 +158,10 @@ export async function POST(req: NextRequest) {
                 totalCost = totalCost + 0.25;
               }
               console.log(`Final total cost: ${totalCost}`);
-              await updateUserUsage(user.id, totalCost);
+              const creditCost =
+                totalCost /
+                parseFloat(process.env.BASE_CREDIT_TO_DOLLAR_RATIO!);
+              await deductUserCredits(user.id, creditCost);
             }
 
             // CHECK 2: If it's a fuzzy image chunk, track it for final upload.
