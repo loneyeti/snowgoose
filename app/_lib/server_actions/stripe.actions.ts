@@ -1,10 +1,10 @@
 "use server";
-"use server";
 import Stripe from "stripe";
 import { createCheckoutSessionFormSchema } from "../form-schemas";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getUserSession, getCurrentAPIUser } from "@/app/_lib/auth"; // Import helper functions
+import { Logger } from "next-axiom";
 
 export interface Plan {
   id: string;
@@ -16,6 +16,8 @@ export interface Plan {
 }
 
 export async function getSubscriptionPlans() {
+  const log = new Logger({ source: "stripe.actions" });
+
   try {
     if (!process.env.STRIPE_SECRET_KEY) {
       throw new Error("There was an issue getting subscriptions");
@@ -40,7 +42,7 @@ export async function getSubscriptionPlans() {
           product === null ||
           product.deleted
         ) {
-          console.warn(
+          log.warn(
             `Price ${price.id} has an unexpected or deleted product. Skipping.`
           );
           return null; // Skip this price or handle appropriately
@@ -63,6 +65,7 @@ export async function getSubscriptionPlans() {
 }
 
 export async function createCheckoutSessionAction(formData: FormData) {
+  const log = new Logger({ source: "stripe.actions" });
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error("There was an issue getting subscriptions");
   }
@@ -80,7 +83,7 @@ export async function createCheckoutSessionAction(formData: FormData) {
   const userSession = await getUserSession();
   if (!userSession || !userSession.userId) {
     // userId from getUserSession is the Supabase authId
-    console.error("Authentication Error: Could not retrieve user session.");
+    log.error("Authentication Error: Could not retrieve user session.");
     throw new Error("User must be logged in to subscribe.");
   }
   const userAuthId = userSession.userId;
@@ -108,13 +111,13 @@ export async function createCheckoutSessionAction(formData: FormData) {
 
     // Check if session URL exists before redirecting
     if (!session.url) {
-      console.error("Stripe session URL is missing.");
+      log.error("Stripe session URL is missing.");
       throw new Error("Could not create checkout session. Please try again.");
     }
 
     sessionUrl = session.url; // Assign URL inside try block
   } catch (error) {
-    console.error("Stripe Checkout Session Error:", error); // Log the full error server-side
+    log.error(`Stripe Checkout Session Error: ${error}`); // Log the full error server-side
     // Throw a generic error to the client if Stripe API fails
     throw new Error("There was a problem creating the checkout session.");
   }
@@ -125,7 +128,7 @@ export async function createCheckoutSessionAction(formData: FormData) {
   } else {
     // This case should ideally not be reached if the check inside try works,
     // but it's a safeguard.
-    console.error("Session URL was null after try-catch block.");
+    log.error("Session URL was null after try-catch block.");
     throw new Error("Failed to get checkout session URL.");
   }
 }
@@ -141,8 +144,10 @@ export async function createCustomerPortalSessionAction(): Promise<{
 }> {
   "use server";
 
+  const log = new Logger({ source: "stripe.actions" });
+
   if (!process.env.STRIPE_SECRET_KEY) {
-    console.error("Stripe secret key is not configured.");
+    log.error("Stripe secret key is not configured.");
     return { error: "Server configuration error. Please contact support." };
   }
 
@@ -150,7 +155,7 @@ export async function createCustomerPortalSessionAction(): Promise<{
   const origin = headers().get("origin");
 
   if (!origin) {
-    console.error("Could not determine request origin.");
+    log.error("Could not determine request origin.");
     return { error: "Could not determine return URL. Please try again." };
   }
   const returnUrl = `${origin}/settings/profile`; // URL to return to after portal session
@@ -177,7 +182,7 @@ export async function createCustomerPortalSessionAction(): Promise<{
     });
 
     if (!portalSession.url) {
-      console.error("Stripe portal session URL is missing after creation.");
+      log.error("Stripe portal session URL is missing after creation.");
       return {
         error:
           "Could not create customer portal session. Please try again later.",
@@ -187,11 +192,10 @@ export async function createCustomerPortalSessionAction(): Promise<{
     // Return the URL for redirection on the client-side
     return { url: portalSession.url };
   } catch (error) {
-    console.error("Stripe Customer Portal Session Error:", error);
+    log.error(`Stripe Customer Portal Session Error: ${error}`);
     // Log the specific Stripe error if available
     if (error instanceof Stripe.errors.StripeError) {
-      console.error("Stripe Error Code:", error.code);
-      console.error("Stripe Error Message:", error.message);
+      log.error(`Stripe Error Code: ${error.code}: ${error.message}`);
     }
     // Return a generic error message to the user
     return {

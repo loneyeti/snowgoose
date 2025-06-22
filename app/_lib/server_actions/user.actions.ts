@@ -24,7 +24,7 @@ export async function getUser(id: number) {
 }
 
 export async function createUser(formData: FormData) {
-  const log = new Logger();
+  const log = new Logger({ source: "user.actions" });
   const user: UserPost = CreateUserFormSchema.parse({
     username: formData.get("username"),
     //password: formData.get("password"),
@@ -50,6 +50,7 @@ export async function createUser(formData: FormData) {
 }
 
 export async function updateUser(formData: FormData) {
+  const log = new Logger({ source: "user.actions" });
   // Remove explicit : User type annotation and rename variable
   const parsedData = UpdateUserFormSchema.parse({
     id: formData.get("id"),
@@ -68,64 +69,16 @@ export async function updateUser(formData: FormData) {
       isAdmin: parsedData.isAdmin ?? undefined,
     });
   } catch (error) {
-    console.error("Failed to update User:", error); // Log detailed error
+    log.error(`Failed to update User: ${error}`); // Log detailed error
     throw new Error("Unable to update User."); // Throw generic error
   }
   revalidatePath("/chat/settings/profile");
 }
 
-export async function updateUserPassword(
-  prevState: FormState,
-  formData: FormData
-): Promise<FormState> {
-  // Ensure return type matches FormState
-  const supabase = await createClient();
-  const currentPassword = formData.get("currentPassword") as string;
-  const newPassword = formData.get("newPassword") as string;
-
-  // Get existing session to verify current password
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    // Log server-side, return generic client message
-    console.error("Authentication error in updateUserPassword:", authError);
-    return { error: "Authentication required to change password." };
-  }
-
-  // Reauthenticate with current password
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email: user.email!,
-    password: currentPassword,
-  });
-
-  if (signInError) {
-    // Log server-side, return generic client message
-    console.error("Sign-in error during password update:", signInError);
-    return { error: "Current password verification failed." };
-  }
-
-  // Update password
-  const { error: updateError } = await supabase.auth.updateUser({
-    password: newPassword,
-  });
-
-  if (updateError) {
-    // Log server-side, return generic client message
-    console.error("Supabase password update error:", updateError);
-    return { error: "Failed to update password. Please try again." };
-  }
-
-  revalidatePath("/chat/settings/profile");
-  return { success: true, message: "Password updated successfully." }; // Add success message
-}
-
 export async function ensureUserExists(
   userSession: UserSession
 ): Promise<User | null> {
-  const log = new Logger();
+  const log = new Logger({ source: "user.actions" });
   // First check if user already exists
   let user = await userRepository.findByEmail(userSession.email);
 
@@ -205,7 +158,7 @@ export async function ensureUserExists(
 }
 
 export async function updateUserUsage(userId: number, usage: number) {
-  let log = new Logger({ source: "user.actions" }).with({
+  const log = new Logger({ source: "user.actions" }).with({
     userId: `${userId}`,
   });
   try {
@@ -267,7 +220,7 @@ export async function updateUserUsage(userId: number, usage: number) {
 export async function getUserUsageLimitsAction(
   userId: number
 ): Promise<UserUsageLimits | null> {
-  const log = new Logger();
+  const log = new Logger({ source: "user.repository" });
   try {
     // Directly call the repository method on the server
     const limits = await userRepository.getUserPlanAndUsage(userId);
@@ -289,7 +242,7 @@ export async function getUserUsageLimitsAction(
 }
 
 export async function completeOnboardingAction(userId: number) {
-  const log = new Logger();
+  const log = new Logger({ source: "user.repository" });
   try {
     await userRepository.update(userId, { onboardingCompleted: true });
     return { success: true };

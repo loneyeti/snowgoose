@@ -9,9 +9,13 @@ import { Chat, TextBlock, Model } from "../model";
 import { getUserID } from "../auth";
 import { getModelAdaptorOptions } from "./model.actions";
 import { initializeAIVendors } from "../db/repositories/chat.repository";
+import { Logger } from "next-axiom";
 
 // Helper function to generate chat title
 async function _generateChatTitle(userId: number, chat: Chat): Promise<string> {
+  const log = new Logger({ source: "history.actions" }).with({
+    userId: userId,
+  });
   initializeAIVendors();
   try {
     // Get user's preferred summary model
@@ -22,19 +26,19 @@ async function _generateChatTitle(userId: number, chat: Chat): Promise<string> {
       summaryModel = await modelRepository.findById(
         userSettings.summaryModelPreferenceId
       );
-      console.debug(
+      log.debug(
         `Using preferred summary model: ${summaryModel?.name} for user ${userId}`
       );
     }
 
     // If no preferred model or fetch failed, use a default one
     if (!summaryModel) {
-      console.debug(
+      log.debug(
         `No preferred summary model found or fetch failed for user ${userId}, using default.`
       );
       summaryModel = await modelRepository.findByApiName("gpt-4o"); // Consider making default configurable
       if (!summaryModel) {
-        console.error("Default summary model 'gpt-4o' not found."); // Replaced logger.error
+        log.error("Default summary model 'gpt-4o' not found."); // Replaced logger.error
         // Fallback title if no model is available at all
         return "Untitled Chat"; // Return default title immediately
       }
@@ -84,10 +88,10 @@ async function _generateChatTitle(userId: number, chat: Chat): Promise<string> {
     // Basic cleanup - remove potential quotes sometimes added by models
     title = title.replace(/^["']|["']$/g, "");
 
-    console.info(`Generated title "${title}" for chat.`); // Replaced logger.info
+    //log.info(`Generated title "${title}" for chat.`);
     return title;
   } catch (error) {
-    console.error("Error generating chat title:", error); // Replaced logger.error
+    log.error(`Error generating chat title: ${error}`); // Replaced logger.error
     // Return a default title in case of error during generation
     return "Untitled Chat"; // Return default title immediately
   }
@@ -104,6 +108,9 @@ export async function deleteHistory(id: number) {
 
 export async function saveChat(chat: Chat): Promise<string> {
   const userId = await getUserID();
+  const log = new Logger({ source: "history.actions" }).with({
+    userId: userId,
+  });
 
   // Generate title using the helper function
   const title = await _generateChatTitle(userId, chat);
@@ -116,7 +123,7 @@ export async function saveChat(chat: Chat): Promise<string> {
       conversation: JSON.stringify(chat), // Ensure chat is stringified
     });
 
-    console.info(`Saved chat with ID: ${savedChat.id} and title: "${title}"`); // Replaced logger.info
+    //console.info(`Saved chat with ID: ${savedChat.id} and title: "${title}"`); // Replaced logger.info
 
     // Revalidate the history path to update UI lists
     revalidatePath("/chat/settings/history");
@@ -124,7 +131,7 @@ export async function saveChat(chat: Chat): Promise<string> {
 
     return title; // Return the generated/saved title
   } catch (error) {
-    console.error("Error saving chat to history:", error);
+    log.error(`Error saving chat to history: ${error}`);
     // Throw a user-friendly error or handle as appropriate
     // Following systemPatterns.md: Log details server-side (done above) and throw generic error.
     throw new Error("Failed to save chat history."); // User-friendly error

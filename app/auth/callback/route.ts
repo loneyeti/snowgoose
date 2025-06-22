@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/app/_utils/supabase/server";
+import { Logger } from "next-axiom";
 
 // This route handles callbacks for OAuth AND now also acts as the landing page
 // after a user clicks a magic link.
 export async function GET(request: Request) {
+  const log = new Logger({ source: "callback-api" });
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code"); // For OAuth
   const next = searchParams.get("next") ?? "/chat"; // Final destination
@@ -13,9 +15,7 @@ export async function GET(request: Request) {
 
   // Add a check to ensure baseUrl is configured
   if (!baseUrl) {
-    console.error(
-      "FATAL: NEXT_PUBLIC_BASE_URL environment variable is not set."
-    );
+    log.error("FATAL: NEXT_PUBLIC_BASE_URL environment variable is not set.");
     // Return a generic server error response or redirect to an error page
     // Avoid redirecting without a valid base URL
     return new Response(
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
-      console.error("OAuth callback error:", error);
+      log.error("OAuth callback error:", error);
       // Construct error redirect URL using the reliable baseUrl
       const errorRedirectUrl = new URL("/login", baseUrl);
       errorRedirectUrl.searchParams.set("error", "oauth_callback_failed");
@@ -51,9 +51,8 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
 
   if (getUserError || !user) {
-    console.error(
-      "Magic link callback error: User session not found after redirect.",
-      getUserError
+    log.error(
+      `Magic link callback error: User session not found after redirect: ${getUserError}`
     );
     // Construct error redirect URL using the reliable baseUrl
     const errorRedirectUrl = new URL("/login", baseUrl);

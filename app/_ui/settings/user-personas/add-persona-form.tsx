@@ -2,6 +2,7 @@ import { createUserPersona } from "@/app/_lib/server_actions/persona.actions";
 import { Button } from "@/app/_ui/button";
 import { useRef } from "react";
 import { usePathname } from "next/navigation"; // Import usePathname
+import { Logger } from "next-axiom";
 
 interface AddPersonaFormProps {
   onSuccess?: () => void; // Optional callback for successful submission
@@ -13,6 +14,7 @@ export default function AddPersonaForm({ onSuccess }: AddPersonaFormProps) {
 
   // Update formAction to accept originPath
   const formAction = async (formData: FormData, originPath: string) => {
+    const log = new Logger({ source: "AddPersonaForm" });
     try {
       // Pass originPath to the server action
       await createUserPersona(formData, originPath);
@@ -24,7 +26,7 @@ export default function AddPersonaForm({ onSuccess }: AddPersonaFormProps) {
       // using revalidatePath or revalidateTag from 'next/cache'
     } catch (error) {
       // Handle error display if needed (e.g., using state and showing a message)
-      console.error("Failed to create persona:", error);
+      log.error(`Failed to create persona: ${error}`);
       // Optionally, provide user feedback about the error here
     }
   };

@@ -7,6 +7,9 @@ import { saveChat } from "../../_lib/server_actions/history.actions";
 import { User } from "@prisma/client";
 import { Menu, Transition } from "@headlessui/react"; // Import Headless UI components
 import { Fragment } from "react"; // Import Fragment
+import { Logger } from "next-axiom";
+
+const log = new Logger({ source: "UtilityIconRow" });
 
 export default function UtilityIconRow({
   resetChat,
@@ -27,11 +30,11 @@ export default function UtilityIconRow({
         const saveMessage = await saveChat(chat);
         toast.success(`Saved conversation: ${saveMessage}`);
       } else {
-        console.error("No chat to save");
+        log.error("No chat to save");
         toast.error("No conversation to save");
       }
     } catch (error) {
-      console.error("Error saving chat:", error);
+      log.error(`Error saving chat: ${error}`);
       toast.error("Failed to save conversation");
     }
   }

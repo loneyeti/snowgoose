@@ -5,7 +5,7 @@ import { Buffer } from "buffer"; // Import Buffer for server-side handling
 import { Logger } from "next-axiom";
 
 export async function supabaseUploadFile(filename: string, file: File) {
-  const log = new Logger();
+  const log = new Logger({ source: "storage" });
   const storageBucket = process.env.SUPABASE_VISION_STORAGE_BUCKET;
   if (!storageBucket) {
     throw new Error(
@@ -117,7 +117,7 @@ export async function uploadBase64Image(
   // Generate a unique filename
   const fileExtension = mimeType.split("/")[1] || "png"; // Default to png if split fails
   const filename = `ai-generated-${Date.now()}.${fileExtension}`;
-  const log = new Logger();
+  const log = new Logger({ source: "storage" });
 
   // Convert base64 data to a File-like object
   const file = base64ToFile(base64Data, filename, mimeType);

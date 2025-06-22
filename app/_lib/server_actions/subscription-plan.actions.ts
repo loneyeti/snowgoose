@@ -8,11 +8,13 @@ import prisma from "@/app/_lib/db/prisma"; // Import the singleton prisma instan
 import { SubscriptionPlanRepository } from "@/app/_lib/db/repositories/subscription-plan.repository";
 import { SubscriptionPlan } from "@prisma/client"; // Import the generated type
 import { upsertSubscriptionPlanSchema } from "@/app/_lib/form-schemas"; // Import the schema
+import { Logger } from "next-axiom";
 
 // Initialize Stripe client (ensure STRIPE_SECRET_KEY is set in environment)
+const log = new Logger({ source: "subscription-plan-action" });
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 if (!process.env.STRIPE_SECRET_KEY) {
-  console.warn(
+  log.warn(
     "Stripe secret key is not configured. Subscription actions may fail."
   );
 }
@@ -110,7 +112,7 @@ export async function getAdminSubscriptionData(): Promise<
           customer.deleted ||
           !subscriptionItem.current_period_end
         ) {
-          console.warn(
+          log.warn(
             `Subscription ${sub.id} missing critical data (item, price, customer, period end) or has deleted customer. Skipping.`
           );
           return null;
@@ -120,7 +122,7 @@ export async function getAdminSubscriptionData(): Promise<
         const productId =
           typeof price.product === "string" ? price.product : price.product?.id;
         if (!productId) {
-          console.warn(
+          log.warn(
             `Subscription ${sub.id} missing product ID in price object. Skipping.`
           );
           return null;
@@ -150,7 +152,7 @@ export async function getAdminSubscriptionData(): Promise<
 
     return combinedData;
   } catch (error) {
-    console.error("Error fetching admin subscription data:", error);
+    log.error(`Error fetching admin subscription data: ${error}`);
     // Handle Stripe-specific errors if needed
     if (error instanceof Stripe.errors.StripeError) {
       throw new Error(`Stripe API Error: ${error.message}`);
@@ -215,7 +217,7 @@ export async function getSubscriptionLimitData(): Promise<
           !("id" in product) ||
           !("name" in product)
         ) {
-          console.warn(
+          log.warn(
             `Price ${price.id} is missing expanded product information or product is inactive/archived. Skipping.`
           );
           // If product is just an ID string or deleted, we might skip or handle differently
@@ -267,7 +269,7 @@ export async function getSubscriptionLimitData(): Promise<
 
     return combinedData;
   } catch (error) {
-    console.error("Error fetching subscription limit data:", error);
+    log.error(`Error fetching subscription limit data: ${error}`);
     if (error instanceof Stripe.errors.StripeError) {
       throw new Error(`Stripe API Error: ${error.message}`);
     }
@@ -341,7 +343,7 @@ export async function upsertSubscriptionPlanAction(
 
     return { success: true, message: "Subscription plan saved successfully." };
   } catch (error) {
-    console.error("Error upserting subscription plan:", error);
+    log.error(`Error upserting subscription plan: ${error}`);
     return {
       success: false,
       errors: { _form: ["Failed to save subscription plan."] },

@@ -4,12 +4,14 @@ import { revalidatePath } from "next/cache";
 import { userSettingsRepository } from "../db/repositories/user-settings.repository";
 import { UpdateUserSettingsSchema } from "../form-schemas";
 import { redirect } from "next/navigation";
+import { Logger } from "next-axiom";
 
 export async function getUserSettingsByUserId(userId: number) {
   return userSettingsRepository.findByUserId(userId);
 }
 
 export async function updateUserSettings(formData: FormData) {
+  const log = new Logger({ source: "user-settings-actions" });
   const settings = UpdateUserSettingsSchema.parse({
     id: formData.get("id"),
     appearanceMode: formData.get("appearanceMode"),
@@ -24,7 +26,7 @@ export async function updateUserSettings(formData: FormData) {
       summaryModelPreferenceId: settings.summaryModelPreferenceId,
     });
   } catch (error) {
-    console.error("Failed to update user preferences:", error); // Log detailed error
+    log.error(`Failed to update user preferences: ${error}`); // Log detailed error
     throw new Error("Unable to update user preferences."); // Throw generic error
   }
   revalidatePath("/chat/settings/user-preferences");

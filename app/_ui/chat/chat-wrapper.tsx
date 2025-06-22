@@ -196,7 +196,7 @@ export default function ChatWrapper({
     } catch (error) {
       log.error("Error calling getUserUsageLimitsAction", {
         error: String(error),
-      }); // Use structured logging
+      });
       setUserUsageLimits({ userPeriodUsage: 0.0, planUsageLimit: 0.0 });
     }
   };
@@ -308,7 +308,6 @@ export default function ChatWrapper({
       userMessageContent.push({ type: "image", url: visionUrlForDisplay });
     }
 
-    // *** THIS IS THE CRITICAL FIX ***
     // If we have an ID for an image to edit, add the 'image_generation_call' block.
     // This is for multi-turn editing.
     if (imageToEditId) {
@@ -428,9 +427,6 @@ export default function ChatWrapper({
                       ? newContent[newContent.length - 1]
                       : null;
 
-                  // --- START: New stream processing logic ---
-                  // Replace the entire switch statement inside handleFormSubmit -> setStreamingResponse
-
                   switch (parsedChunk.type) {
                     case "meta":
                       // Handle the new MetaBlock type
@@ -451,7 +447,7 @@ export default function ChatWrapper({
                       }
                       break;
 
-                    // --- START: ADDED THINKING AGGREGATION ---
+                    // --- THINKING AGGREGATION ---
                     case "thinking":
                       // Check if the last block in the content array is also a thinking block.
                       if (lastBlock && lastBlock.type === "thinking") {
@@ -462,7 +458,6 @@ export default function ChatWrapper({
                         newContent.push(parsedChunk);
                       }
                       break;
-                    // --- END: ADDED THINKING AGGREGATION ---
 
                     case "image_data": {
                       // This is a blurry preview chunk.
@@ -535,7 +530,7 @@ export default function ChatWrapper({
                   }
                   // --- END: New stream processing logic ---
                 } catch (e) {
-                  console.warn("Could not parse stream chunk:", part, e);
+                  log.warn(`Could not parse stream chunk: ${part}, ${e}`);
                 }
               }
               // Return a new state object with the updated content
@@ -736,18 +731,12 @@ export default function ChatWrapper({
           <input type="hidden" name="budgetTokens" value={budgetTokens} />
         )}
         <input type="hidden" name="mcpTool" value={selectedMCPTool || "0"} />
-        {/* START OF CHANGE: Add a hidden input for the web search toggle. */}
         <input type="hidden" name="useWebSearch" value={String(useWebSearch)} />
         <input
           type="hidden"
           name="useImageGeneration"
           value={String(useImageGeneration)}
         />
-        {/* END OF CHANGE */}
-        {/* These hidden inputs are no longer needed as the data is now handled in the message history */}
-        {/* Enhanced top bar - Minimal mobile header */}
-        {/* Dark mode: Adjust background, border */}
-        {/* Single row, justify-between. Increased padding on sm+ */}
         <div className="flex-none flex items-center justify-between bg-gradient-to-r from-white to-slate-100 border-b border-slate-200 dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 shadow-sm px-3 py-1.5 lg:px-6 lg:py-2">
           {/* Logo section - Consistent padding */}
           <div className="flex items-center">
@@ -930,7 +919,6 @@ export default function ChatWrapper({
                       {/* Dark mode: Adjust panel colors */}
                       <Popover.Panel className="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10 focus:outline-none">
                         <div className="p-4">
-                          {/* MoreOptions component likely needs internal dark mode styles */}
                           <MoreOptions
                             outputFormats={outputFormats}
                             mcpTools={mcpTools}
@@ -992,7 +980,6 @@ export default function ChatWrapper({
                     </span>
                   </div>
                   {/* Tooltip on hover */}
-                  {/* Dark mode: Adjust tooltip colors */}
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 w-auto hidden group-hover:block">
                     <div className="bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 text-xs rounded py-1 px-2 whitespace-nowrap">
                       Available credits
@@ -1016,7 +1003,6 @@ export default function ChatWrapper({
         {user &&
           user.stripePriceId === null &&
           user.hasUnlimitedCredits !== true && (
-            // Dark mode: Adjust banner colors
             <div
               className="bg-blue-100 border-t border-b border-blue-200 text-blue-800 dark:bg-blue-900 dark:border-blue-700 dark:text-blue-100 px-4 py-3 shadow-sm"
               role="alert"
@@ -1024,16 +1010,13 @@ export default function ChatWrapper({
               <div className="flex items-center justify-between max-w-3xl mx-auto">
                 <div className="flex items-center">
                   <MaterialSymbol icon="campaign" size={24} className="mr-2" />{" "}
-                  {/* Icon color might need dark:text-blue-300 */}
                   <p className="font-medium">
                     You&apos;re currently on the Free Demo Plan.{" "}
-                    {/* Escaped apostrophe */}
                   </p>
                   <p className="text-sm ml-2 hidden lg:block">
                     Unlock more usage by subscribing!
                   </p>
                 </div>
-                {/* Dark mode: Adjust button colors */}
                 <a
                   href="/pricing"
                   className="inline-block bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold py-1.5 px-4 rounded-md text-sm transition-colors duration-150"
@@ -1053,7 +1036,6 @@ export default function ChatWrapper({
           {/* Welcome Message - Centered using flex-1 only when shown */}
           {responseHistory.length === 0 && !showConversationSpinner && (
             <div className="flex-1 flex flex-col justify-center items-center text-center p-4 transition-opacity duration-300 ease-out">
-              {/* Dark mode: Adjust welcome text color */}
               <h1 className="text-3xl text-slate-600 dark:text-slate-300 font-thin">
                 Welcome to{" "}
                 <span className="font-extrabold text-slate-500 dark:text-slate-400">
@@ -1083,15 +1065,17 @@ export default function ChatWrapper({
           {/* Text input area container - Always at the bottom, never shrinks */}
           <div className="flex-shrink-0 max-w-3xl mx-auto w-full pb-2 px-2 lg:px-0">
             {/* Usage Limit Warning - Use local state */}
-            {localIsOverLimit && usageLimit && usageLimit > 0 && (
-              // Dark mode: Adjust warning colors
-              <div className="mb-2 p-2 text-center text-sm text-red-700 bg-red-100 border border-red-300 dark:bg-red-900 dark:border-red-700 dark:text-red-200 rounded-md">
-                You have reached your usage limit (
-                {periodUsage?.toFixed(2) ?? 0} / {usageLimit.toFixed(2)}) for
-                the current billing period. Please upgrade your plan or wait for
-                the next cycle to continue.
-              </div>
-            )}
+            {localIsOverLimit &&
+              usageLimit &&
+              usageLimit > 0 &&
+              !user.hasUnlimitedCredits && (
+                <div className="mb-2 p-2 text-center text-sm text-red-700 bg-red-100 border border-red-300 dark:bg-red-900 dark:border-red-700 dark:text-red-200 rounded-md">
+                  You have reached your usage limit (
+                  {periodUsage?.toFixed(2) ?? 0} / {usageLimit.toFixed(2)}) for
+                  the current billing period. Please upgrade your plan or wait
+                  for the next cycle to continue.
+                </div>
+              )}
             <TextInputArea
               onSubmit={handleFormSubmit}
               isSubmitting={isSubmitting}
@@ -1114,15 +1098,11 @@ export default function ChatWrapper({
         leaveTo="translate-x-full"
       >
         {/* --- History Panel --- */}
-        {/* Enhanced styling: Softer border, cleaner background, shadow, adjusted width and padding. Responsive width added. */}
         <div className="absolute right-0 top-0 bottom-0 w-full lg:w-96 border-l border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 overflow-y-auto z-30 shadow-xl flex flex-col">
-          {/* Panel Header: Flex layout, softer border, adjusted padding */}
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3 mb-3 flex-shrink-0">
-            {/* Title: Adjusted size and weight */}
             <h1 className="text-lg font-medium text-slate-700 dark:text-slate-200">
               History
             </h1>
-            {/* Close Button: Added hover effect and padding */}
             <button
               onClick={toggleHistory}
               className="p-1 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
@@ -1141,12 +1121,10 @@ export default function ChatWrapper({
               </p>
             )}
             {history.map((h: ConversationHistory) => (
-              // History Item: Cleaner look, hover effect, better spacing
               <div
                 key={h.id}
                 className="mt-1 rounded-lg transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50"
               >
-                {/* History Button: Adjusted text color, padding, truncation */}
                 <button
                   className="w-full text-left text-sm text-slate-700 dark:text-slate-300 p-2 truncate rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
                   onClick={(e) => {

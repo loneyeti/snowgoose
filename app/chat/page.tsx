@@ -12,6 +12,7 @@ import { getApiVendors } from "../_lib/server_actions/api_vendor.actions";
 import { getCurrentAPIUser } from "../_lib/auth";
 import { SubscriptionPlanRepository } from "../_lib/db/repositories/subscription-plan.repository";
 import { SubscriptionPlan, Prisma } from "@prisma/client"; // Import Prisma namespace
+import { Logger } from "next-axiom";
 
 // Instantiate repositories needed on the page
 const subscriptionPlanRepo = new SubscriptionPlanRepository();
@@ -31,6 +32,8 @@ export default async function Home() {
   if (!user) {
     redirect("/login");
   }
+
+  const log = new Logger({ source: "chat-home" }).with({ userId: user.id });
 
   const [
     userPersonas,
@@ -74,7 +77,7 @@ export default async function Home() {
         isOverLimit = currentUsage >= usageLimit;
       }
     } catch (error) {
-      console.error("Failed to fetch subscription plan on page load:", error);
+      log.error(`Failed to fetch subscription plan on page load: ${error}`);
       // Decide how to handle error - maybe show a generic error or allow usage?
       // For now, we'll default to not limiting usage if the check fails.
       isOverLimit = false;

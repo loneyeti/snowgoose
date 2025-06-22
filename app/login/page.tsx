@@ -6,6 +6,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/app/_utils/supabase/client";
 import { FaGithub, FaGoogle } from "react-icons/fa"; // Import GitHub and Google icons
+import { useLogger } from "next-axiom";
 
 // Separate component to handle URL params
 function LoginForm() {
@@ -15,6 +16,8 @@ function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false); // Add loading state
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect_to"); // Get redirect_to param
+
+  const log = useLogger({ source: "LoginForm" });
 
   // Check for error parameter in URL (query params and hash)
   useEffect(() => {
@@ -41,7 +44,7 @@ function LoginForm() {
             : decodeURIComponent(hashError);
         }
       } catch (e) {
-        console.warn("Could not parse URL hash:", e);
+        log.warn(`Could not parse URL hash: ${e}`);
         // Fallback to raw hash if parsing fails and it looks like an error
         if (window.location.hash.includes("error=")) {
           errorMessage = `An error occurred during login. Details: ${window.location.hash.substring(1)}`;
@@ -64,11 +67,10 @@ function LoginForm() {
   const handleLogin = async (formData: FormData) => {
     setError(null); // Clear previous errors
     setIsSubmitting(true); // Set loading state
-    console.log("Submitting login form..."); // Add log
 
     try {
       const result = await login(formData);
-      console.log("Login action result:", result); // Log the result
+      log.info("Login action result:", result); // Log the result
 
       if (result?.error) {
         setError(result.error);
@@ -80,7 +82,7 @@ function LoginForm() {
         setError("An unexpected issue occurred. Please try again.");
       }
     } catch (e) {
-      console.error("Client-side error during login:", e);
+      log.error(`Client-side error during login: ${e}`);
       setError("An unexpected client-side error occurred.");
     } finally {
       setIsSubmitting(false); // Reset loading state regardless of outcome
@@ -102,7 +104,7 @@ function LoginForm() {
     });
 
     if (githubError) {
-      console.error("Supabase GitHub Sign-In Error:", githubError);
+      log.error("Supabase GitHub Sign-In Error:", githubError);
       setError(`GitHub Sign-In failed: ${githubError.message}`);
     }
     // No need for router.push here, Supabase handles the redirect
@@ -122,7 +124,7 @@ function LoginForm() {
     });
 
     if (googleError) {
-      console.error("Supabase Google Sign-In Error:", googleError);
+      log.error("Supabase Google Sign-In Error:", googleError);
       setError(`Google Sign-In failed: ${googleError.message}`);
     }
     // No need for router.push here, Supabase handles the redirect

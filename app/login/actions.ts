@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/app/_utils/supabase/server";
-// Removed unused imports: revalidatePath, redirect, ensureUserExists, getUserSession
+import { Logger } from "next-axiom";
 
 // Return type for actions to work with client-side error handling
 type ActionResult = {
@@ -10,6 +10,7 @@ type ActionResult = {
 };
 
 export async function login(formData: FormData): Promise<ActionResult> {
+  const log = new Logger({ source: "login-actions" });
   const supabase = await createClient(); // Add await back
 
   // Validate inputs
@@ -34,7 +35,6 @@ export async function login(formData: FormData): Promise<ActionResult> {
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      // shouldCreateUser: true, // Default is true, creates user if they don't exist
       // Redirect the user to our /auth/callback route after they click the magic link
       emailRedirectTo: callbackUrl.toString(),
     },
@@ -42,7 +42,7 @@ export async function login(formData: FormData): Promise<ActionResult> {
 
   if (error) {
     // Return the error message for client-side handling
-    console.error("Supabase signInWithOtp Error:", error);
+    log.error("Supabase signInWithOtp Error:", error);
     return { error: `Failed to send magic link: ${error.message}` };
   }
 
@@ -50,6 +50,3 @@ export async function login(formData: FormData): Promise<ActionResult> {
   // User creation/sync and final redirection happen after clicking the link via the /auth/callback route.
   return { success: true }; // Indicate the link was sent (or attempted)
 }
-
-// signup function removed
-// requestPasswordReset function removed

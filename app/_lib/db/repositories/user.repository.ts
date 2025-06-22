@@ -1,6 +1,6 @@
 import { User } from "@prisma/client";
 import { BaseRepository } from "./base.repository";
-import { UserUsageLimits } from "../../model";
+import { Logger } from "next-axiom";
 
 // Define a type for the selected user fields used in usage checks
 type SelectedUserForUsageCheck = {
@@ -162,8 +162,12 @@ export class UserRepository extends BaseRepository {
       where: { stripeCustomerId }, // Assuming stripeCustomerId is unique or using findFirst if not guaranteed
     });
 
+    const log = new Logger({ source: "user.respository" }).with({
+      userId: `${user?.id}`,
+    });
+
     if (!user) {
-      console.warn(
+      log.warn(
         `UserRepository: No user found with stripeCustomerId: ${stripeCustomerId}. Cannot update subscription.`
       );
       // Depending on strictness, you might throw an error or just return null
@@ -180,7 +184,7 @@ export class UserRepository extends BaseRepository {
         data.stripeCurrentPeriodBegin.getTime() !==
         user.stripeCurrentPeriodBegin.getTime()
       ) {
-        console.log(
+        log.info(
           `Renewal detected for customer ${stripeCustomerId}. Resetting periodUsage.`
         );
         shouldResetUsage = true;
@@ -188,7 +192,7 @@ export class UserRepository extends BaseRepository {
     } else {
       // If there's no previous begin date, maybe treat it as the start of the first period?
       // Or assume it's not a renewal requiring reset. For now, only reset if dates differ.
-      console.log(
+      log.info(
         `No existing stripeCurrentPeriodBegin found for customer ${stripeCustomerId}. Not resetting usage.`
       );
     }
@@ -229,8 +233,12 @@ export class UserRepository extends BaseRepository {
       where: { stripeCustomerId },
     });
 
+    const log = new Logger({ source: "user.repository" }).with({
+      userId: `${user?.id}`,
+    });
+
     if (!user) {
-      console.warn(
+      log.warn(
         `UserRepository: No user found with stripeCustomerId: ${stripeCustomerId}. Cannot clear subscription.`
       );
       return null;
@@ -259,6 +267,9 @@ export class UserRepository extends BaseRepository {
     user: SelectedUserForUsageCheck | null; // Use the selected type here (defined outside class)
     plan: { usageLimit: number } | null;
   }> {
+    const log = new Logger({ source: "user.repository" }).with({
+      userId: `${userId}`,
+    });
     try {
       const user: SelectedUserForUsageCheck | null =
         await this.prisma.user.findUnique({
@@ -285,7 +296,7 @@ export class UserRepository extends BaseRepository {
         // User has a Stripe subscription, find their specific plan using stripePriceId
         if (!user.stripePriceId) {
           // This is an edge case: subscribed but no price ID? Log and treat as free tier.
-          console.warn(
+          log.warn(
             `User ${userId} has stripeSubscriptionId but no stripePriceId. Falling back to Free Tier check.`
           );
           subscriptionPlan = await this.prisma.subscriptionPlan.findFirst({
@@ -299,7 +310,7 @@ export class UserRepository extends BaseRepository {
 
         if (!subscriptionPlan) {
           // This case is problematic: user has a stripePriceId but no matching plan in DB.
-          console.warn(
+          log.warn(
             `No SubscriptionPlan found for stripePriceId: ${user.stripePriceId}. Falling back to Free Tier check for user ${userId}.`
           );
           // If the specific plan isn't found, fall back to free tier
@@ -324,7 +335,7 @@ export class UserRepository extends BaseRepository {
       return { user, plan: { usageLimit: subscriptionPlan.usageLimit } };
     } catch (error) {
       // Log the original error for better debugging
-      console.error("Original error in getUserPlanAndUsage:", error);
+      log.error(`Original error in getUserPlanAndUsage: ${error}`);
       // Re-throw a more informative error or the original one
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
@@ -347,10 +358,14 @@ export class UserRepository extends BaseRepository {
         throw new Error(`User with ID ${userId} not found.`);
       }
 
+      const log = new Logger({ source: "user.repository" }).with({
+        userId: `${user?.id}`,
+      });
+
       // ---> NEW CHECK <---
       // If user has unlimited credits, bypass all other checks
       if (user.hasUnlimitedCredits === true) {
-        console.log(`User ${userId} has unlimited credits. Access granted.`);
+        log.info(`User ${userId} has unlimited credits. Access granted.`);
         return; // Grant access immediately
       }
       // ---> END NEW CHECK <---

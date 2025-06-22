@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { z } from "zod"; // Import Zod
+import { Logger } from "next-axiom";
 
 // Define Zod schema for the expected request body from the server action
 const ResendPayloadSchema = z.object({
@@ -10,11 +11,12 @@ const ResendPayloadSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const log = new Logger({ source: "resend-api" });
   // Use App Router style: export async function POST(req: Request)
   try {
     // Ensure Resend API key is configured *before* parsing/validation
     if (!process.env.RESEND_API_KEY) {
-      console.error("Resend API key is not configured.");
+      log.error("Resend API key is not configured.");
       return new Response(
         JSON.stringify({ error: "Internal server configuration error." }),
         { status: 500, headers: { "Content-Type": "application/json" } }
@@ -27,7 +29,7 @@ export async function POST(req: Request) {
     const validatedData = ResendPayloadSchema.safeParse(body);
 
     if (!validatedData.success) {
-      console.error("API Validation Error:", validatedData.error.flatten());
+      log.error("API Validation Error:", validatedData.error.flatten());
       return new Response(
         JSON.stringify({
           error: "Invalid request body",
@@ -64,7 +66,7 @@ export async function POST(req: Request) {
 
     // Handle Resend API errors
     if (error) {
-      console.error("Resend API Error:", error);
+      log.error("Resend API Error:", error);
       return new Response(
         JSON.stringify({
           error: "Failed to send email.",
@@ -82,7 +84,7 @@ export async function POST(req: Request) {
     );
   } catch (err: any) {
     // Catch all other errors (e.g., JSON parsing)
-    console.error("API Route Error:", err);
+    log.error("API Route Error:", err);
     const errorMessage =
       err instanceof Error ? err.message : "An unexpected error occurred.";
     return new Response(

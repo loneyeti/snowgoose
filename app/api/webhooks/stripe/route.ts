@@ -7,7 +7,7 @@ import { Logger } from "next-axiom"; // Import Axiom Logger
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: NextRequest) {
-  const log = new Logger(); // Instantiate Axiom Logger
+  const log = new Logger({ source: "stripe-webhook" }); // Instantiate Axiom Logger
 
   // Initialize Stripe SDK inside the handler
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
