@@ -8,11 +8,10 @@ import { revalidatePath } from "next/cache";
 import { CreateUserFormSchema, UpdateUserFormSchema } from "../form-schemas";
 import { User } from "@prisma/client";
 import { UserPost, UserSession, UserUsageLimits } from "../model"; // Added UserUsageLimits
-import { createClient } from "@/app/_utils/supabase/server";
-import { FormState } from "../form-schemas";
 import { userSettingsRepository } from "@/app/_lib/db/repositories/user-settings.repository";
 import { Logger } from "next-axiom";
 import { Prisma } from "@prisma/client"; // Import Prisma for error type checking
+import { creditRepository } from "@/app/_lib/db/repositories/credit.repository";
 
 // User Functions
 export async function getUsers() {
@@ -98,6 +97,8 @@ export async function ensureUserExists(
         authId: userSession.userId,
       });
 
+      await creditRepository.addCredits(user.id, 40, "free-trial", 14);
+
       // Also create a UserSettings record for the new user
       // This should only happen if the user creation above was successful
       try {
@@ -157,86 +158,52 @@ export async function ensureUserExists(
   return user;
 }
 
-export async function updateUserUsage(userId: number, usage: number) {
+export async function deductUserCredits(userId: number, creditCost: number) {
   const log = new Logger({ source: "user.actions" }).with({
     userId: `${userId}`,
   });
   try {
     const user = await userRepository.findById(userId);
-
     if (!user) {
       log.error("User not found");
       throw new Error(`User with ID ${userId} not found.`);
     }
 
-    // More strict usage validation
-    if (typeof usage !== "number" || isNaN(usage) || usage < 0) {
-      log.warn(`Invalid usage amount provided: ${usage}`);
-      //throw new Error(`Invalid usage amount provided: ${usage}`);
-      // Could be not enough usage to report so proceed with 0.00001
-      usage = 0.00001;
+    if (typeof creditCost !== "number" || isNaN(creditCost) || creditCost < 0) {
+      log.warn(`Invalid credit cost provided: ${creditCost}`);
+      // Don't deduct if cost is invalid.
+      return;
     }
 
-    // Better conversion with explicit NaN handling
-    const currentPeriodUsage = isNaN(Number(user.periodUsage))
-      ? 0
-      : Number(user.periodUsage);
-    const currentTotalUsage = isNaN(Number(user.totalUsage))
-      ? 0
-      : Number(user.totalUsage);
+    // Call the repository method to deduct credits.
+    // The repository should handle the actual DB transaction.
+    // This assumes you've implemented `deductCredits` in the repo as per the PRD.
+    await creditRepository.deductCredits(userId, creditCost, "chat-deduction");
 
-    // For extremely small values, ensure we maintain numeric integrity
-    // by using toFixed for consistent decimal precision (e.g., 5 decimal places)
-    const newPeriodUsage = parseFloat((currentPeriodUsage + usage).toFixed(5));
-    const newTotalUsage = parseFloat((currentTotalUsage + usage).toFixed(5));
-
-    // Only check if they're valid numbers, not necessarily positive
-    // as some systems might track negative adjustments
-    if (!isNaN(newPeriodUsage) && !isNaN(newTotalUsage)) {
-      await userRepository.update(userId, {
-        periodUsage: newPeriodUsage,
-        totalUsage: newTotalUsage,
-      });
-      log.info(
-        `Updated user total usage from ${currentTotalUsage} to ${newTotalUsage}`
-      );
-    } else {
-      log.warn(
-        `Calculation resulted in invalid numbers. Skipping update. Old Total: ${currentTotalUsage}, ` +
-          `Tried to add: ${usage}, New Period: ${newPeriodUsage}, New Total: ${newTotalUsage}`
-      );
-    }
+    log.info(`Deducted ${creditCost} credits from user ${userId}.`);
+    console.log(`Deducted ${creditCost} credits from user ${userId}.`);
   } catch (error) {
-    log.error(`Failed to update usage for user ${userId}:`, { error });
-    throw new Error("Unable to update user usage statistics.");
+    log.error(`Failed to deduct credits for user ${userId}:`, { error });
+    throw new Error("Unable to update user credit balance.");
   }
 }
 
-/**
- * Server action to get user usage limits.
- * @param userId The ID of the user.
- * @returns UserUsageLimits object or null if an error occurs.
- */
-export async function getUserUsageLimitsAction(
+export async function getUserCreditBalanceAction(
   userId: number
-): Promise<UserUsageLimits | null> {
-  const log = new Logger({ source: "user.repository" });
+): Promise<number | null> {
+  const log = new Logger({ source: "user.actions" });
   try {
-    // Directly call the repository method on the server
-    const limits = await userRepository.getUserPlanAndUsage(userId);
-    if (!limits.user || !limits.plan) {
-      throw new Error("No usage limits found");
+    // This action now only needs to fetch the user and return the balance.
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      log.error(`User not found for credit balance check: ${userId}`);
+      return null;
     }
-    const userUsageLimits: UserUsageLimits = {
-      planUsageLimit: limits.plan.usageLimit,
-      userPeriodUsage: limits.user.periodUsage || 0,
-    };
-    return userUsageLimits;
+    // Return the balance, defaulting to 0 if it's null/undefined.
+    console.log(`Returning Credit Balance: ${user.creditBalance}`);
+    return user.creditBalance ?? 0.0;
   } catch (error) {
-    log.error(`Failed to get usage limits for user ${userId}:`, {
-      error: error,
-    });
-    // Return null or throw a more specific error if needed upstream
+    log.error(`Failed to get credit balance for user ${userId}:`, { error });
     return null;
   }
 }
