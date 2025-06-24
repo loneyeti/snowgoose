@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { headers } from "next/headers";
-import { userRepository } from "@/app/_lib/db/repositories/user.repository"; // Import the user repository
-import { Logger } from "next-axiom"; // Import Axiom Logger
+import { userRepository } from "@/app/_lib/db/repositories/user.repository";
+import { SubscriptionPlanRepository } from "@/app/_lib/db/repositories/subscription-plan.repository";
+import { creditRepository } from "@/app/_lib/db/repositories/credit.repository";
+import { Logger } from "next-axiom";
+
+const subscriptionPlanRepository = new SubscriptionPlanRepository();
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -58,182 +62,207 @@ export async function POST(req: NextRequest) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
-      log.info("Processing checkout.session.completed", {
-        sessionId: session.id,
-      });
-
-      // Metadata or client_reference_id should contain our internal user ID
-      const clientReferenceId = session.client_reference_id; // Recommended way
-      const userId = session.metadata?.userId; // Alternative way
-
-      const userAuthId = clientReferenceId || userId;
-
-      log.info("Extracted userAuthId from session", {
-        userAuthId,
-        sessionId: session.id,
-      });
+      const userAuthId = session.client_reference_id;
 
       if (!userAuthId) {
         log.error(
-          "Webhook Error: Missing user identifier (client_reference_id or metadata.userId) in checkout session",
+          "Webhook Error: Missing client_reference_id in checkout session",
           { sessionId: session.id }
         );
-        // Permanent error: Cannot link session to user. Acknowledge receipt (200).
         return NextResponse.json({ received: true });
       }
 
-      // Retrieve the subscription details
-      if (!session.subscription) {
-        log.error(
-          "Webhook Error: Checkout session completed event is missing subscription ID",
-          { sessionId: session.id, subscriptionId: session.subscription }
-        );
-        // Permanent error: Cannot retrieve subscription. Acknowledge receipt (200).
-        return NextResponse.json({ received: true }); // Acknowledge receipt
-      }
+      const logWithUser = log.with({ userAuthId, sessionId: session.id });
 
-      try {
+      // --- HANDLE SUBSCRIPTION CREATION ---
+      if (session.mode === "subscription") {
+        logWithUser.info("Processing 'subscription' mode checkout session.");
+        if (!session.subscription) {
+          logWithUser.error(
+            "Session in subscription mode has no subscription ID."
+          );
+          return NextResponse.json({ received: true });
+        }
+
         const subscription = await stripe.subscriptions.retrieve(
           session.subscription as string
         );
+        const priceId = subscription.items.data[0]?.price.id;
 
-        log.info("Retrieved subscription details from Stripe", {
-          subscriptionId: subscription.id,
-          userAuthId: userAuthId,
-          sessionId: session.id,
-        });
-
-        // --- Database Update Logic ---
-        log.info("Attempting to update user record in DB", { userAuthId });
-        const updatedUser = await userRepository.updateSubscriptionByAuthId(
-          userAuthId,
-          {
-            stripeCustomerId:
-              typeof subscription.customer === "string"
-                ? subscription.customer
-                : subscription.customer.id,
-            stripeSubscriptionId: subscription.id,
-            stripePriceId: subscription.items.data[0]?.price.id, // Assumes one subscription item
-            // Access period dates from the first subscription item (Stripe API 2025-03-31.basil change)
-            stripeCurrentPeriodBegin: new Date(
-              subscription.items.data[0].current_period_start * 1000
-            ),
-            stripeCurrentPeriodEnd: new Date(
-              subscription.items.data[0].current_period_end * 1000
-            ),
-            stripeSubscriptionStartDate: new Date(
-              subscription.start_date * 1000 // start_date is still on the Subscription object
-            ),
-            stripeSubscriptionStatus: subscription.status, // Pass the status
-            // Reset usage counters if applicable based on your logic
-            periodUsage: 0, // Example if resetting usage - Handled by repo now
-          }
-        );
-
-        // Check if user was found and updated
-        if (updatedUser) {
-          log.info(
-            "Successfully updated user subscription details in DB via repository",
-            { userAuthId: userAuthId, subscriptionId: subscription.id }
-          );
-        } else {
-          // This case should ideally be caught by the repo throwing an error if user not found by authId
-          log.error(
-            "Webhook Error: User not found by authId during checkout.session.completed update",
-            { userAuthId: userAuthId, sessionId: session.id }
-          );
-          // Permanent error: User doesn't exist. Acknowledge receipt (200).
+        if (!priceId) {
+          logWithUser.error("Subscription is missing a price ID.");
           return NextResponse.json({ received: true });
         }
-      } catch (error: any) {
-        // Log the error from DB operation (potentially transient)
-        log.error(
-          `Webhook Error: Database operation failed during checkout.session.completed for session ${session.id}`,
-          {
-            error: error.message || error,
-            userAuthId: userAuthId,
-            sessionId: session.id,
+
+        // Update user's Stripe details in the DB
+        await userRepository.updateSubscriptionByAuthId(userAuthId, {
+          stripeCustomerId:
+            typeof subscription.customer === "string"
+              ? subscription.customer
+              : subscription.customer.id,
+          stripeSubscriptionId: subscription.id,
+          stripePriceId: priceId,
+          stripeCurrentPeriodBegin: new Date(
+            subscription.items.data[0].current_period_start * 1000
+          ),
+          stripeCurrentPeriodEnd: new Date(
+            subscription.items.data[0].current_period_end * 1000
+          ),
+          stripeSubscriptionStartDate: new Date(subscription.start_date * 1000),
+          stripeSubscriptionStatus: subscription.status,
+        });
+
+        // Grant initial credits for the new subscription
+        const plan =
+          await subscriptionPlanRepository.findByStripePriceId(priceId);
+        if (plan && plan.creditsGranted > 0) {
+          const user = await userRepository.findByAuthId(userAuthId);
+          if (user) {
+            await creditRepository.addCredits(
+              user.id,
+              plan.creditsGranted,
+              `subscription-start-${plan.name}`,
+              365
+            );
+            logWithUser.info(
+              `Granted ${plan.creditsGranted} initial credits for ${plan.name}.`
+            );
           }
+        } else {
+          logWithUser.warn(
+            `No plan or zero credits found for priceId: ${priceId}`
+          );
+        }
+      }
+      // --- HANDLE ONE-TIME PURCHASE ---
+      else if (session.mode === "payment") {
+        logWithUser.info("Processing 'payment' mode checkout session.");
+        const sessionWithLineItems = await stripe.checkout.sessions.retrieve(
+          session.id,
+          { expand: ["line_items.data.price.product"] }
         );
-        // Return 500 to indicate a potential transient issue for retry.
-        return NextResponse.json(
-          {
-            error:
-              "Failed to process subscription update due to database error.",
-          },
-          { status: 500 }
+
+        const price = sessionWithLineItems.line_items?.data[0]?.price;
+        const product = price?.product as Stripe.Product;
+
+        if (!product?.metadata?.credits) {
+          logWithUser.error(
+            "One-time purchase product is missing 'credits' metadata.",
+            { productId: product?.id }
+          );
+          return NextResponse.json({ received: true });
+        }
+
+        const creditsToGrant = parseInt(product.metadata.credits, 10);
+        if (isNaN(creditsToGrant) || creditsToGrant <= 0) {
+          logWithUser.error("Invalid 'credits' metadata value.", {
+            metadataValue: product.metadata.credits,
+          });
+          return NextResponse.json({ received: true });
+        }
+
+        // Find user by authId to get the internal DB id
+        const user = await userRepository.findByAuthId(userAuthId);
+        if (!user) {
+          logWithUser.error(
+            "User not found for one-time purchase credit grant."
+          );
+          return NextResponse.json({ received: true });
+        }
+
+        await creditRepository.addCredits(
+          user.id,
+          creditsToGrant,
+          `one-time-purchase-${product.name}`,
+          365
+        );
+        logWithUser.info(
+          `Granted ${creditsToGrant} one-time credits for ${product.name}.`
         );
       }
       break;
-    } // End checkout.session.completed
+    }
 
     case "customer.subscription.updated": {
-      // Fired on plan changes, status changes, renewals, etc.
       const subscription = event.data.object as Stripe.Subscription;
-      log.info("Processing customer.subscription.updated", {
-        subscriptionId: subscription.id,
-      });
+      const logWithSub = log.with({ subscriptionId: subscription.id });
+
+      // --- HANDLE RENEWALS ---
+      // Check if the billing cycle has just started (i.e., it's a renewal payment)
+      const previousAttributes = event.data.previous_attributes;
+      let isRenewal = false;
+      if (
+        previousAttributes &&
+        "current_period_start" in previousAttributes &&
+        "current_period_start" in subscription &&
+        previousAttributes.current_period_start !==
+          subscription.current_period_start
+      ) {
+        isRenewal = true;
+      }
+      if (isRenewal) {
+        logWithSub.info("Subscription renewal detected.");
+        const customerId =
+          typeof subscription.customer === "string"
+            ? subscription.customer
+            : subscription.customer.id;
+        const priceId = subscription.items.data[0]?.price.id;
+
+        // Find user by customer ID - need to use existing method
+        const user = await userRepository.findByStripeCustomerId(customerId);
+        const plan = priceId
+          ? await subscriptionPlanRepository.findByStripePriceId(priceId)
+          : null;
+
+        if (user && plan && plan.creditsGranted > 0) {
+          await creditRepository.addCredits(
+            user.id,
+            plan.creditsGranted,
+            `subscription-renewal-${plan.name}`,
+            365
+          );
+          logWithSub.info(
+            `Granted ${plan.creditsGranted} renewal credits for user ${user.id}.`
+          );
+        } else {
+          logWithSub.warn(
+            "Could not grant renewal credits. User or Plan not found, or credits is zero.",
+            { userId: user?.id, planId: plan?.id }
+          );
+        }
+      }
+
+      // --- UPDATE SUBSCRIPTION STATUS (Always run this on update) ---
       const customerId =
         typeof subscription.customer === "string"
           ? subscription.customer
           : subscription.customer.id;
-
       try {
-        const updatedUser = await userRepository.updateSubscriptionByCustomerId(
-          customerId,
-          {
-            // Pass necessary fields to the repository method
-            stripeSubscriptionId: subscription.id,
-            stripePriceId: subscription.items.data[0]?.price.id,
-            // Access period dates from the first subscription item for consistency
-            stripeCurrentPeriodBegin: new Date(
-              subscription.items.data[0].current_period_start * 1000
-            ),
-            stripeCurrentPeriodEnd: new Date(
-              subscription.items.data[0].current_period_end * 1000
-            ),
-            stripeSubscriptionStatus: subscription.status, // Pass the status
-            stripeCancelAtPeriodEnd: subscription.cancel_at_period_end, // Pass the cancel flag
-            // Optionally reset usage counters here based on status or plan change
-          }
+        // This repository method now ONLY updates Stripe fields, it does not reset usage.
+        await userRepository.updateSubscriptionByCustomerId(customerId, {
+          stripeSubscriptionId: subscription.id,
+          stripePriceId: subscription.items.data[0]?.price.id,
+          stripeCurrentPeriodBegin: new Date(
+            subscription.items.data[0].current_period_start * 1000
+          ),
+          stripeCurrentPeriodEnd: new Date(
+            subscription.items.data[0].current_period_end * 1000
+          ),
+          stripeSubscriptionStatus: subscription.status,
+          stripeCancelAtPeriodEnd: subscription.cancel_at_period_end,
+        });
+        logWithSub.info(
+          `Successfully updated user subscription status fields for customerId: ${customerId}.`
         );
-
-        // Check if user was found and updated (repo returns null if not found)
-        if (updatedUser) {
-          log.info(
-            "Successfully updated user subscription details in DB via repository",
-            { customerId: customerId, subscriptionId: subscription.id }
-          );
-        } else {
-          // User not found by customerId - this is a permanent issue for this event.
-          log.warn(
-            `Webhook: User with customerId ${customerId} not found during customer.subscription.updated.`,
-            { customerId: customerId, subscriptionId: subscription.id }
-          );
-          // Acknowledge receipt (200) as retrying won't help.
-          return NextResponse.json({ received: true });
-        }
       } catch (error: any) {
-        // Log the error from DB operation (potentially transient)
-        log.error(
-          `Webhook Error: Database operation failed during customer.subscription.updated for subscription ${subscription.id}`,
-          {
-            error: error.message || error,
-            customerId: customerId,
-            subscriptionId: subscription.id,
-          }
+        logWithSub.error(
+          "Database operation failed during customer.subscription.updated",
+          { error: error.message || error }
         );
-        // Return 500 to indicate a potential transient issue for retry.
-        return NextResponse.json(
-          {
-            error:
-              "Failed to process subscription update due to database error.",
-          },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: "DB error" }, { status: 500 });
       }
       break;
-    } // End customer.subscription.updated
+    }
 
     case "customer.subscription.deleted": {
       // Fired when a subscription is canceled (immediately or at period end)

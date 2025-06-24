@@ -7,7 +7,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { CreateUserFormSchema, UpdateUserFormSchema } from "../form-schemas";
 import { User } from "@prisma/client";
-import { UserPost, UserSession, UserUsageLimits } from "../model"; // Added UserUsageLimits
+import { UserPost, UserSession } from "../model";
 import { userSettingsRepository } from "@/app/_lib/db/repositories/user-settings.repository";
 import { Logger } from "next-axiom";
 import { Prisma } from "@prisma/client"; // Import Prisma for error type checking

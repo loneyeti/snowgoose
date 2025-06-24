@@ -13,7 +13,6 @@ import {
   ChatResponse,
   ChatUserSession,
   ChatWrapperProps,
-  UserUsageLimits,
 } from "@/app/_lib/model";
 import UtilityIconRow from "./utility-icon-row";
 import { getHistory } from "../../_lib/server_actions/history.actions";
@@ -25,8 +24,6 @@ import { getUserCreditBalanceAction } from "@/app/_lib/server_actions/user.actio
 import { usePersonaState } from "./hooks/usePersonaState";
 import { useOutputFormatState } from "./hooks/useOutputFormatState";
 import { useMCPToolState } from "./hooks/useMCPToolState";
-// Import the server action instead of the repository
-//import { getUserUsageLimitsAction } from "@/app/_lib/server_actions/user.actions";
 import { useLogger } from "next-axiom";
 import { toast } from "sonner";
 import { ImageBlock, ContentBlock } from "@/app/_lib/model";
@@ -615,8 +612,6 @@ export default function ChatWrapper({
     fetchData();
   }, [isHistoryShowing]);
 
-  // useEffect to fetch usage limits on initial load or user change
-  // Note: fetchUsageLimits is now defined earlier
   useEffect(() => {
     refreshCreditBalance();
     // Depend only on user.id to refetch when the user changes

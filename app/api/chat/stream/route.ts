@@ -161,7 +161,9 @@ export async function POST(req: NextRequest) {
               const creditCost =
                 totalCost /
                 parseFloat(process.env.BASE_CREDIT_TO_DOLLAR_RATIO!);
-              await deductUserCredits(user.id, creditCost);
+              if (creditCost > 0.0) {
+                await deductUserCredits(user.id, creditCost);
+              }
             }
 
             // CHECK 2: If it's a fuzzy image chunk, track it for final upload.

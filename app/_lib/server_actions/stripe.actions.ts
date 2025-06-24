@@ -64,6 +64,65 @@ export async function getSubscriptionPlans() {
   }
 }
 
+export async function createOneTimePurchaseSessionAction(formData: FormData) {
+  const log = new Logger({ source: "stripe.actions" });
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("Stripe is not configured.");
+  }
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+  const { priceId } = createCheckoutSessionFormSchema.parse({
+    priceId: formData.get("priceId"),
+  });
+
+  const origin = headers().get("origin");
+  const userSession = await getUserSession();
+
+  if (!userSession || !userSession.userId) {
+    log.error(
+      "Authentication Error: Could not retrieve user session for one-time purchase."
+    );
+    throw new Error("User must be logged in to purchase credits.");
+  }
+  const userAuthId = userSession.userId;
+  let sessionUrl: string | null = null;
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment", // Key difference: 'payment' for one-time purchases
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      allow_promotion_codes: true,
+      client_reference_id: userAuthId, // Crucial for linking the purchase in the webhook
+      success_url: `${origin}/chat/purchase/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/pricing`, // Or a dedicated "buy credits" page
+    });
+
+    if (!session.url) {
+      log.error("Stripe one-time purchase session URL is missing.");
+      throw new Error("Could not create checkout session. Please try again.");
+    }
+    sessionUrl = session.url;
+  } catch (error) {
+    log.error(`Stripe One-Time Purchase Session Error: ${error}`);
+    throw new Error("There was a problem creating the checkout session.");
+  }
+
+  if (sessionUrl) {
+    redirect(sessionUrl);
+  } else {
+    log.error(
+      "Session URL was null after try-catch block for one-time purchase."
+    );
+    throw new Error("Failed to get checkout session URL.");
+  }
+}
+
 export async function createCheckoutSessionAction(formData: FormData) {
   const log = new Logger({ source: "stripe.actions" });
   if (!process.env.STRIPE_SECRET_KEY) {

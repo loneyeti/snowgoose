@@ -8,55 +8,92 @@ import {
   CpuChipIcon,
   CubeTransparentIcon,
   PaintBrushIcon,
-  CodeBracketSquareIcon, // For Open Source
-  SparklesIcon, // For Personas (alternative)
-  CheckBadgeIcon, // For Pricing Value
-  UserGroupIcon, // For Target Audience
-  BookOpenIcon, // For Demo/Learn More
-  ArrowPathIcon, // Re-using for Personas
+  CodeBracketSquareIcon,
+  SparklesIcon,
+  CheckBadgeIcon,
+  UserGroupIcon,
+  BookOpenIcon,
+  ArrowPathIcon,
+  PhotoIcon, // For Image Generation
+  GlobeAltIcon, // For Web Search
+  BoltIcon, // For Streaming
 } from "@heroicons/react/24/outline";
-import { FaGithub } from "react-icons/fa"; // Using react-icons for GitHub logo
-import PurchaseButton from "@/app/_ui/marketing/PurchaseButton"; // Import the purchase button
+import { FaGithub } from "react-icons/fa";
+import PurchaseButton from "@/app/_ui/marketing/PurchaseButton";
 
-// Pricing plan data (can stay here or be passed as props)
-// IMPORTANT: Replace placeholders with actual Stripe Price IDs if needed.
+// Updated pricing plan data with new structure
 const plans = [
   {
     name: "Basic",
-    price: "$5",
+    price: "$10",
     frequency: "/ month",
-    description: "Explore the power of frontier AI affordably.",
+    description: "Perfect for exploring AI capabilities",
     features: [
-      "Access to leading models (GPT-4.1, Claude 3.7, Deepseek, Gemini & more)",
-      "Generous starting API usage included*",
-      "Standard Persona library",
-      "All Output Formats (Markdown, JSON, HTML, CSV)",
+      "800 credits per month (credits roll over for 1 year!)",
+      "~2000 GPT-4o prompts or 200 Claude Opus prompts",
+      "Access to all frontier models",
+      "Streaming responses",
+      "Web search & image generation",
+      "All output formats",
     ],
-    cta: "Get Started Basic",
-    priceId: "price_1RDaeGCDpyWvUPu8lOlP4xMZ", // Replace if necessary
+    cta: "Start with Basic",
+    priceId: "price_1RDaeGCDpyWvUPu8lOlP4xMZ", // Update with actual ID
     highlight: false,
+    type: "subscription",
   },
   {
     name: "Premium",
     price: "$20",
     frequency: "/ month",
-    description: "5x the usage for 4x the price",
+    description: "2.4x more credits for just 2x the price",
     features: [
-      "Everything in Basic, plus:",
-      "5x More API usage allowance*",
-      "Create Custom Personas",
-      "Priority access to new features & models",
+      "1900 credits per month (credits roll over for 1 year!)",
+      "~4750 GPT-4o prompts or 475 Claude Opus prompts",
+      "Everything in Basic",
+      "Priority support",
+      "Early access to new features",
+      "Best value per credit",
     ],
-    cta: "Choose Premium",
-    priceId: "price_1RDeNkCDpyWvUPu8FPHKaPMF", // Replace if necessary - MAKE SURE THIS IS THE CORRECT PRO PRICE ID
-    highlight: true, // Example: Highlight the Pro plan
+    cta: "Go Premium",
+    priceId: "price_1RDeNkCDpyWvUPu8FPHKaPMF", // Update with actual ID
+    highlight: true,
+    type: "subscription",
   },
 ];
 
-// Renamed the function to avoid naming conflicts
-export default function MarketingClientPage() {
-  // Removed isLoggedIn state logic, assuming layout handles user status display
+// One-time purchase options
+const creditPacks = [
+  {
+    name: "Small Credit Pack",
+    price: "$10",
+    credits: "600 credits",
+    description: "Great for trying out or topping up",
+    features: [
+      "600 credits (valid for 1 year)",
+      "~1500 GPT-4o prompts",
+      "No monthly commitment",
+      "Use across all models",
+    ],
+    cta: "Buy Credits",
+    priceId: "price_1RdLsGCDpyWvUPu81rlZqCLW", // Add actual ID
+  },
+  {
+    name: "Large Credit Pack",
+    price: "$30",
+    credits: "2000 credits",
+    description: "Best one-time value",
+    features: [
+      "2000 credits (valid for 1 year)",
+      "~5000 GPT-4o prompts",
+      "Save vs. smaller packs",
+      "Perfect for projects",
+    ],
+    cta: "Buy Credits",
+    priceId: "price_1RdLulCDpyWvUPu8wpgHB1E7", // Add actual ID
+  },
+];
 
+export default function MarketingClientPage() {
   return (
     <>
       {/* Hero Section */}
@@ -77,26 +114,25 @@ export default function MarketingClientPage() {
 
         <div className="mx-auto max-w-4xl px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 animate-gradient-x">
-            Premium AI Models.
-            <br className="hidden sm:inline" /> One Simple Interface.
+            All Premium AI Models.
+            <br className="hidden sm:inline" /> One Simple Platform.
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-300 sm:text-xl max-w-3xl mx-auto">
-            Snowgoose simplifies your AI experience with unified access to
-            leading frontier AI models like GPT-4.1, Claude 3.7, and Gemini
-            Pro—all through one intuitive platform. Escape complex token billing
-            with transparent, predictable pricing starting at just $5/month,
-            without juggling multiple APIs or facing unexpected costs.
+            Access GPT-4.1, o3, Claude Opus 4, Gemini Pro 2.5, DeepSeek, and
+            more through one intuitive interface. With credits that roll over
+            for a full year, you&apos;ll never waste a penny. Start at just
+            $10/month or buy credits as you need them.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
             <Link
-              href="/login?action=demo" // Specific action for demo signup intent
+              href="/login?action=demo"
               className="rounded-md bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:from-purple-600 hover:to-pink-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition duration-150 ease-in-out transform hover:scale-105"
             >
               Try Free Demo
               <ArrowRightIcon className="inline-block h-5 w-5 ml-2" />
             </Link>
             <a
-              href="#pricing" // Smooth scroll to pricing section
+              href="#pricing"
               className="rounded-md border border-indigo-400 px-6 py-3 text-lg font-semibold text-indigo-300 hover:bg-indigo-900/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition duration-150 ease-in-out"
             >
               View Pricing
@@ -119,6 +155,19 @@ export default function MarketingClientPage() {
         </div>
       </section>
 
+      {/* New Feature Announcement Banner */}
+      <section className="bg-gradient-to-r from-indigo-900 to-purple-900 py-4">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="flex items-center justify-center gap-x-6 text-white">
+            <BoltIcon className="h-5 w-5" />
+            <p className="text-sm leading-6">
+              <strong className="font-semibold">New:</strong> Streaming
+              responses, web search, and in-line image generation now available!
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="bg-gray-900 py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -127,12 +176,11 @@ export default function MarketingClientPage() {
               Everything You Need in One Platform
             </h2>
             <p className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Simplify Your AI Workflow with a Multi-Model Platform
+              Powerful AI Features, Simply Delivered
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-300">
-              Snowgoose offers a suite of powerful features designed to make
-              interacting with cutting-edge frontier AI models intuitive and
-              efficient for developers, writers, and researchers alike.
+              Snowgoose combines cutting-edge AI capabilities with an intuitive
+              interface, making advanced AI accessible to everyone.
             </p>
           </div>
           <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
@@ -144,127 +192,124 @@ export default function MarketingClientPage() {
                     className="h-6 w-6 flex-none text-indigo-400"
                     aria-hidden="true"
                   />
-                  Unified Frontier AI Access
+                  All Top AI Models
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Access OpenAI&apos;s GPT-4.1, Anthropic&apos;s Claude 3.7,
-                    Google&apos;s Gemini, and more through one seamless
-                    interface. No more API juggling.
+                    Access OpenAI&apos;s GPT-4.1 and o3, Anthropic&apos;s Claude
+                    Opus, Google&apos;s Gemini, DeepSeek, and Qwen through one
+                    seamless interface.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
-                    Ideal for Developers, Writers, Researchers.
+                    No more juggling multiple subscriptions.
                   </p>
                 </dd>
               </div>
 
-              {/* Feature 2: Persona System */}
+              {/* Feature 2: Streaming Responses */}
               <div className="flex flex-col p-6 bg-gray-800/50 rounded-lg border border-gray-700 shadow-lg hover:border-green-500 transition-colors duration-300">
                 <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-white">
-                  <ArrowPathIcon // Re-using icon, consider SparklesIcon
+                  <BoltIcon
                     className="h-6 w-6 flex-none text-green-400"
                     aria-hidden="true"
                   />
-                  Intelligent Persona System
+                  Real-Time Streaming
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Guide the AI with predefined roles (Coder, Editor, etc.) or
-                    create custom personas for perfectly tailored, consistent
-                    responses.
+                    See responses as they&apos;re generated. No more waiting or
+                    timeouts, even with long, thoughtful responses.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
-                    Stop repeating complex instructions.
+                    Faster feedback, better experience.
                   </p>
                 </dd>
               </div>
 
-              {/* Feature 3: Output Formats */}
+              {/* Feature 3: Web Search & Images */}
               <div className="flex flex-col p-6 bg-gray-800/50 rounded-lg border border-gray-700 shadow-lg hover:border-blue-500 transition-colors duration-300">
                 <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-white">
-                  <CubeTransparentIcon
+                  <GlobeAltIcon
                     className="h-6 w-6 flex-none text-blue-400"
                     aria-hidden="true"
                   />
-                  Flexible Output Formats
+                  Web Search & Images
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Get AI output formatted exactly how you need it: Markdown
-                    (default), JSON, HTML, or CSV. Seamless integration for any
-                    workflow.
+                    Ground responses in real-time web data. Generate images
+                    directly in your conversations with GPT-4o, 4.1 and other
+                    OpenAI models.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
-                    Save time on reformatting data.
+                    4 credits per search, up to 30 credits per image.
                   </p>
                 </dd>
               </div>
 
-              {/* Feature 4: Clean UI/UX */}
+              {/* Feature 4: Persona System */}
               <div className="flex flex-col p-6 bg-gray-800/50 rounded-lg border border-gray-700 shadow-lg hover:border-pink-500 transition-colors duration-300">
                 <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-white">
-                  <PaintBrushIcon
+                  <SparklesIcon
                     className="h-6 w-6 flex-none text-pink-400"
                     aria-hidden="true"
                   />
-                  Clean & Simple Interface
+                  Smart Personas
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Powerful technology shouldn&apos;t be complicated. Enjoy a
-                    brilliant, clean UI and typography focused on ease of use.
+                    Use pre-built personas (Coder, Editor, Advisor) or create
+                    custom ones for perfectly tailored AI responses.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
-                    Focus on your work, not the tool.
+                    Save time with consistent context.
                   </p>
                 </dd>
               </div>
 
-              {/* Feature 5: Open Source */}
+              {/* Feature 5: Flexible Outputs */}
               <div className="flex flex-col p-6 bg-gray-800/50 rounded-lg border border-gray-700 shadow-lg hover:border-yellow-500 transition-colors duration-300">
                 <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-white">
-                  <CodeBracketSquareIcon
+                  <CubeTransparentIcon
                     className="h-6 w-6 flex-none text-yellow-400"
                     aria-hidden="true"
                   />
-                  Open Source & Transparent
+                  Any Output Format
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Snowgoose is proudly open source. Inspect the code,
-                    contribute, or self-host. We believe in transparency and
-                    community.
+                    Get responses in Markdown, JSON, HTML, or CSV. Perfect
+                    integration with your existing workflows.
+                  </p>
+                  <p className="mt-4 text-sm text-gray-500">
+                    No reformatting needed.
+                  </p>
+                </dd>
+              </div>
+
+              {/* Feature 6: Open Source */}
+              <div className="flex flex-col p-6 bg-gray-800/50 rounded-lg border border-gray-700 shadow-lg hover:border-teal-500 transition-colors duration-300">
+                <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-white">
+                  <CodeBracketSquareIcon
+                    className="h-6 w-6 flex-none text-teal-400"
+                    aria-hidden="true"
+                  />
+                  Open Source
+                </dt>
+                <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
+                  <p className="flex-auto">
+                    Fully transparent and community-driven. Inspect the code,
+                    contribute, or self-host if you prefer.
                   </p>
                   <p className="mt-4">
                     <a
                       href="https://github.com/loneyeti/snowgoose"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm font-semibold leading-6 text-yellow-400 hover:text-yellow-300"
+                      className="text-sm font-semibold leading-6 text-teal-400 hover:text-teal-300"
                     >
                       View on GitHub <span aria-hidden="true">→</span>
                     </a>
-                  </p>
-                </dd>
-              </div>
-
-              {/* Feature 6: Predictable Pricing */}
-              <div className="flex flex-col p-6 bg-gray-800/50 rounded-lg border border-gray-700 shadow-lg hover:border-teal-500 transition-colors duration-300">
-                <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-white">
-                  <CheckBadgeIcon
-                    className="h-6 w-6 flex-none text-teal-400"
-                    aria-hidden="true"
-                  />
-                  Predictable Pricing
-                </dt>
-                <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
-                  <p className="flex-auto">
-                    Escape volatile token-based billing. Our simple, fixed
-                    monthly plans start at just $5, letting you budget with
-                    confidence.
-                  </p>
-                  <p className="mt-4 text-sm text-gray-500">
-                    Leverage powerful AI without cost surprises.
                   </p>
                 </dd>
               </div>
@@ -273,17 +318,204 @@ export default function MarketingClientPage() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="bg-gray-800 py-24 sm:py-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-4xl text-center">
+            <h2 className="text-base font-semibold leading-7 text-indigo-400">
+              Pricing
+            </h2>
+            <p className="mt-2 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+              Credits That Last
+            </p>
+          </div>
+          <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-gray-300">
+            Unlike other services, your unused credits roll over and remain
+            valid for a full year. Choose a monthly plan for the best value, or
+            buy credits as you need them.
+          </p>
+
+          {/* Monthly Plans */}
+          <div className="mt-16">
+            <h3 className="text-center text-2xl font-semibold text-white mb-8">
+              Monthly Plans{" "}
+              <span className="text-base font-normal text-gray-400">
+                (Best Value)
+              </span>
+            </h3>
+            <div className="isolate mx-auto grid max-w-md grid-cols-1 gap-8 lg:mx-0 lg:max-w-none lg:grid-cols-2">
+              {plans.map((plan) => (
+                <div
+                  key={plan.name}
+                  className={`rounded-3xl p-8 ring-1 xl:p-10 ${
+                    plan.highlight
+                      ? "ring-2 ring-indigo-500 bg-gray-900"
+                      : "ring-gray-700 bg-gray-800/60"
+                  }`}
+                >
+                  {plan.highlight && (
+                    <p className="text-base font-semibold text-indigo-400">
+                      Most popular
+                    </p>
+                  )}
+                  <h3
+                    id={plan.name}
+                    className={`text-lg font-semibold leading-8 ${
+                      plan.highlight ? "text-white" : "text-white"
+                    }`}
+                  >
+                    {plan.name}
+                  </h3>
+                  <p className="mt-4 text-sm leading-6 text-gray-300">
+                    {plan.description}
+                  </p>
+                  <p className="mt-6 flex items-baseline gap-x-1">
+                    <span className="text-4xl font-bold tracking-tight text-white">
+                      {plan.price}
+                    </span>
+                    <span className="text-sm font-semibold leading-6 text-gray-400">
+                      {plan.frequency}
+                    </span>
+                  </p>
+                  <ul
+                    role="list"
+                    className="mt-8 space-y-3 text-sm leading-6 text-gray-300 xl:mt-10"
+                  >
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex gap-x-3">
+                        <CheckBadgeIcon
+                          className={`h-6 w-5 flex-none ${
+                            plan.highlight ? "text-indigo-400" : "text-white/70"
+                          }`}
+                          aria-hidden="true"
+                        />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-10">
+                    <PurchaseButton
+                      priceId={plan.priceId}
+                      ctaText={plan.cta}
+                      highlight={plan.highlight}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* One-Time Credit Packs */}
+          <div className="mt-24">
+            <h3 className="text-center text-2xl font-semibold text-white mb-8">
+              One-Time Credit Packs{" "}
+              <span className="text-base font-normal text-gray-400">
+                (No Commitment)
+              </span>
+            </h3>
+            <div className="isolate mx-auto grid max-w-md grid-cols-1 gap-8 lg:mx-0 lg:max-w-none lg:grid-cols-2">
+              {creditPacks.map((pack) => (
+                <div
+                  key={pack.name}
+                  className="rounded-3xl p-8 ring-1 ring-gray-700 bg-gray-800/60 xl:p-10"
+                >
+                  <h3 className="text-lg font-semibold leading-8 text-white">
+                    {pack.name}
+                  </h3>
+                  <p className="mt-4 text-sm leading-6 text-gray-300">
+                    {pack.description}
+                  </p>
+                  <p className="mt-6 flex items-baseline gap-x-1">
+                    <span className="text-4xl font-bold tracking-tight text-white">
+                      {pack.price}
+                    </span>
+                    <span className="text-sm font-semibold leading-6 text-gray-400">
+                      one-time
+                    </span>
+                  </p>
+                  <p className="text-base font-medium text-indigo-400 mt-2">
+                    {pack.credits}
+                  </p>
+                  <ul
+                    role="list"
+                    className="mt-8 space-y-3 text-sm leading-6 text-gray-300 xl:mt-10"
+                  >
+                    {pack.features.map((feature) => (
+                      <li key={feature} className="flex gap-x-3">
+                        <CheckBadgeIcon
+                          className="h-6 w-5 flex-none text-white/70"
+                          aria-hidden="true"
+                        />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-10">
+                    <PurchaseButton
+                      priceId={pack.priceId}
+                      ctaText={pack.cta}
+                      highlight={false}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Pricing Notes */}
+          <div className="text-center mt-12 text-gray-400 text-sm space-y-2">
+            <p>
+              All credits are valid for one year from purchase date. Monthly
+              plan credits stack with any unused balance.
+            </p>
+            <p>
+              Credit usage varies by model: ~0.3 credits per GPT-4o response,
+              ~10 credits per Claude Opus response.
+            </p>
+          </div>
+
+          {/* Value Proposition */}
+          <div className="mt-16 pt-12 border-t border-gray-700">
+            <h3 className="text-2xl font-semibold text-center mb-6 text-white">
+              Why Choose Snowgoose?
+            </h3>
+            <div className="grid max-w-4xl mx-auto gap-8 lg:grid-cols-2">
+              <div className="text-center">
+                <h4 className="text-lg font-semibold text-indigo-400 mb-3">
+                  vs. Individual Subscriptions
+                </h4>
+                <p className="text-gray-300">
+                  Stop paying $20/month to OpenAI, $20/month to Anthropic, and
+                  more to other providers. Get all models for as low as
+                  $10/month.
+                </p>
+              </div>
+              <div className="text-center">
+                <h4 className="text-lg font-semibold text-indigo-400 mb-3">
+                  vs. Direct API Usage
+                </h4>
+                <p className="text-gray-300">
+                  No complex token math, no surprise bills, no API key
+                  management. Just simple credits that roll over for a full
+                  year.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Open Source Callout Section */}
-      <section className="bg-gradient-to-b from-gray-900 to-gray-800 py-16 sm:py-24">
+      <section className="bg-gradient-to-b from-gray-800 to-gray-900 py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8 text-center">
           <FaGithub className="mx-auto h-12 w-auto text-gray-400" />
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Built in the Open
           </h2>
           <p className="mt-4 text-lg leading-8 text-gray-300 max-w-2xl mx-auto">
-            Snowgoose is open source because we believe in transparency and the
-            power of community collaboration. Explore the code, suggest
-            features, or contribute directly.
+            Snowgoose is open source because we believe in transparency. Know
+            exactly how your data is handled, contribute features, or run your
+            own instance.
           </p>
           <div className="mt-8">
             <a
@@ -299,117 +531,10 @@ export default function MarketingClientPage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="bg-gray-800 py-24 sm:py-32">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-4xl text-center">
-            <h2 className="text-base font-semibold leading-7 text-indigo-400">
-              Pricing
-            </h2>
-            <p className="mt-2 text-4xl font-bold tracking-tight text-white sm:text-5xl">
-              Predictable AI Power. Unbeatable Value.
-            </p>
-          </div>
-          <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-gray-300">
-            Stop guessing your AI costs, and stop paying multiple monthly bills.
-            Snowgoose offers simple, fixed monthly pricing, including generous
-            API usage to get you started.
-          </p>
-
-          {/* Pricing Grid */}
-          <div className="isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-8 lg:mx-0 lg:max-w-none lg:grid-cols-2">
-            {plans.map((plan) => (
-              <div
-                key={plan.name}
-                className={`rounded-3xl p-8 ring-1 xl:p-10 ${
-                  plan.highlight
-                    ? "ring-2 ring-indigo-500 bg-gray-900" // Highlighted plan style
-                    : "ring-gray-700 bg-gray-800/60" // Standard plan style
-                }`}
-              >
-                <h3
-                  id={plan.name}
-                  className={`text-lg font-semibold leading-8 ${
-                    plan.highlight ? "text-indigo-400" : "text-white"
-                  }`}
-                >
-                  {plan.name}
-                </h3>
-                <p className="mt-4 text-sm leading-6 text-gray-300">
-                  {plan.description}
-                </p>
-                <p className="mt-6 flex items-baseline gap-x-1">
-                  <span className="text-4xl font-bold tracking-tight text-white">
-                    {plan.price}
-                  </span>
-                  <span className="text-sm font-semibold leading-6 text-gray-400">
-                    {plan.frequency}
-                  </span>
-                </p>
-                <ul
-                  role="list"
-                  className="mt-8 space-y-3 text-sm leading-6 text-gray-300 xl:mt-10"
-                >
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex gap-x-3">
-                      <CheckBadgeIcon
-                        className={`h-6 w-5 flex-none ${
-                          plan.highlight ? "text-indigo-400" : "text-white/70"
-                        }`}
-                        aria-hidden="true"
-                      />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                {/* Use PurchaseButton component */}
-                <div className="mt-10">
-                  <PurchaseButton
-                    priceId={plan.priceId}
-                    ctaText={plan.cta}
-                    highlight={plan.highlight}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-12 text-gray-400 text-sm">
-            <p>
-              * API usage allowance details are based on underlying model costs
-              (e.g., tokens). We aim for transparency and provide generous
-              starting amounts. Don&apos;t worry, we will never charge more than
-              your monthly payment, and will give clear feedback on how many
-              credits you have remaining.
-            </p>
-          </div>
-
-          {/* Why Snowgoose Pricing Makes Sense */}
-          <div className="mt-16 pt-12 border-t border-gray-700">
-            <h3 className="text-2xl font-semibold text-center mb-6 text-white">
-              Why Snowgoose Pricing Makes Sense
-            </h3>
-            <p className="text-lg text-gray-300 text-center max-w-3xl mx-auto">
-              Unlike paid access to ChatGPT or Anthropic which requires separate
-              subscriptions to OpenAI ($20/month) and Anthropic ($20/month),
-              Snowgoose gives you access to all elite AI models through a single
-              $5 subscription. No need to maintain multiple accounts or pay
-              separate platform fees. Your $5 also converts directly into API
-              credits, giving you the flexibility to use any model while
-              maintaining a straightforward, predictable billing experience.
-              Experience the full spectrum of cutting-edge AI without the
-              complexity and added costs of managing multiple provider
-              relationships.
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* Demo CTA Section */}
       <section className="bg-gray-900">
         <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
           <div className="relative isolate overflow-hidden bg-gradient-to-br from-indigo-900/80 via-purple-900/70 to-pink-900/60 px-6 pt-16 shadow-2xl rounded-3xl sm:px-16 md:pt-24 lg:flex lg:gap-x-20 lg:px-24 lg:pt-0">
-            {/* Background Shapes */}
             <svg
               viewBox="0 0 1024 1024"
               className="absolute left-1/2 top-1/2 -z-10 h-[64rem] w-[64rem] -translate-y-1/2 [mask-image:radial-gradient(closest-side,white,transparent)] sm:left-full sm:-ml-80 lg:left-1/2 lg:ml-0 lg:-translate-x-1/2 lg:translate-y-0"
@@ -432,40 +557,30 @@ export default function MarketingClientPage() {
 
             <div className="mx-auto max-w-md text-center lg:mx-0 lg:flex-auto lg:py-32 lg:text-left">
               <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Ready to simplify your AI workflow?
+                Start using AI the smart way.
                 <br />
-                Try Snowgoose today.
+                Credits that actually last.
               </h2>
               <p className="mt-6 text-lg leading-8 text-gray-300">
-                Experience the power of unified AI access, intelligent personas,
-                and predictable pricing. Sign up for a free demo – no credit
-                card required to explore.
+                Join thousands who&apos;ve simplified their AI workflow with
+                Snowgoose. Try our free demo to experience the difference, or
+                jump right in with credits that roll over for a full year.
               </p>
               <div className="mt-10 flex items-center justify-center gap-x-6 lg:justify-start">
                 <Link
-                  href="/login?action=demo" // Link to login/signup for demo
+                  href="/login?action=demo"
                   className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white transition-colors"
                 >
                   Try Free Demo
                 </Link>
                 <a
-                  href="#pricing" // Smooth scroll link
+                  href="#pricing"
                   className="text-sm font-semibold leading-6 text-white hover:text-gray-200"
                 >
                   View Plans <span aria-hidden="true">→</span>
                 </a>
               </div>
             </div>
-            {/* Optional: Add an image/graphic here */}
-            {/* <div className="relative mt-16 h-80 lg:mt-8">
-              <Image
-                className="absolute left-0 top-0 w-[57rem] max-w-none rounded-md bg-white/5 ring-1 ring-white/10"
-                src="/path/to/your/screenshot.png" // Replace with an actual image if desired
-                alt="App screenshot"
-                width={1824}
-                height={1080}
-              />
-            </div> */}
           </div>
         </div>
       </section>
