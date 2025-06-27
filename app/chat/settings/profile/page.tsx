@@ -2,6 +2,7 @@ import { SettingsHeading } from "@/app/_ui/typography";
 import { getCurrentAPIUser } from "@/app/_lib/auth";
 import ManageSubscriptionButton from "@/app/_ui/settings/profile/ManageSubscriptionButton";
 import { createCustomerPortalSessionAction } from "@/app/_lib/server_actions/stripe.actions";
+import BuyCreditsButton from "@/app/_ui/buy-credits/BuyCreditsButton";
 
 export default async function Profile() {
   const apiUser = await getCurrentAPIUser();
@@ -35,15 +36,20 @@ export default async function Profile() {
         {apiUser.stripeCustomerId && (
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow dark:shadow-slate-700 p-6">
             <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-slate-100">
-              Subscription Settings
+              Billing & Credits
             </h2>
             {/* Dark mode: Adjust paragraph text color */}
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Manage your billing information and subscription plan.
+              Manage your subscription or purchase additional credits.
             </p>
-            <ManageSubscriptionButton
-              createPortalSessionAction={createCustomerPortalSessionAction}
-            />
+            <div className="flex flex-col sm:flex-row gap-4">
+              <ManageSubscriptionButton
+                createPortalSessionAction={createCustomerPortalSessionAction}
+              />
+              <BuyCreditsButton variant="secondary">
+                Buy Credits
+              </BuyCreditsButton>
+            </div>
           </div>
         )}
 

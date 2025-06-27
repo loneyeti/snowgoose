@@ -19,6 +19,9 @@ import { getHistory } from "../../_lib/server_actions/history.actions";
 import { ConversationHistory, User } from "@prisma/client"; // Import User type if needed, or adjust based on actual user prop type
 import { MaterialSymbol } from "react-material-symbols";
 import "react-material-symbols/outlined";
+import Link from "next/link";
+import BuyCreditsButton from "../buy-credits/BuyCreditsButton";
+import CreditsDisplay from "../buy-credits/CreditsDisplay";
 import { getUserID } from "@/app/_lib/auth";
 import { getUserCreditBalanceAction } from "@/app/_lib/server_actions/user.actions";
 import { usePersonaState } from "./hooks/usePersonaState";
@@ -909,25 +912,7 @@ export default function ChatWrapper({
             <div className="flex items-center gap-x-3">
               {/* Subtle Credits Display */}
 
-              <div className="flex items-center group relative">
-                {/* Dark mode: Adjust credits display colors */}
-                <div className="flex items-center px-2 py-0.5 rounded-full bg-slate-50 border border-slate-100 dark:bg-slate-700 dark:border-slate-600 shadow-sm">
-                  <MaterialSymbol
-                    icon="electric_bolt"
-                    size={14}
-                    className="text-slate-400 dark:text-slate-500 mr-1"
-                  />
-                  <span className="text-xs font-medium text-slate-400 dark:text-slate-300">
-                    {Math.round(currentCreditBalance)}
-                  </span>
-                </div>
-                {/* Tooltip on hover */}
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 w-auto hidden group-hover:block">
-                  <div className="bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 text-xs rounded py-1 px-2 whitespace-nowrap">
-                    Available credits
-                  </div>
-                </div>
-              </div>
+              <CreditsDisplay creditBalance={currentCreditBalance} />
 
               <UtilityIconRow
                 resetChat={handleReset}
@@ -941,37 +926,6 @@ export default function ChatWrapper({
           {/* End of Desktop Only Controls wrapper */}
         </div>{" "}
         {/* End of Top Bar Flex Container */}
-        {/* Free Tier Upgrade Banner */}
-        {user &&
-          user.stripePriceId === null &&
-          user.hasUnlimitedCredits !== true && (
-            <div
-              className="bg-blue-100 border-t border-b border-blue-200 text-blue-800 dark:bg-blue-900 dark:border-blue-700 dark:text-blue-100 px-4 py-3 shadow-sm"
-              role="alert"
-            >
-              <div className="flex items-center justify-between max-w-3xl mx-auto">
-                <div className="flex items-center">
-                  <MaterialSymbol icon="campaign" size={24} className="mr-2" />{" "}
-                  <p className="font-medium">
-                    You&apos;re currently on the Free Demo Plan.{" "}
-                  </p>
-                  <p className="text-sm ml-2 hidden lg:block">
-                    Unlock more usage by subscribing!
-                  </p>
-                </div>
-                <a
-                  href="/pricing"
-                  className="inline-block bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold py-1.5 px-4 rounded-md text-sm transition-colors duration-150"
-                >
-                  Subscribe Now
-                </a>
-              </div>
-              <p className="text-sm mt-1 text-center lg:hidden">
-                Unlock unlimited features by subscribing!
-              </p>{" "}
-              {/* Mobile text */}
-            </div>
-          )}
         {/* Conversation area & Text Input Container */}
         {/* Use flex-grow and min-h-0 to manage height correctly */}
         <div className="flex flex-col flex-grow overflow-hidden min-h-0">
@@ -1006,10 +960,34 @@ export default function ChatWrapper({
 
           {/* Text input area container - Always at the bottom, never shrinks */}
           <div className="flex-shrink-0 max-w-3xl mx-auto w-full pb-2 px-2 lg:px-0">
+            {/* New Subtle Free Tier Notice */}
+            {user &&
+              user.stripeCustomerId === null &&
+              user.hasUnlimitedCredits !== true && (
+                <div
+                  className="mb-2 text-center text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-lg py-2 px-4"
+                  role="status"
+                >
+                  <span>You&apos;re on the Free Plan. </span>
+                  <Link
+                    href="/pricing"
+                    className="font-semibold text-blue-600 dark:text-blue-400 hover:underline focus:underline focus:outline-none"
+                  >
+                    Upgrade
+                  </Link>
+                  <span> for more features.</span>
+                </div>
+              )}
+
             {/* Usage Limit Warning - Use the new logic */}
             {isInputDisabled && (
-              <div className="mb-2 p-2 text-center text-sm text-red-700 bg-red-100 border border-red-300 dark:bg-red-900 dark:border-red-700 dark:text-red-200 rounded-md">
-                You have run out of credits. Please purchase more to continue.
+              <div className="mb-2 p-3 text-center text-sm text-red-700 bg-red-100 border border-red-300 dark:bg-red-900/50 dark:border-red-700 dark:text-red-200 rounded-lg flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+                <span>
+                  You have run out of credits. Please purchase more to continue.
+                </span>
+                <BuyCreditsButton variant="danger" size="sm">
+                  Buy Credits
+                </BuyCreditsButton>
               </div>
             )}
             <TextInputArea
