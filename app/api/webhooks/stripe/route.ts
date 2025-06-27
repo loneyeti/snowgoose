@@ -5,6 +5,7 @@ import { userRepository } from "@/app/_lib/db/repositories/user.repository";
 import { SubscriptionPlanRepository } from "@/app/_lib/db/repositories/subscription-plan.repository";
 import { creditRepository } from "@/app/_lib/db/repositories/credit.repository";
 import { Logger } from "next-axiom";
+import { ensureUserExists } from "@/app/_lib/server_actions/user.actions";
 
 const subscriptionPlanRepository = new SubscriptionPlanRepository();
 
@@ -138,14 +139,35 @@ export async function POST(req: NextRequest) {
       else if (session.mode === "payment") {
         logWithUser.info("Processing 'payment' mode checkout session.");
 
-        // Find user by authId to get the internal DB id
-        const user = await userRepository.findByAuthId(userAuthId);
+        let user = await userRepository.findByAuthId(userAuthId);
+
+        if (!user) {
+          logWithUser.warn("User not found by authId, attempting fallback.", {
+            reason: "Possible race condition on new user creation.",
+          });
+          // As a fallback, use the email from the session to ensure the user exists
+          // This relies on the session having the customer's email.
+          const customerEmail = session.customer_details?.email;
+          if (customerEmail) {
+            user = await ensureUserExists({
+              userId: userAuthId,
+              email: customerEmail,
+            });
+            if (user) {
+              logWithUser.info("Successfully found/created user via fallback.");
+            }
+          }
+        }
+
+        // Final check after fallback
         if (!user) {
           logWithUser.error(
-            "User not found for one-time purchase credit grant."
+            "User not found for one-time purchase credit grant, even after fallback. Aborting."
           );
           return NextResponse.json({ received: true });
         }
+
+        logWithUser.info("Found user for one time credit");
 
         // **NEW LOGIC STARTS HERE**
         // If our user record doesn't have a Stripe customer ID yet,
@@ -163,6 +185,8 @@ export async function POST(req: NextRequest) {
           logWithUser.info(
             `Saved new Stripe Customer ID (${stripeCustomerId}) to user record.`
           );
+        } else {
+          logWithUser.info("User has existing Stripe Customer ID");
         }
         // **NEW LOGIC ENDS HERE**
 
