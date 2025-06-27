@@ -233,13 +233,6 @@ export interface MCPToolPost {
   path: string;
 }
 
-// MCPTool definition is now imported from @snowgoose/ai-vendors
-// export interface MCPTool {
-//   id: number;
-//   name: string;
-//   path: string;
-// }
-
 export interface SettingsListSettings {
   id: number;
   title: string;
@@ -250,9 +243,4 @@ export interface SettingListProps {
   settings: SettingsListSettings[];
   resourceType: ResourceType;
   hideEdit: boolean | undefined;
-}
-
-export interface UserUsageLimits {
-  userPeriodUsage: number;
-  planUsageLimit: number;
 }

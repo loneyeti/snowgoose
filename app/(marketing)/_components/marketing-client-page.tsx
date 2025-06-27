@@ -1,20 +1,14 @@
 "use client"; // This component needs client-side interactivity
 
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRightIcon,
   CpuChipIcon,
   CubeTransparentIcon,
-  PaintBrushIcon,
   CodeBracketSquareIcon,
   SparklesIcon,
   CheckBadgeIcon,
-  UserGroupIcon,
-  BookOpenIcon,
-  ArrowPathIcon,
-  PhotoIcon, // For Image Generation
   GlobeAltIcon, // For Web Search
   BoltIcon, // For Streaming
 } from "@heroicons/react/24/outline";

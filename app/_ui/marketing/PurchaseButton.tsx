@@ -7,7 +7,6 @@ import {
   createCheckoutSessionAction,
   createOneTimePurchaseSessionAction,
 } from "@/app/_lib/server_actions/stripe.actions";
-import { User } from "@supabase/supabase-js";
 
 interface PurchaseButtonProps {
   priceId: string; // Stripe Price ID

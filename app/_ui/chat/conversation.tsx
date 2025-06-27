@@ -1,10 +1,5 @@
 import { useState } from "react"; // Import useState
-import {
-  ChatResponse,
-  ContentBlock,
-  ImageDataBlock,
-  ErrorBlock,
-} from "../../_lib/model";
+import { ChatResponse } from "../../_lib/model";
 import { SpinnerSize, Spinner } from "../spinner";
 import MarkdownComponent from "../markdown-parser";
 import CopyButton from "../copy-button"; // Import the CopyButton

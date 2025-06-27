@@ -3,7 +3,6 @@
 import { z } from "zod";
 import { ContactFormSchema, FormState } from "../form-schemas";
 import { getCurrentAPIUser } from "../auth"; // Use the correct utility
-import { User } from "@prisma/client";
 import { redirect } from "next/navigation"; // Import redirect
 
 // Define the expected input structure for the action, including hidden fields

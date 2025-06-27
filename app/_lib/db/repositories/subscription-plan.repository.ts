@@ -1,4 +1,4 @@
-import { PrismaClient, SubscriptionPlan } from "@prisma/client";
+import { SubscriptionPlan } from "@prisma/client";
 import { BaseRepository } from "./base.repository"; // Use named import
 
 export class SubscriptionPlanRepository extends BaseRepository {

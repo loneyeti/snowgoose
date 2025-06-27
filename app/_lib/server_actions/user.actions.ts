@@ -1,9 +1,6 @@
 "use server";
 
-import {
-  UserRepository,
-  userRepository,
-} from "@/app/_lib/db/repositories/user.repository";
+import { userRepository } from "@/app/_lib/db/repositories/user.repository";
 import { revalidatePath } from "next/cache";
 import { CreateUserFormSchema, UpdateUserFormSchema } from "../form-schemas";
 import { User } from "@prisma/client";
