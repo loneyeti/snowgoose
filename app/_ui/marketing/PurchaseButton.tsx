@@ -3,19 +3,24 @@
 import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/app/_utils/supabase/client";
-import { createCheckoutSessionAction } from "@/app/_lib/server_actions/stripe.actions";
+import {
+  createCheckoutSessionAction,
+  createOneTimePurchaseSessionAction,
+} from "@/app/_lib/server_actions/stripe.actions";
 import { User } from "@supabase/supabase-js";
 
 interface PurchaseButtonProps {
   priceId: string; // Stripe Price ID
   ctaText: string;
   highlight?: boolean; // Optional prop to change styling
+  mode: "subscription" | "payment"; // Add a 'mode' prop
 }
 
 export default function PurchaseButton({
   priceId,
   ctaText,
   highlight = false, // Default to false if not provided
+  mode,
 }: PurchaseButtonProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -44,6 +49,12 @@ export default function PurchaseButton({
         // Create FormData and append priceId
         const formData = new FormData();
         formData.append("priceId", priceId);
+
+        if (mode === "payment") {
+          await createOneTimePurchaseSessionAction(formData);
+        } else {
+          await createCheckoutSessionAction(formData);
+        }
 
         // Call the server action with FormData
         // A successful call will trigger a server-side redirect

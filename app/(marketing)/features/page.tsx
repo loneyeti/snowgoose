@@ -8,12 +8,14 @@ import {
   EyeIcon, // For Vision
   PhotoIcon, // For Image Generation
   WrenchScrewdriverIcon, // For Future Features
+  GlobeAltIcon,
+  LightBulbIcon,
 } from "@heroicons/react/24/outline"; // Example icons
 import Link from "next/link"; // For CTAs
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Snowgoose Features | Unified AI, Personas, Output Formats & More",
+  title: "Snowgoose | Features that Simplify and Empower Your AI Workflow",
   description:
     "Explore Snowgoose features: Unified access to GPT-4.1 & Claude 3.7, intelligent personas, flexible outputs (JSON, Markdown), vision support, image generation, and simple UI.",
 };
@@ -22,7 +24,7 @@ export default function FeaturesPage() {
   return (
     <div className="container mx-auto px-4 py-16">
       <h1 className="text-4xl font-bold text-center mb-16 text-white">
-        Snowgoose Features: Unified AI, Personas, Flexible Outputs & More
+        Your AI Toolkit, Redefined.
       </h1>
       {/* Wrap sections for better structure and styling */}
       <div className="space-y-16">
@@ -35,12 +37,13 @@ export default function FeaturesPage() {
             </h2>
           </div>
           <p className="text-lg text-gray-300 mb-4">
-            Tired of juggling multiple AI subscriptions and APIs? Snowgoose
-            provides a single point of access to the power of leading frontier
-            AI models like OpenAI&apos;s GPT-4.1, Anthropic&apos;s Claude 3.7,
-            Google&apos;s Gemini, DeepSeek, and more. Access the latest
-            capabilities from top providers through one seamless, multi-model AI
-            platform without the complexity.
+            Why limit yourself? Snowgoose integrates top-tier AI models from
+            industry leaders like OpenAI, Anthropic, and Google into a single,
+            clean interface. Forget juggling multiple accounts and
+            subscriptions. With one pool of flexible credits, you have the
+            freedom to choose the perfect model for any task—from coding with
+            GPT 4.1 or Gemini 2.5 Pro to advanced reasoning with Claude Opus 4
+            or o3 Pro. The power is yours.
           </p>
           <ul className="list-disc list-inside text-lg text-gray-300 space-y-1">
             <li>
@@ -72,10 +75,12 @@ export default function FeaturesPage() {
             </h2>
           </div>
           <p className="text-lg text-gray-300 mb-4">
-            Go beyond generic prompts. Snowgoose&apos;s unique Persona system
-            allows you to guide the AI with predefined roles (like Coder,
-            Editor, Tax Advisor) or create your own powerful custom personas for
-            perfectly tailored and consistent responses every time.
+            Stop wasting time with generic prompts. Our unique Persona system
+            instantly configures the AI to act as a specific expert. Need to
+            debug some code? Activate the Coder persona. Polishing an article?
+            Switch to Editor. You can use our pre-built library of personas or
+            create your own custom ones to ensure you get consistently tailored,
+            high-quality results that match your exact needs.
           </p>
           <ul className="list-disc list-inside text-lg text-gray-300 space-y-1">
             <li>
@@ -87,6 +92,31 @@ export default function FeaturesPage() {
               <strong>Pain Point Addressed:</strong> Eliminates the need to
               repeatedly craft complex system prompts, saving time and ensuring
               reliable results. Premium users unlock custom persona creation.
+            </li>
+          </ul>
+        </section>
+
+        {/* Section 3: Web Search */}
+        <section className="bg-gray-800/50 rounded-lg p-8 border border-gray-700 shadow-lg">
+          <div className="flex items-center mb-4">
+            <GlobeAltIcon className="h-8 w-8 mr-3 text-orange-400" />
+            <h2 className="text-3xl font-semibold text-white">Web Search</h2>
+          </div>
+          <p className="text-lg text-gray-300 mb-4">
+            Give your AI a direct line to the internet. With our Web Search tool
+            for supported OpenAI models, you can ask about current events,
+            research the latest data, or find up-to-the-minute information to
+            ground your responses in facts. Just toggle Web Search and let the
+            AI pull in real-time data to deliver more accurate and relevant
+            answers.*
+          </p>
+          <ul className="list-disc list-inside text-lg text-gray-300 space-y-1">
+            <li>
+              <strong>Benefit:</strong> Ground your prompt with up to date
+              information like news, weather, or articles.
+            </li>
+            <li>
+              <small>*Available on supported OpenAI models</small>
             </li>
           </ul>
         </section>
@@ -177,17 +207,20 @@ export default function FeaturesPage() {
           <div className="flex items-center mb-4">
             <PhotoIcon className="h-8 w-8 mr-3 text-orange-400" />
             <h2 className="text-3xl font-semibold text-white">
-              AI Image Generation
+              Inline AI Image Generation
             </h2>
           </div>
           <p className="text-lg text-gray-300 mb-4">
             Bring your ideas to life visually. Generate stunning images directly
-            within Snowgoose using integrated text-to-image models.*
+            within Snowgoose using integrated text-to-image models like GPT and
+            Google Gemini. Integrate AI image generation right into your
+            conversation.*
           </p>
           <ul className="list-disc list-inside text-lg text-gray-300 space-y-1">
             <li>
               <strong>Benefit:</strong> Create unique visuals for presentations,
-              content, or creative projects without leaving the platform.
+              content, or creative projects without leaving the platform or your
+              conversation.
             </li>
             <li>
               <small>*Dependent on underlying model capabilities.</small>
@@ -195,32 +228,27 @@ export default function FeaturesPage() {
           </ul>
         </section>
 
-        {/* Section 7: Future Features */}
+        {/* Section 6: Thinking */}
         <section className="bg-gray-800/50 rounded-lg p-8 border border-gray-700 shadow-lg">
           <div className="flex items-center mb-4">
-            <WrenchScrewdriverIcon className="h-8 w-8 mr-3 text-cyan-400" />
+            <LightBulbIcon className="h-8 w-8 mr-3 text-green-400" />
             <h2 className="text-3xl font-semibold text-white">
-              Always Evolving: Future Features
+              Thinking and Reasoning
             </h2>
           </div>
           <p className="text-lg text-gray-300 mb-4">
-            Snowgoose is constantly improving. We&apos;re actively working on
-            integrating exciting new capabilities:
+            Let your models think and reason before answering. When supported,
+            we show you what the model is thinking about when answering. Also,
+            some models support variable thinking length. Toggle between no
+            thinking, short thinking, or long thinking.*
           </p>
           <ul className="list-disc list-inside text-lg text-gray-300 space-y-1">
             <li>
-              <strong>Model Context Protocol (MCP):</strong> Deeper integration
-              for enhanced context management with compatible models like
-              Anthropic&apos;s Claude.
+              <strong>Benefit:</strong> Take advantage of the power of reasoning
+              models to solve complex issues.
             </li>
             <li>
-              <strong>Adjustable Thinking Modes:</strong> More granular control
-              over the AI&apos;s reasoning process for specific models that
-              support it.
-            </li>
-            <li>
-              <strong>And more!</strong> We listen to user feedback to guide our
-              roadmap.
+              <small>*Dependent on underlying model capabilities.</small>
             </li>
           </ul>
         </section>

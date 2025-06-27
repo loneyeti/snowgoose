@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ received: true });
         }
 
-        const creditsToGrant = parseInt(product.metadata.credits, 10);
+        const creditsToGrant = parseFloat(product.metadata.credits);
         if (isNaN(creditsToGrant) || creditsToGrant <= 0) {
           logWithUser.error("Invalid 'credits' metadata value.", {
             metadataValue: product.metadata.credits,

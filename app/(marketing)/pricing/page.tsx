@@ -29,6 +29,7 @@ export default function PricingPage() {
       cta: "Start Basic Plan",
       priceId: "price_1RDaeGCDpyWvUPu8lOlP4xMZ", // Replace with actual Stripe ID
       popular: false,
+      mode: "subscription",
     },
     {
       name: "Premium",
@@ -48,8 +49,9 @@ export default function PricingPage() {
       cta: "Get Premium Plan",
       priceId: "price_1RDeNkCDpyWvUPu8FPHKaPMF", // Replace with actual Stripe ID
       popular: true,
+      mode: "subscription",
     },
-  ];
+  ] as const;
 
   // One-time credit packages
   const creditPackages = [
@@ -66,6 +68,7 @@ export default function PricingPage() {
       ],
       cta: "Buy Credits",
       priceId: "price_1RdLsGCDpyWvUPu81rlZqCLW", // Replace with actual Stripe ID
+      mode: "payment",
     },
     {
       name: "Large Credit Package",
@@ -80,8 +83,9 @@ export default function PricingPage() {
       ],
       cta: "Buy Credits",
       priceId: "price_1RdLulCDpyWvUPu8wpgHB1E7", // Replace with actual Stripe ID
+      mode: "payment",
     },
-  ];
+  ] as const;
 
   return (
     <div className="container mx-auto px-4 py-16">
@@ -150,7 +154,11 @@ export default function PricingPage() {
                 ))}
               </ul>
 
-              <PurchaseButton priceId={plan.priceId} ctaText={plan.cta} />
+              <PurchaseButton
+                priceId={plan.priceId}
+                ctaText={plan.cta}
+                mode={plan.mode}
+              />
             </div>
           ))}
         </div>
@@ -196,7 +204,11 @@ export default function PricingPage() {
                 ))}
               </ul>
 
-              <PurchaseButton priceId={pkg.priceId} ctaText={pkg.cta} />
+              <PurchaseButton
+                priceId={pkg.priceId}
+                ctaText={pkg.cta}
+                mode={pkg.mode}
+              />
             </div>
           ))}
         </div>

@@ -39,7 +39,7 @@ const plans = [
     cta: "Start with Basic",
     priceId: "price_1RDaeGCDpyWvUPu8lOlP4xMZ", // Update with actual ID
     highlight: false,
-    type: "subscription",
+    mode: "subscription",
   },
   {
     name: "Premium",
@@ -57,9 +57,9 @@ const plans = [
     cta: "Go Premium",
     priceId: "price_1RDeNkCDpyWvUPu8FPHKaPMF", // Update with actual ID
     highlight: true,
-    type: "subscription",
+    mode: "subscription",
   },
-];
+] as const;
 
 // One-time purchase options
 const creditPacks = [
@@ -76,6 +76,7 @@ const creditPacks = [
     ],
     cta: "Buy Credits",
     priceId: "price_1RdLsGCDpyWvUPu81rlZqCLW", // Add actual ID
+    mode: "payment",
   },
   {
     name: "Large Credit Pack",
@@ -90,8 +91,9 @@ const creditPacks = [
     ],
     cta: "Buy Credits",
     priceId: "price_1RdLulCDpyWvUPu8wpgHB1E7", // Add actual ID
+    mode: "payment",
   },
-];
+] as const;
 
 export default function MarketingClientPage() {
   return (
@@ -114,14 +116,13 @@ export default function MarketingClientPage() {
 
         <div className="mx-auto max-w-4xl px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 animate-gradient-x">
-            All Premium AI Models.
-            <br className="hidden sm:inline" /> One Simple Platform.
+            The Power of All Frontier AI Models.
+            <br className="hidden sm:inline" /> Simplified.
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-300 sm:text-xl max-w-3xl mx-auto">
-            Access GPT-4.1, o3, Claude Opus 4, Gemini Pro 2.5, DeepSeek, and
-            more through one intuitive interface. With credits that roll over
-            for a full year, you&apos;ll never waste a penny. Start at just
-            $10/month or buy credits as you need them.
+            Access leading AI models from OpenAI, Anthropic, and Google,
+            DeepSeek, and more, through one simple subscription or flexible
+            credit pack. No more subscribing to multiple, expensive AI accounts.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
             <Link
@@ -192,7 +193,7 @@ export default function MarketingClientPage() {
                     className="h-6 w-6 flex-none text-indigo-400"
                     aria-hidden="true"
                   />
-                  All Top AI Models
+                  One Subscription. Every Leading Model.
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
@@ -202,47 +203,6 @@ export default function MarketingClientPage() {
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
                     No more juggling multiple subscriptions.
-                  </p>
-                </dd>
-              </div>
-
-              {/* Feature 2: Streaming Responses */}
-              <div className="flex flex-col p-6 bg-gray-800/50 rounded-lg border border-gray-700 shadow-lg hover:border-green-500 transition-colors duration-300">
-                <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-white">
-                  <BoltIcon
-                    className="h-6 w-6 flex-none text-green-400"
-                    aria-hidden="true"
-                  />
-                  Real-Time Streaming
-                </dt>
-                <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
-                  <p className="flex-auto">
-                    See responses as they&apos;re generated. No more waiting or
-                    timeouts, even with long, thoughtful responses.
-                  </p>
-                  <p className="mt-4 text-sm text-gray-500">
-                    Faster feedback, better experience.
-                  </p>
-                </dd>
-              </div>
-
-              {/* Feature 3: Web Search & Images */}
-              <div className="flex flex-col p-6 bg-gray-800/50 rounded-lg border border-gray-700 shadow-lg hover:border-blue-500 transition-colors duration-300">
-                <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-white">
-                  <GlobeAltIcon
-                    className="h-6 w-6 flex-none text-blue-400"
-                    aria-hidden="true"
-                  />
-                  Web Search & Images
-                </dt>
-                <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
-                  <p className="flex-auto">
-                    Ground responses in real-time web data. Generate images
-                    directly in your conversations with GPT-4o, 4.1 and other
-                    OpenAI models.
-                  </p>
-                  <p className="mt-4 text-sm text-gray-500">
-                    4 credits per search, up to 30 credits per image.
                   </p>
                 </dd>
               </div>
@@ -258,11 +218,54 @@ export default function MarketingClientPage() {
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Use pre-built personas (Coder, Editor, Advisor) or create
-                    custom ones for perfectly tailored AI responses.
+                    Instantly prime the AI for any task. Choose from pre-built
+                    roles like Coder, Editor, or Tax Advisor, or create your own
+                    for perfectly tailored responses every time.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
                     Save time with consistent context.
+                  </p>
+                </dd>
+              </div>
+
+              {/* Feature 2: Streaming Responses */}
+              <div className="flex flex-col p-6 bg-gray-800/50 rounded-lg border border-gray-700 shadow-lg hover:border-green-500 transition-colors duration-300">
+                <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-white">
+                  <BoltIcon
+                    className="h-6 w-6 flex-none text-green-400"
+                    aria-hidden="true"
+                  />
+                  Image Generation & Vision
+                </dt>
+                <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
+                  <p className="flex-auto">
+                    Go beyond text. Generate images directly in your chat with
+                    OpenAI and Gemini inline image generation. Also, upload your
+                    own images for analysis with any supporting model.
+                  </p>
+                  <p className="mt-4 text-sm text-gray-500">
+                    Unlock true multimodal workflows
+                  </p>
+                </dd>
+              </div>
+
+              {/* Feature 3: Web Search & Images */}
+              <div className="flex flex-col p-6 bg-gray-800/50 rounded-lg border border-gray-700 shadow-lg hover:border-blue-500 transition-colors duration-300">
+                <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-white">
+                  <GlobeAltIcon
+                    className="h-6 w-6 flex-none text-blue-400"
+                    aria-hidden="true"
+                  />
+                  Web Search
+                </dt>
+                <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
+                  <p className="flex-auto">
+                    Ground your responses in the latest information. Empower
+                    your AI with real-time access to the web for
+                    up-to-the-minute research and data.
+                  </p>
+                  <p className="mt-4 text-sm text-gray-500">
+                    Available on supported OpenAI models
                   </p>
                 </dd>
               </div>
@@ -398,6 +401,7 @@ export default function MarketingClientPage() {
                       priceId={plan.priceId}
                       ctaText={plan.cta}
                       highlight={plan.highlight}
+                      mode={plan.mode}
                     />
                   </div>
                 </div>
@@ -455,6 +459,7 @@ export default function MarketingClientPage() {
                       priceId={pack.priceId}
                       ctaText={pack.cta}
                       highlight={false}
+                      mode={pack.mode}
                     />
                   </div>
                 </div>
@@ -469,8 +474,11 @@ export default function MarketingClientPage() {
               plan credits stack with any unused balance.
             </p>
             <p>
-              Credit usage varies by model: ~0.3 credits per GPT-4o response,
-              ~10 credits per Claude Opus response.
+              Credit usage varies by model. Example number of prompts based on
+              an average of prompts for that model and is only an estimate.
+              Actual credit usage depends on the number of input and output
+              tokens, images uploaded, images generated, and web searches
+              performed.
             </p>
           </div>
 
@@ -495,9 +503,9 @@ export default function MarketingClientPage() {
                   vs. Direct API Usage
                 </h4>
                 <p className="text-gray-300">
-                  No complex token math, no surprise bills, no API key
-                  management. Just simple credits that roll over for a full
-                  year.
+                  No expensive monthly accounts from multiple vendors, no
+                  surprise bills, no API key management. Just simple credits
+                  that roll over for a full year.
                 </p>
               </div>
             </div>
@@ -513,9 +521,11 @@ export default function MarketingClientPage() {
             Built in the Open
           </h2>
           <p className="mt-4 text-lg leading-8 text-gray-300 max-w-2xl mx-auto">
-            Snowgoose is open source because we believe in transparency. Know
-            exactly how your data is handled, contribute features, or run your
-            own instance.
+            Snowgoose is proud to be an open-source project. We believe in
+            transparency and community collaboration. For developers, this means
+            you can see exactly how Snowgoose works and even contribute to its
+            future. For everyone, it’s a commitment to building a trustworthy
+            and innovative platform.
           </p>
           <div className="mt-8">
             <a
@@ -562,7 +572,7 @@ export default function MarketingClientPage() {
                 Credits that actually last.
               </h2>
               <p className="mt-6 text-lg leading-8 text-gray-300">
-                Join thousands who&apos;ve simplified their AI workflow with
+                Join others who&apos;ve simplified their AI workflow with
                 Snowgoose. Try our free demo to experience the difference, or
                 jump right in with credits that roll over for a full year.
               </p>
