@@ -142,12 +142,13 @@ model SubscriptionPlan {
 }
 
 model CreditTransaction {
-  id             String    @id @default(cuid())
-  userId         Int
-  user           User      @relation(fields: [userId], references: [id])
-  creditsAmount  Float // Positive for grants, negative for deductions
-  source         String // e.g., 'free-trial', 'subscription-basic', 'one-time-small', 'chat-deduction'
-  stripeChargeId String? // Optional, for linking to Stripe
-  createdAt      DateTime  @default(now())
-  expiresAt      DateTime? // Only for credit grants
+  id                     String    @id @default(cuid())
+  userId                 Int
+  user                   User      @relation(fields: [userId], references: [id])
+  creditsAmount          Float // Positive for grants, negative for deductions
+  source                 String // e.g., 'free-trial', 'subscription-basic', 'one-time-small', 'chat-deduction'
+  stripeChargeId         String? // Optional, for linking to Stripe
+  createdAt              DateTime  @default(now())
+  expiresAt              DateTime? // Only for credit grants
+  processedForExpiration Boolean   @default(false)
 }
