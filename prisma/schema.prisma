@@ -152,3 +152,8 @@ model CreditTransaction {
   expiresAt              DateTime? // Only for credit grants
   processedForExpiration Boolean   @default(false)
 }
+
+model ProcessedStripeEvent {
+  id        String   @id @unique
+  createdAt DateTime @default(now())
+}

@@ -574,7 +574,7 @@ export default function ChatWrapper({
       setIsStreamComplete(false);
       refreshCreditBalance();
     }
-  }, [isSubmitting, isStreamComplete, streamingResponse]);
+  }, [isSubmitting, isStreamComplete, streamingResponse, responseHistory]);
 
   // New handleReset function
   const handleReset = () => {

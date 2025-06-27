@@ -1,22 +1,18 @@
+// File: app/api/webhooks/stripe/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { headers } from "next/headers";
-import { userRepository } from "@/app/_lib/db/repositories/user.repository";
-import { SubscriptionPlanRepository } from "@/app/_lib/db/repositories/subscription-plan.repository";
-import { creditRepository } from "@/app/_lib/db/repositories/credit.repository";
 import { Logger } from "next-axiom";
-import { ensureUserExists } from "@/app/_lib/server_actions/user.actions";
-
-const subscriptionPlanRepository = new SubscriptionPlanRepository();
+import prisma from "@/app/_lib/db/prisma";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: NextRequest) {
-  const log = new Logger({ source: "stripe-webhook" }); // Instantiate Axiom Logger
+  const log = new Logger({ source: "stripe-webhook" });
 
-  // Initialize Stripe SDK inside the handler
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2025-03-31.basil", // Corrected API version
+    apiVersion: "2025-03-31.basil",
     typescript: true,
   });
 
@@ -38,18 +34,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Read the raw body using req.text() for signature verification
-  // Removed: const rawBody = await buffer(req.body! as any);
-
   let event: Stripe.Event;
-  let rawBody: string; // Define rawBody to store the text
+  let rawBody: string;
 
   try {
-    rawBody = await req.text(); // Get the raw body as text
+    rawBody = await req.text();
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
   } catch (err: any) {
-    // Log the raw body on error for debugging (optional, consider security implications)
-    // log.error("Raw body received:", rawBody);
     log.error(`Webhook signature verification failed: ${err.message}`);
     return NextResponse.json(
       { error: `Webhook Error: ${err.message}` },
@@ -57,357 +48,341 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  log.info(`Received Stripe event: ${event.type}`, { eventType: event.type });
+  log.info(`Received Stripe event: ${event.type}`, { eventId: event.id });
 
-  // Handle the event
-  switch (event.type) {
-    case "checkout.session.completed": {
-      const session = event.data.object as Stripe.Checkout.Session;
-      const userAuthId = session.client_reference_id;
+  // --- START OF NEW TRANSACTIONAL LOGIC ---
+  try {
+    await prisma.$transaction(async (tx) => {
+      // 1. Check if the event has already been processed
+      const existingEvent = await tx.processedStripeEvent.findUnique({
+        where: { id: event.id },
+      });
 
-      if (!userAuthId) {
-        log.error(
-          "Webhook Error: Missing client_reference_id in checkout session",
-          { sessionId: session.id }
-        );
-        return NextResponse.json({ received: true });
+      if (existingEvent) {
+        log.warn(`Webhook event ${event.id} already processed. Skipping.`);
+        return; // Exit the transaction successfully
       }
 
-      const logWithUser = log.with({ userAuthId, sessionId: session.id });
+      // 2. Main processing logic using the 'tx' transactional client
+      switch (event.type) {
+        case "checkout.session.completed": {
+          const session = event.data.object as Stripe.Checkout.Session;
+          const userAuthId = session.client_reference_id;
 
-      // --- HANDLE SUBSCRIPTION CREATION ---
-      if (session.mode === "subscription") {
-        logWithUser.info("Processing 'subscription' mode checkout session.");
-        if (!session.subscription) {
-          logWithUser.error(
-            "Session in subscription mode has no subscription ID."
-          );
-          return NextResponse.json({ received: true });
+          if (!userAuthId) {
+            log.error(
+              "Webhook Error: Missing client_reference_id in checkout session",
+              { sessionId: session.id }
+            );
+            return; // Exit transaction
+          }
+
+          const logWithUser = log.with({
+            userAuthId,
+            sessionId: session.id,
+            eventId: event.id,
+          });
+
+          if (session.mode === "subscription") {
+            logWithUser.info(
+              "Processing 'subscription' mode checkout session."
+            );
+            if (!session.subscription) {
+              logWithUser.error(
+                "Session in subscription mode has no subscription ID."
+              );
+              return;
+            }
+
+            const subscription = await stripe.subscriptions.retrieve(
+              session.subscription as string
+            );
+            const priceId = subscription.items.data[0]?.price.id;
+
+            if (!priceId) {
+              logWithUser.error("Subscription is missing a price ID.");
+              return;
+            }
+
+            // REFACTOR: Use 'tx' instead of userRepository
+            await tx.user.update({
+              where: { authId: userAuthId },
+              data: {
+                stripeCustomerId:
+                  typeof subscription.customer === "string"
+                    ? subscription.customer
+                    : subscription.customer.id,
+                stripeSubscriptionId: subscription.id,
+                stripePriceId: priceId,
+                stripeCurrentPeriodBegin: new Date(
+                  subscription.items.data[0].current_period_start * 1000
+                ),
+                stripeCurrentPeriodEnd: new Date(
+                  subscription.items.data[0].current_period_end * 1000
+                ),
+                stripeSubscriptionStartDate: new Date(
+                  subscription.start_date * 1000
+                ),
+                stripeSubscriptionStatus: subscription.status,
+              },
+            });
+
+            // REFACTOR: Use 'tx' to find plan and user, and add credits
+            const plan = await tx.subscriptionPlan.findUnique({
+              where: { stripePriceId: priceId },
+            });
+            if (plan && plan.creditsGranted > 0) {
+              const user = await tx.user.findUnique({
+                where: { authId: userAuthId },
+              });
+              if (user) {
+                await tx.user.update({
+                  where: { id: user.id },
+                  data: { creditBalance: { increment: plan.creditsGranted } },
+                });
+                await tx.creditTransaction.create({
+                  data: {
+                    userId: user.id,
+                    creditsAmount: plan.creditsGranted,
+                    source: `subscription-start-${plan.name}`,
+                    expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+                  },
+                });
+                logWithUser.info(
+                  `Granted ${plan.creditsGranted} initial credits for ${plan.name}.`
+                );
+              }
+            } else {
+              logWithUser.warn(
+                `No plan or zero credits found for priceId: ${priceId}`
+              );
+            }
+          } else if (session.mode === "payment") {
+            logWithUser.info("Processing 'payment' mode checkout session.");
+
+            // REFACTOR: Use 'tx' to find user
+            let user = await tx.user.findUnique({
+              where: { authId: userAuthId },
+            });
+
+            if (!user) {
+              logWithUser.error(
+                "User not found for one-time purchase credit grant. Aborting."
+              );
+              return;
+            }
+
+            if (!user.stripeCustomerId && session.customer) {
+              const stripeCustomerId =
+                typeof session.customer === "string"
+                  ? session.customer
+                  : session.customer.id;
+              // REFACTOR: Use 'tx' to update customer ID
+              await tx.user.update({
+                where: { authId: userAuthId },
+                data: { stripeCustomerId },
+              });
+              logWithUser.info(
+                `Saved new Stripe Customer ID (${stripeCustomerId}) to user record.`
+              );
+            }
+
+            const sessionWithLineItems =
+              await stripe.checkout.sessions.retrieve(session.id, {
+                expand: ["line_items.data.price.product"],
+              });
+
+            const product = sessionWithLineItems.line_items?.data[0]?.price
+              ?.product as Stripe.Product;
+            if (!product?.metadata?.credits) {
+              logWithUser.error(
+                "One-time purchase product is missing 'credits' metadata.",
+                { productId: product?.id }
+              );
+              return;
+            }
+
+            const creditsToGrant = parseFloat(product.metadata.credits);
+            if (isNaN(creditsToGrant) || creditsToGrant <= 0) {
+              logWithUser.error("Invalid 'credits' metadata value.", {
+                metadataValue: product.metadata.credits,
+              });
+              return;
+            }
+
+            // REFACTOR: Use 'tx' to add credits
+            await tx.user.update({
+              where: { id: user.id },
+              data: { creditBalance: { increment: creditsToGrant } },
+            });
+            await tx.creditTransaction.create({
+              data: {
+                userId: user.id,
+                creditsAmount: creditsToGrant,
+                source: `one-time-purchase-${product.name}`,
+                expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+              },
+            });
+            logWithUser.info(
+              `Granted ${creditsToGrant} one-time credits for ${product.name}.`
+            );
+          }
+          break;
         }
 
-        const subscription = await stripe.subscriptions.retrieve(
-          session.subscription as string
-        );
-        const priceId = subscription.items.data[0]?.price.id;
-
-        if (!priceId) {
-          logWithUser.error("Subscription is missing a price ID.");
-          return NextResponse.json({ received: true });
-        }
-
-        // Update user's Stripe details in the DB
-        await userRepository.updateSubscriptionByAuthId(userAuthId, {
-          stripeCustomerId:
+        case "customer.subscription.updated": {
+          const subscription = event.data.object as Stripe.Subscription;
+          const logWithSub = log.with({
+            subscriptionId: subscription.id,
+            eventId: event.id,
+          });
+          const customerId =
             typeof subscription.customer === "string"
               ? subscription.customer
-              : subscription.customer.id,
-          stripeSubscriptionId: subscription.id,
-          stripePriceId: priceId,
-          stripeCurrentPeriodBegin: new Date(
-            subscription.items.data[0].current_period_start * 1000
-          ),
-          stripeCurrentPeriodEnd: new Date(
-            subscription.items.data[0].current_period_end * 1000
-          ),
-          stripeSubscriptionStartDate: new Date(subscription.start_date * 1000),
-          stripeSubscriptionStatus: subscription.status,
-        });
+              : subscription.customer.id;
 
-        // Grant initial credits for the new subscription
-        const plan =
-          await subscriptionPlanRepository.findByStripePriceId(priceId);
-        if (plan && plan.creditsGranted > 0) {
-          const user = await userRepository.findByAuthId(userAuthId);
-          if (user) {
-            await creditRepository.addCredits(
-              user.id,
-              plan.creditsGranted,
-              `subscription-start-${plan.name}`,
-              365
-            );
-            logWithUser.info(
-              `Granted ${plan.creditsGranted} initial credits for ${plan.name}.`
-            );
-          }
-        } else {
-          logWithUser.warn(
-            `No plan or zero credits found for priceId: ${priceId}`
-          );
-        }
-      }
-      // --- HANDLE ONE-TIME PURCHASE ---
-      else if (session.mode === "payment") {
-        logWithUser.info("Processing 'payment' mode checkout session.");
-
-        let user = await userRepository.findByAuthId(userAuthId);
-
-        if (!user) {
-          logWithUser.warn("User not found by authId, attempting fallback.", {
-            reason: "Possible race condition on new user creation.",
+          // REFACTOR: Find user with tx
+          const user = await tx.user.findFirst({
+            where: { stripeCustomerId: customerId },
           });
-          // As a fallback, use the email from the session to ensure the user exists
-          // This relies on the session having the customer's email.
-          const customerEmail = session.customer_details?.email;
-          if (customerEmail) {
-            user = await ensureUserExists({
-              userId: userAuthId,
-              email: customerEmail,
-            });
-            if (user) {
-              logWithUser.info("Successfully found/created user via fallback.");
+          if (!user) {
+            logWithSub.warn(
+              `User with customerId ${customerId} not found. Cannot process update.`
+            );
+            return;
+          }
+
+          const isRenewal =
+            event.data.previous_attributes &&
+            typeof event.data.previous_attributes === "object" &&
+            "current_period_start" in event.data.previous_attributes &&
+            "current_period_start" in subscription &&
+            event.data.previous_attributes.current_period_start !==
+              subscription.current_period_start;
+
+          if (isRenewal) {
+            logWithSub.info("Subscription renewal detected.");
+            const priceId = subscription.items.data[0]?.price.id;
+            // REFACTOR: Find plan with tx
+            const plan = priceId
+              ? await tx.subscriptionPlan.findUnique({
+                  where: { stripePriceId: priceId },
+                })
+              : null;
+
+            if (plan && plan.creditsGranted > 0) {
+              // REFACTOR: Add credits with tx
+              await tx.user.update({
+                where: { id: user.id },
+                data: { creditBalance: { increment: plan.creditsGranted } },
+              });
+              await tx.creditTransaction.create({
+                data: {
+                  userId: user.id,
+                  creditsAmount: plan.creditsGranted,
+                  source: `subscription-renewal-${plan.name}`,
+                  expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+                },
+              });
+              logWithSub.info(
+                `Granted ${plan.creditsGranted} renewal credits.`
+              );
             }
           }
-        }
 
-        // Final check after fallback
-        if (!user) {
-          logWithUser.error(
-            "User not found for one-time purchase credit grant, even after fallback. Aborting."
-          );
-          return NextResponse.json({ received: true });
-        }
-
-        logWithUser.info("Found user for one time credit");
-
-        // **NEW LOGIC STARTS HERE**
-        // If our user record doesn't have a Stripe customer ID yet,
-        // but the completed session provides one, save it to our database.
-        // This links the user for all future transactions.
-        if (!user.stripeCustomerId && session.customer) {
-          const stripeCustomerId =
-            typeof session.customer === "string"
-              ? session.customer
-              : session.customer.id;
-          await userRepository.updateStripeCustomerId(
-            userAuthId,
-            stripeCustomerId
-          );
-          logWithUser.info(
-            `Saved new Stripe Customer ID (${stripeCustomerId}) to user record.`
-          );
-        } else {
-          logWithUser.info("User has existing Stripe Customer ID");
-        }
-        // **NEW LOGIC ENDS HERE**
-
-        const sessionWithLineItems = await stripe.checkout.sessions.retrieve(
-          session.id,
-          { expand: ["line_items.data.price.product"] }
-        );
-
-        const price = sessionWithLineItems.line_items?.data[0]?.price;
-        const product = price?.product as Stripe.Product;
-
-        if (price && product) {
-          logWithUser.info("Got price and product information");
-        } else {
-          logWithUser.error("Could not find either price or product info");
-          return NextResponse.json({ received: true }); // Exit if product info is missing
-        }
-
-        // CRITICAL: The Stripe Product for one-time purchases MUST have
-        // a metadata field with the key 'credits' and a numeric value
-        // indicating the number of credits to grant.
-        // In the Stripe Dashboard, for the product, add Metadata:
-        // Key: credits, Value: 600
-        if (!product?.metadata?.credits) {
-          logWithUser.error(
-            "One-time purchase product is missing 'credits' metadata.",
-            { productId: product?.id }
-          );
-          return NextResponse.json({ received: true });
-        }
-
-        const creditsToGrant = parseFloat(product.metadata.credits);
-        if (isNaN(creditsToGrant) || creditsToGrant <= 0) {
-          logWithUser.error("Invalid 'credits' metadata value.", {
-            metadataValue: product.metadata.credits,
+          // REFACTOR: Always update subscription status using tx
+          await tx.user.update({
+            where: { id: user.id },
+            data: {
+              stripeSubscriptionId: subscription.id,
+              stripePriceId: subscription.items.data[0]?.price.id,
+              stripeCurrentPeriodBegin: new Date(
+                subscription.items.data[0].current_period_start * 1000
+              ),
+              stripeCurrentPeriodEnd: new Date(
+                subscription.items.data[0].current_period_end * 1000
+              ),
+              stripeSubscriptionStatus: subscription.status,
+              stripeCancelAtPeriodEnd: subscription.cancel_at_period_end,
+            },
           });
-          return NextResponse.json({ received: true });
-        }
-
-        logWithUser.info("Beginning application of credits to user");
-
-        await creditRepository.addCredits(
-          user.id,
-          creditsToGrant,
-          `one-time-purchase-${product.name}`,
-          365
-        );
-        logWithUser.info(
-          `Granted ${creditsToGrant} one-time credits for ${product.name}.`
-        );
-      }
-      break;
-    }
-
-    case "customer.subscription.updated": {
-      const subscription = event.data.object as Stripe.Subscription;
-      const logWithSub = log.with({ subscriptionId: subscription.id });
-
-      // --- HANDLE RENEWALS ---
-      // Check if the billing cycle has just started (i.e., it's a renewal payment)
-      const previousAttributes = event.data.previous_attributes;
-      let isRenewal = false;
-      if (
-        previousAttributes &&
-        "current_period_start" in previousAttributes &&
-        "current_period_start" in subscription &&
-        previousAttributes.current_period_start !==
-          subscription.current_period_start
-      ) {
-        isRenewal = true;
-      }
-      if (isRenewal) {
-        logWithSub.info("Subscription renewal detected.");
-        const customerId =
-          typeof subscription.customer === "string"
-            ? subscription.customer
-            : subscription.customer.id;
-        const priceId = subscription.items.data[0]?.price.id;
-
-        // Find user by customer ID - need to use existing method
-        const user = await userRepository.findByStripeCustomerId(customerId);
-        const plan = priceId
-          ? await subscriptionPlanRepository.findByStripePriceId(priceId)
-          : null;
-
-        if (user && plan && plan.creditsGranted > 0) {
-          await creditRepository.addCredits(
-            user.id,
-            plan.creditsGranted,
-            `subscription-renewal-${plan.name}`,
-            365
-          );
           logWithSub.info(
-            `Granted ${plan.creditsGranted} renewal credits for user ${user.id}.`
+            `Successfully updated subscription status fields for user.`
           );
-        } else {
-          logWithSub.warn(
-            "Could not grant renewal credits. User or Plan not found, or credits is zero.",
-            { userId: user?.id, planId: plan?.id }
-          );
+          break;
         }
-      }
 
-      // --- UPDATE SUBSCRIPTION STATUS (Always run this on update) ---
-      const customerId =
-        typeof subscription.customer === "string"
-          ? subscription.customer
-          : subscription.customer.id;
-      try {
-        // This repository method now ONLY updates Stripe fields, it does not reset usage.
-        await userRepository.updateSubscriptionByCustomerId(customerId, {
-          stripeSubscriptionId: subscription.id,
-          stripePriceId: subscription.items.data[0]?.price.id,
-          stripeCurrentPeriodBegin: new Date(
-            subscription.items.data[0].current_period_start * 1000
-          ),
-          stripeCurrentPeriodEnd: new Date(
-            subscription.items.data[0].current_period_end * 1000
-          ),
-          stripeSubscriptionStatus: subscription.status,
-          stripeCancelAtPeriodEnd: subscription.cancel_at_period_end,
-        });
-        logWithSub.info(
-          `Successfully updated user subscription status fields for customerId: ${customerId}.`
-        );
-      } catch (error: any) {
-        logWithSub.error(
-          "Database operation failed during customer.subscription.updated",
-          { error: error.message || error }
-        );
-        return NextResponse.json({ error: "DB error" }, { status: 500 });
-      }
-      break;
-    }
-
-    case "customer.subscription.deleted": {
-      // Fired when a subscription is canceled (immediately or at period end)
-      const subscription = event.data.object as Stripe.Subscription;
-      log.info("Processing customer.subscription.deleted", {
-        subscriptionId: subscription.id,
-      });
-      const customerId =
-        typeof subscription.customer === "string"
-          ? subscription.customer
-          : subscription.customer.id;
-
-      try {
-        const updatedUser =
-          await userRepository.clearSubscriptionByCustomerId(customerId);
-
-        // Check if user was found and updated (repo returns null if not found)
-        if (updatedUser) {
-          log.info(
-            "Successfully cleared user subscription details in DB via repository",
-            { customerId: customerId, subscriptionId: subscription.id }
-          );
-        } else {
-          // User not found by customerId - this is a permanent issue for this event.
-          log.warn(
-            `Webhook: User with customerId ${customerId} not found during customer.subscription.deleted.`,
-            { customerId: customerId, subscriptionId: subscription.id }
-          );
-          // Acknowledge receipt (200) as retrying won't help.
-          return NextResponse.json({ received: true });
-        }
-      } catch (error: any) {
-        // Log the error from DB operation (potentially transient)
-        log.error(
-          `Webhook Error: Database operation failed during customer.subscription.deleted for subscription ${subscription.id}`,
-          {
-            error: error.message || error,
-            customerId: customerId,
+        case "customer.subscription.deleted": {
+          const subscription = event.data.object as Stripe.Subscription;
+          const logWithSub = log.with({
             subscriptionId: subscription.id,
+            eventId: event.id,
+          });
+          const customerId =
+            typeof subscription.customer === "string"
+              ? subscription.customer
+              : subscription.customer.id;
+
+          // REFACTOR: Use 'tx' to find and clear subscription
+          const user = await tx.user.findFirst({
+            where: { stripeCustomerId: customerId },
+          });
+          if (user) {
+            await tx.user.update({
+              where: { id: user.id },
+              data: {
+                stripeSubscriptionId: null,
+                stripePriceId: null,
+                stripeCurrentPeriodBegin: null,
+                stripeCurrentPeriodEnd: null,
+                stripeSubscriptionStatus: null,
+                stripeCancelAtPeriodEnd: null,
+              },
+            });
+            logWithSub.info(
+              "Successfully cleared user subscription details in DB."
+            );
+          } else {
+            logWithSub.warn(
+              `User with customerId ${customerId} not found during deletion.`
+            );
           }
-        );
-        // Return 500 to indicate a potential transient issue for retry.
-        return NextResponse.json(
-          {
-            error:
-              "Failed to process subscription deletion due to database error.",
-          },
-          { status: 500 }
-        );
+          break;
+        }
+
+        case "invoice.payment_failed": {
+          const invoice = event.data.object as Stripe.Invoice;
+          log.warn(`Invoice payment failed`, {
+            invoiceId: invoice.id,
+            customerId: invoice.customer,
+            subscriptionId: (invoice as any).subscription ?? "N/A",
+            eventId: event.id,
+          });
+          break;
+        }
+
+        default:
+          log.info(`Unhandled event type received: ${event.type}`, {
+            eventId: event.id,
+          });
       }
-      break;
-    } // End customer.subscription.deleted
 
-    case "invoice.payment_failed": {
-      const invoice = event.data.object as Stripe.Invoice;
-      // Use type assertion to bypass potential type mismatch for logging
-      const subscriptionId = (invoice as any).subscription;
-      log.warn(`Invoice payment failed`, {
-        invoiceId: invoice.id,
-        customerId: invoice.customer,
-        subscriptionId: subscriptionId ?? "N/A",
+      // 3. Mark the event as processed
+      await tx.processedStripeEvent.create({
+        data: { id: event.id },
       });
-      // Optional: Notify user, update internal status, restrict access, etc.
-      // For now, just logging.
-      // You might want to check the subscription status via 'customer.subscription.updated'
-      // which often follows a failed payment (status becomes 'past_due' or 'unpaid').
-      break;
-    }
+    });
 
-    // Optional: Handle successful payments if needed for specific actions beyond renewal updates
-    // case 'invoice.payment_succeeded': { // Example if needed
-    //   const invoice = event.data.object as Stripe.Invoice;
-    //   log.info(`Invoice payment succeeded`, { invoiceId: invoice.id, customerId: invoice.customer });
-    //   // Often handled by 'customer.subscription.updated' for renewals,
-    //   // but useful if you need to trigger actions specifically on payment success.
-    //   break;
-    // }
-
-    default:
-      log.info(`Webhook: Received unhandled event type`, {
-        eventType: event.type,
-      });
+    // If transaction is successful, return 200 OK to Stripe
+    log.info(`Successfully processed event ${event.id}`);
+    return NextResponse.json({ received: true });
+  } catch (error) {
+    log.error(`Error in webhook transaction for event ${event.id}`, { error });
+    // If the transaction fails, return a 500 to let Stripe retry
+    return NextResponse.json(
+      { error: "Webhook processing failed" },
+      { status: 500 }
+    );
   }
-
-  // Return a 200 response to acknowledge receipt of the event if processing reached this point
-  log.info("Stripe webhook processing finished successfully", {
-    eventType: event.type,
-  });
-  return NextResponse.json({ received: true });
+  // --- END OF NEW TRANSACTIONAL LOGIC ---
 }
