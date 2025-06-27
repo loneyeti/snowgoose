@@ -56,10 +56,6 @@ export default function PurchaseButton({
           await createCheckoutSessionAction(formData);
         }
 
-        // Call the server action with FormData
-        // A successful call will trigger a server-side redirect
-        await createCheckoutSessionAction(formData);
-
         // If the action throws an error, it will be caught below.
         // If it succeeds, the browser will be redirected by the server,
         // so we don't need to handle success explicitly here.

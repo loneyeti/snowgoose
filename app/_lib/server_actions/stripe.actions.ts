@@ -76,19 +76,20 @@ export async function createOneTimePurchaseSessionAction(formData: FormData) {
   });
 
   const origin = headers().get("origin");
-  const userSession = await getUserSession();
+  const user = await getCurrentAPIUser(); // Use this to get the full user object
 
-  if (!userSession || !userSession.userId) {
+  if (!user) {
     log.error(
-      "Authentication Error: Could not retrieve user session for one-time purchase."
+      "Authentication Error: Could not retrieve user for one-time purchase."
     );
     throw new Error("User must be logged in to purchase credits.");
   }
-  const userAuthId = userSession.userId;
+
   let sessionUrl: string | null = null;
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    // Prepare the session payload. This is the core of the fix.
+    const sessionPayload: Stripe.Checkout.SessionCreateParams = {
       mode: "payment", // Key difference: 'payment' for one-time purchases
       payment_method_types: ["card"],
       line_items: [
@@ -98,10 +99,20 @@ export async function createOneTimePurchaseSessionAction(formData: FormData) {
         },
       ],
       allow_promotion_codes: true,
-      client_reference_id: userAuthId, // Crucial for linking the purchase in the webhook
+      ...(user.authId ? { client_reference_id: user.authId } : {}), // Only set if authId exists
       success_url: `${origin}/chat/purchase/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/pricing`, // Or a dedicated "buy credits" page
-    });
+      cancel_url: `${origin}/pricing`,
+    };
+
+    // If the user already has a Stripe customer ID, use it.
+    // Otherwise, use their email to let Stripe find or create a customer (if email exists)
+    if (user.stripeCustomerId) {
+      sessionPayload.customer = user.stripeCustomerId;
+    } else if (user.email) {
+      sessionPayload.customer_email = user.email;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionPayload);
 
     if (!session.url) {
       log.error("Stripe one-time purchase session URL is missing.");

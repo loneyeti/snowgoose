@@ -212,6 +212,26 @@ export class UserRepository extends BaseRepository {
    * Clears Stripe subscription details for a user identified by their Stripe Customer ID.
    * Used for webhook events like 'customer.subscription.deleted'.
    */
+  /**
+   * Updates only the stripeCustomerId for a user identified by authId
+   * Used when a user makes their first purchase (one-time or subscription)
+   */
+  async updateStripeCustomerId(
+    authId: string,
+    stripeCustomerId: string
+  ): Promise<User | null> {
+    try {
+      return await this.prisma.user.update({
+        where: { authId },
+        data: {
+          stripeCustomerId,
+        },
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
   async clearSubscriptionByCustomerId(
     stripeCustomerId: string
   ): Promise<User | null> {

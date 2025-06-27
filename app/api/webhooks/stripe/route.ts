@@ -137,6 +137,35 @@ export async function POST(req: NextRequest) {
       // --- HANDLE ONE-TIME PURCHASE ---
       else if (session.mode === "payment") {
         logWithUser.info("Processing 'payment' mode checkout session.");
+
+        // Find user by authId to get the internal DB id
+        const user = await userRepository.findByAuthId(userAuthId);
+        if (!user) {
+          logWithUser.error(
+            "User not found for one-time purchase credit grant."
+          );
+          return NextResponse.json({ received: true });
+        }
+
+        // **NEW LOGIC STARTS HERE**
+        // If our user record doesn't have a Stripe customer ID yet,
+        // but the completed session provides one, save it to our database.
+        // This links the user for all future transactions.
+        if (!user.stripeCustomerId && session.customer) {
+          const stripeCustomerId =
+            typeof session.customer === "string"
+              ? session.customer
+              : session.customer.id;
+          await userRepository.updateStripeCustomerId(
+            userAuthId,
+            stripeCustomerId
+          );
+          logWithUser.info(
+            `Saved new Stripe Customer ID (${stripeCustomerId}) to user record.`
+          );
+        }
+        // **NEW LOGIC ENDS HERE**
+
         const sessionWithLineItems = await stripe.checkout.sessions.retrieve(
           session.id,
           { expand: ["line_items.data.price.product"] }
@@ -145,6 +174,18 @@ export async function POST(req: NextRequest) {
         const price = sessionWithLineItems.line_items?.data[0]?.price;
         const product = price?.product as Stripe.Product;
 
+        if (price && product) {
+          logWithUser.info("Got price and product information");
+        } else {
+          logWithUser.error("Could not find either price or product info");
+          return NextResponse.json({ received: true }); // Exit if product info is missing
+        }
+
+        // CRITICAL: The Stripe Product for one-time purchases MUST have
+        // a metadata field with the key 'credits' and a numeric value
+        // indicating the number of credits to grant.
+        // In the Stripe Dashboard, for the product, add Metadata:
+        // Key: credits, Value: 600
         if (!product?.metadata?.credits) {
           logWithUser.error(
             "One-time purchase product is missing 'credits' metadata.",
@@ -161,14 +202,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ received: true });
         }
 
-        // Find user by authId to get the internal DB id
-        const user = await userRepository.findByAuthId(userAuthId);
-        if (!user) {
-          logWithUser.error(
-            "User not found for one-time purchase credit grant."
-          );
-          return NextResponse.json({ received: true });
-        }
+        logWithUser.info("Beginning application of credits to user");
 
         await creditRepository.addCredits(
           user.id,
