@@ -11,6 +11,7 @@ import {
   CheckBadgeIcon,
   GlobeAltIcon, // For Web Search
   BoltIcon, // For Streaming
+  QuestionMarkCircleIcon, // For FAQ
 } from "@heroicons/react/24/outline";
 import { FaGithub } from "react-icons/fa";
 import PurchaseButton from "@/app/_ui/marketing/PurchaseButton";
@@ -30,7 +31,8 @@ const plans = [
       "Web search & image generation",
       "All output formats",
     ],
-    cta: "Start with Basic",
+    // SEO Suggestion #9: Optimize CTA
+    cta: "Access All AI Models Now",
     priceId: "price_1RDaeGCDpyWvUPu8lOlP4xMZ", // Update with actual ID
     highlight: false,
     mode: "subscription",
@@ -48,6 +50,7 @@ const plans = [
       "Early access to new features",
       "Best value per credit",
     ],
+    // SEO Suggestion #9: Optimize CTA
     cta: "Go Premium",
     priceId: "price_1RDeNkCDpyWvUPu8FPHKaPMF", // Update with actual ID
     highlight: true,
@@ -109,28 +112,30 @@ export default function MarketingClientPage() {
         </div>
 
         <div className="mx-auto max-w-4xl px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 animate-gradient-x">
-            The Power of All Frontier AI Models.
-            <br className="hidden sm:inline" /> Simplified.
+          {/* SEO Suggestion #2: Header Structure Optimization */}
+          <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
+            Access All Leading AI Models - GPT 4.1, o3 Pro, Claude, Gemini in
+            One Platform
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-300 sm:text-xl max-w-3xl mx-auto">
-            Access leading AI models from OpenAI, Anthropic, and Google,
-            DeepSeek, and more, through one simple subscription or flexible
-            credit pack. No more subscribing to multiple, expensive AI accounts.
+            Access leading AI models from OpenAI, Anthropic, Google, DeepSeek,
+            and more, through one simple subscription. Stop juggling multiple AI
+            accounts and enjoy credits that roll over for a full year.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
+            {/* SEO Suggestion #9: Optimize CTA Buttons */}
             <Link
               href="/login?action=demo"
               className="rounded-md bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:from-purple-600 hover:to-pink-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition duration-150 ease-in-out transform hover:scale-105"
             >
-              Try Free Demo
+              Try AI Models Free Demo
               <ArrowRightIcon className="inline-block h-5 w-5 ml-2" />
             </Link>
             <a
               href="#pricing"
               className="rounded-md border border-indigo-400 px-6 py-3 text-lg font-semibold text-indigo-300 hover:bg-indigo-900/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition duration-150 ease-in-out"
             >
-              View Pricing
+              Compare AI Platform Pricing
             </a>
           </div>
         </div>
@@ -166,16 +171,18 @@ export default function MarketingClientPage() {
       {/* Features Section */}
       <section className="bg-gray-900 py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          {/* SEO Suggestion #4: Keyword-rich section header */}
           <div className="mx-auto max-w-2xl lg:text-center">
             <h2 className="text-base font-semibold leading-7 text-indigo-400">
-              Everything You Need in One Platform
+              Your Consolidated AI Platform
             </h2>
             <p className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Powerful AI Features, Simply Delivered
+              The Best AI Model Platform for Developers and Businesses
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-300">
-              Snowgoose combines cutting-edge AI capabilities with an intuitive
-              interface, making advanced AI accessible to everyone.
+              Snowgoose provides unified access to OpenAI GPT-4, Anthropic
+              Claude, Google Gemini, DeepSeek, and Qwen models through a single
+              subscription.
             </p>
           </div>
           <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
@@ -187,13 +194,13 @@ export default function MarketingClientPage() {
                     className="h-6 w-6 flex-none text-indigo-400"
                     aria-hidden="true"
                   />
-                  One Subscription. Every Leading Model.
+                  Multiple AI Models, One Subscription
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Access OpenAI&apos;s GPT-4.1 and o3, Anthropic&apos;s Claude
-                    Opus, Google&apos;s Gemini, DeepSeek, and Qwen through one
-                    seamless interface.
+                    Get GPT-4, Claude, Gemini, and more through one seamless
+                    interface. As an AI API alternative, Snowgoose simplifies
+                    your workflow instantly.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
                     No more juggling multiple subscriptions.
@@ -201,20 +208,20 @@ export default function MarketingClientPage() {
                 </dd>
               </div>
 
-              {/* Feature 4: Persona System */}
+              {/* Feature 4: Persona System -- SEO Suggestion #5 */}
               <div className="flex flex-col p-6 bg-gray-800/50 rounded-lg border border-gray-700 shadow-lg hover:border-pink-500 transition-colors duration-300">
                 <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-white">
                   <SparklesIcon
                     className="h-6 w-6 flex-none text-pink-400"
                     aria-hidden="true"
                   />
-                  Smart Personas
+                  AI Prompt Templates and Smart Personas
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Instantly prime the AI for any task. Choose from pre-built
-                    roles like Coder, Editor, or Tax Advisor, or create your own
-                    for perfectly tailored responses every time.
+                    Pre-built AI personas for coding, writing, tax advice, and
+                    custom workflows. Streamline your AI interactions with
+                    consistent context and specialized prompts.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
                     Save time with consistent context.
@@ -276,7 +283,7 @@ export default function MarketingClientPage() {
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
                     Get responses in Markdown, JSON, HTML, or CSV. Perfect
-                    integration with your existing workflows.
+                    integration for developers and writers.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
                     No reformatting needed.
@@ -476,30 +483,30 @@ export default function MarketingClientPage() {
             </p>
           </div>
 
-          {/* Value Proposition */}
+          {/* SEO Suggestion #4: Keyword-rich section */}
           <div className="mt-16 pt-12 border-t border-gray-700">
             <h3 className="text-2xl font-semibold text-center mb-6 text-white">
-              Why Choose Snowgoose?
+              Why Snowgoose is the Best Alternative to Multiple AI Subscriptions
             </h3>
             <div className="grid max-w-4xl mx-auto gap-8 lg:grid-cols-2">
-              <div className="text-center">
+              <div className="text-center p-6 rounded-lg bg-gray-900/50">
                 <h4 className="text-lg font-semibold text-indigo-400 mb-3">
                   vs. Individual Subscriptions
                 </h4>
                 <p className="text-gray-300">
-                  Stop paying $20/month to OpenAI, $20/month to Anthropic, and
-                  more to other providers. Get all models for as low as
-                  $10/month.
+                  Instead of managing separate subscriptions to OpenAI
+                  ($20/month), Anthropic ($20/month), and Google AI, access all
+                  models starting at just $10/month with credits that roll over.
                 </p>
               </div>
-              <div className="text-center">
+              <div className="text-center p-6 rounded-lg bg-gray-900/50">
                 <h4 className="text-lg font-semibold text-indigo-400 mb-3">
                   vs. Direct API Usage
                 </h4>
                 <p className="text-gray-300">
                   No expensive monthly accounts from multiple vendors, no
-                  surprise bills, no API key management. Just simple credits
-                  that roll over for a full year.
+                  surprise bills, no API key management. Just a simple,
+                  consolidated AI platform with credits that last a full year.
                 </p>
               </div>
             </div>
@@ -507,8 +514,55 @@ export default function MarketingClientPage() {
         </div>
       </section>
 
+      {/* SEO Suggestion #8: Add FAQ Section */}
+      <section className="bg-gray-900 py-24 sm:py-32">
+        <div className="mx-auto max-w-4xl px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl lg:text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Frequently Asked Questions
+            </h2>
+            <p className="mt-4 text-lg leading-8 text-gray-400">
+              Can’t find the answer you’re looking for? Reach out to our
+              customer support team.
+            </p>
+          </div>
+          <div className="mt-16 space-y-8">
+            <div className="rounded-lg bg-gray-800/60 p-6">
+              <h3 className="text-base font-semibold leading-7 text-white">
+                What AI models does Snowgoose support?
+              </h3>
+              <p className="mt-3 text-base leading-7 text-gray-300">
+                Snowgoose provides access to OpenAI GPT-4 and o3, Anthropic
+                Claude Opus, Google Gemini, DeepSeek, and Qwen models through
+                one unified platform.
+              </p>
+            </div>
+            <div className="rounded-lg bg-gray-800/60 p-6">
+              <h3 className="text-base font-semibold leading-7 text-white">
+                Is Snowgoose cheaper than individual AI subscriptions?
+              </h3>
+              <p className="mt-3 text-base leading-7 text-gray-300">
+                Yes, instead of paying $20/month each to OpenAI and Anthropic,
+                you can access all models starting at just $10/month with
+                Snowgoose credits that roll over.
+              </p>
+            </div>
+            <div className="rounded-lg bg-gray-800/60 p-6">
+              <h3 className="text-base font-semibold leading-7 text-white">
+                How long do Snowgoose credits last?
+              </h3>
+              <p className="mt-3 text-base leading-7 text-gray-300">
+                All credits remain valid for one full year from the date of
+                purchase, unlike many other platforms where credits expire
+                monthly.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Open Source Callout Section */}
-      <section className="bg-gradient-to-b from-gray-800 to-gray-900 py-16 sm:py-24">
+      <section className="bg-gradient-to-b from-gray-900 to-gray-800 py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8 text-center">
           <FaGithub className="mx-auto h-12 w-auto text-gray-400" />
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-white sm:text-4xl">
@@ -536,7 +590,7 @@ export default function MarketingClientPage() {
       </section>
 
       {/* Demo CTA Section */}
-      <section className="bg-gray-900">
+      <section className="bg-gray-800">
         <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
           <div className="relative isolate overflow-hidden bg-gradient-to-br from-indigo-900/80 via-purple-900/70 to-pink-900/60 px-6 pt-16 shadow-2xl rounded-3xl sm:px-16 md:pt-24 lg:flex lg:gap-x-20 lg:px-24 lg:pt-0">
             <svg
