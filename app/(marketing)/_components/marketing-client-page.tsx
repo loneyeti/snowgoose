@@ -641,6 +641,15 @@ export default function MarketingClientPage() {
             </div>
           </div>
         </div>
+        <div className="flex justify-center w-full py-8">
+          <a href="https://fazier.com/launches/snowgoose.app" target="_blank">
+            <img
+              src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=featured&theme=neutral"
+              width="250"
+              alt="Fazier badge"
+            />
+          </a>
+        </div>
       </section>
     </>
   );
