@@ -4,15 +4,114 @@ import type { Metadata } from "next";
 import MarketingClientPage from "./_components/marketing-client-page"; // Import the new client component
 
 export const metadata: Metadata = {
-  // SEO Suggestion #1: Optimized Title and Meta Description
   title:
-    "Snowgoose - Access All AI Models (GPT-4.1, Claude, Gemini) in One Platform",
+    "Snowgoose - All AI Models, One Subscriptions (GPT-4.1, Claude 4, Gemini 2.5 Pro)",
   description:
-    "Access OpenAI GPT-4, Anthropic Claude, Google Gemini, and more AI models through one simple subscription. Credits roll over for 1 year. Try the free demo.",
-  // Add other relevant meta tags if needed, e.g., keywords (though less impactful now), open graph tags
+    "Access OpenAI GPT o3, Anthropic Claude 4, Google Gemini 2.5 Pro, and more AI models through one simple subscription. Credits roll over for 1 year. Try the free demo.",
+  openGraph: {
+    title:
+      "Snowgoose | All AI Models, One Subscription (GPT-4.1, Claude 4, Gemini)",
+    description:
+      "Stop juggling AI subscriptions and get access to all leading AI models with credits that last a year.",
+    url: "https://snowgoose.app", // Replace with your actual domain
+    siteName: "Snowgoose",
+    images: [
+      {
+        url: "https://snowgoose.app/og.png", // Create a compelling OG image
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title:
+      "Snowgoose | All AI Models, One Subscription (GPT-4.1, Claude 4, Gemini)",
+    description:
+      "Stop juggling AI subscriptions. Access GPT-4.1, Claude 4, Gemini, and more with one account.",
+    creator: "@snowgooseai", // Add your Twitter handle
+    images: ["https://snowgoose.app/og.png"], // Use the same OG image
+  },
 };
 
 // This Server Component now just renders the Client Component
 export default function MarketingPage() {
-  return <MarketingClientPage />;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Snowgoose",
+    description:
+      "Access top AI models like GPT-4.1, Claude 4, and Gemini through a single, unified platform with credits that roll over for a full year.",
+    url: "https://snowgoose.app/",
+    browserRequirements:
+      "Requires a modern web browser with JavaScript enabled.",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "USD",
+      lowPrice: "10.00",
+      offerCount: "4",
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Snowgoose Basic",
+          price: "10.00",
+          priceCurrency: "USD",
+          priceSpecification: {
+            "@type": "PriceSpecification",
+            price: 10.0,
+            priceCurrency: "USD",
+            valueAddedTaxIncluded: false,
+            unitText: "month",
+          },
+        },
+        {
+          "@type": "Offer",
+          name: "Snowgoose Premium",
+          price: "20.00",
+          priceCurrency: "USD",
+          priceSpecification: {
+            "@type": "PriceSpecification",
+            price: 20.0,
+            priceCurrency: "USD",
+            valueAddedTaxIncluded: false,
+            unitText: "month",
+          },
+        },
+        // It's good practice to include all offers if possible
+        {
+          "@type": "Offer",
+          name: "Small Credit Pack",
+          price: "10.00",
+          priceCurrency: "USD",
+        },
+        {
+          "@type": "Offer",
+          name: "Large Credit Pack",
+          price: "30.00",
+          priceCurrency: "USD",
+        },
+      ],
+    },
+    // Optional but recommended properties from CreativeWork
+    publisher: {
+      "@type": "Organization",
+      name: "Lone Yeti Developments", // Your company name
+    },
+    mainEntity: {
+      "@type": "WebPage",
+      "@id": "https://snowgoose.app/#faq",
+    },
+  };
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <MarketingClientPage />
+    </>
+  );
 }

@@ -114,16 +114,16 @@ export default function MarketingClientPage() {
         <div className="mx-auto max-w-4xl px-6 lg:px-8 text-center">
           {/* SEO Suggestion #2: Header Structure Optimization */}
           <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
-            Access All Leading AI Models - GPT 4.1, o3 Pro, Claude, Gemini in
-            One Platform
+            All Leading AI Models.
+            <br />
+            One Subscription.
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-300 sm:text-xl max-w-3xl mx-auto">
-            Access leading AI models from OpenAI, Anthropic, Google, DeepSeek,
-            and more, through one simple subscription. Stop juggling multiple AI
-            accounts and enjoy credits that roll over for a full year.
+            Access GPT-4.1, o3 Pro, Claude Opus 4, Gemini 2.5 Pro, and more from
+            OpenAI, Anthropic, Google, and DeepSeek. Stop juggling accounts and
+            enjoy credits that roll over for a full year.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
-            {/* SEO Suggestion #9: Optimize CTA Buttons */}
             <Link
               href="/login?action=demo"
               className="rounded-md bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:from-purple-600 hover:to-pink-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition duration-150 ease-in-out transform hover:scale-105"
@@ -173,12 +173,12 @@ export default function MarketingClientPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           {/* SEO Suggestion #4: Keyword-rich section header */}
           <div className="mx-auto max-w-2xl lg:text-center">
-            <h2 className="text-base font-semibold leading-7 text-indigo-400">
+            <p className="text-base font-semibold leading-7 text-indigo-400">
               Your Consolidated AI Platform
-            </h2>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              The Best AI Model Platform for Developers and Businesses
             </p>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              A Simpler Way to Use the World&apos;s Best AI
+            </h2>
             <p className="mt-6 text-lg leading-8 text-gray-300">
               Snowgoose provides unified access to OpenAI GPT-4, Anthropic
               Claude, Google Gemini, DeepSeek, and Qwen models through a single
@@ -514,8 +514,7 @@ export default function MarketingClientPage() {
         </div>
       </section>
 
-      {/* SEO Suggestion #8: Add FAQ Section */}
-      <section className="bg-gray-900 py-24 sm:py-32">
+      <section id="faq" className="bg-gray-900 py-24 sm:py-32">
         <div className="mx-auto max-w-4xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center">
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
@@ -526,36 +525,85 @@ export default function MarketingClientPage() {
               customer support team.
             </p>
           </div>
-          <div className="mt-16 space-y-8">
-            <div className="rounded-lg bg-gray-800/60 p-6">
-              <h3 className="text-base font-semibold leading-7 text-white">
+          <div
+            itemScope
+            itemType="https://schema.org/FAQPage"
+            className="mt-16 space-y-8"
+          >
+            <div
+              itemScope
+              itemProp="mainEntity"
+              itemType="https://schema.org/Question"
+              className="rounded-lg bg-gray-800/60 p-6"
+            >
+              <h3
+                itemProp="name"
+                className="text-base font-semibold leading-7 text-white"
+              >
                 What AI models does Snowgoose support?
               </h3>
-              <p className="mt-3 text-base leading-7 text-gray-300">
-                Snowgoose provides access to OpenAI GPT-4 and o3, Anthropic
-                Claude Opus, Google Gemini, DeepSeek, and Qwen models through
-                one unified platform.
-              </p>
+              <div
+                itemScope
+                itemProp="acceptedAnswer"
+                itemType="https://schema.org/Answer"
+                className="mt-3 text-base leading-7 text-gray-300"
+              >
+                <p itemProp="text">
+                  Snowgoose provides access to OpenAI GPT-4 and o3, Anthropic
+                  Claude Opus, Google Gemini, DeepSeek, and Qwen models through
+                  one unified platform.
+                </p>
+              </div>
             </div>
-            <div className="rounded-lg bg-gray-800/60 p-6">
-              <h3 className="text-base font-semibold leading-7 text-white">
+            <div
+              itemScope
+              itemProp="mainEntity"
+              itemType="https://schema.org/Question"
+              className="rounded-lg bg-gray-800/60 p-6"
+            >
+              <h3
+                itemProp="name"
+                className="text-base font-semibold leading-7 text-white"
+              >
                 Is Snowgoose cheaper than individual AI subscriptions?
               </h3>
-              <p className="mt-3 text-base leading-7 text-gray-300">
-                Yes, instead of paying $20/month each to OpenAI and Anthropic,
-                you can access all models starting at just $10/month with
-                Snowgoose credits that roll over.
-              </p>
+              <div
+                itemScope
+                itemProp="acceptedAnswer"
+                itemType="https://schema.org/Answer"
+                className="mt-3 text-base leading-7 text-gray-300"
+              >
+                <p itemProp="text">
+                  Yes, instead of paying $20/month each to OpenAI and Anthropic,
+                  you can access all models starting at just $10/month with
+                  Snowgoose credits that roll over.
+                </p>
+              </div>
             </div>
-            <div className="rounded-lg bg-gray-800/60 p-6">
-              <h3 className="text-base font-semibold leading-7 text-white">
+            <div
+              itemScope
+              itemProp="mainEntity"
+              itemType="https://schema.org/Question"
+              className="rounded-lg bg-gray-800/60 p-6"
+            >
+              <h3
+                itemProp="name"
+                className="text-base font-semibold leading-7 text-white"
+              >
                 How long do Snowgoose credits last?
               </h3>
-              <p className="mt-3 text-base leading-7 text-gray-300">
-                All credits remain valid for one full year from the date of
-                purchase, unlike many other platforms where credits expire
-                monthly.
-              </p>
+              <div
+                itemScope
+                itemProp="acceptedAnswer"
+                itemType="https://schema.org/Answer"
+                className="mt-3 text-base leading-7 text-gray-300"
+              >
+                <p itemProp="text">
+                  All credits remain valid for one full year from the date of
+                  purchase, unlike many other platforms where credits expire
+                  monthly.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -646,7 +694,7 @@ export default function MarketingClientPage() {
             <img
               src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=featured&theme=neutral"
               width="250"
-              alt="Fazier badge"
+              alt="Snowgoose featured on Fazier launch platform"
             />
           </a>
         </div>
