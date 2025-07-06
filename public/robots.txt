@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://snowgoose.app
+
+# Sitemaps
+Sitemap: https://snowgoose.app/sitemap.xml
