@@ -119,9 +119,9 @@ export default function MarketingClientPage() {
             One Subscription.
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-300 sm:text-xl max-w-3xl mx-auto">
-            Access GPT-4.1, o3 Pro, Claude Opus 4, Gemini 2.5 Pro, and more from
-            OpenAI, Anthropic, Google, and DeepSeek. Stop juggling accounts and
-            enjoy credits that roll over for a full year.
+            Access LLMs like GPT-4.1, o3 Pro, Claude Opus 4, Gemini 2.5 Pro, and
+            more from OpenAI, Anthropic, Google, and DeepSeek. Stop juggling
+            accounts and enjoy a unified AI chatbot interface.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
             <Link
@@ -161,8 +161,14 @@ export default function MarketingClientPage() {
           <div className="flex items-center justify-center gap-x-6 text-white">
             <BoltIcon className="h-5 w-5" />
             <p className="text-sm leading-6">
-              <strong className="font-semibold">New:</strong> Streaming
-              responses, web search, and in-line image generation now available!
+              <strong className="font-semibold">New:</strong>{" "}
+              <a
+                className="underline"
+                href="/blog/snowgoose-major-update-image-generation-web-search-streaming"
+              >
+                Streaming responses, web search, and in-line image generation
+              </a>{" "}
+              now available!
             </p>
           </div>
         </div>
@@ -177,12 +183,12 @@ export default function MarketingClientPage() {
               Your Consolidated AI Platform
             </p>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              A Simpler Way to Use the World&apos;s Best AI
+              A Simpler Way to Use the World&apos;s Best AI Models
             </h2>
             <p className="mt-6 text-lg leading-8 text-gray-300">
-              Snowgoose provides unified access to OpenAI GPT-4, Anthropic
-              Claude, Google Gemini, DeepSeek, and Qwen models through a single
-              subscription.
+              Snowgoose provides unified access to the best chatbots and LLMs:
+              OpenAI ChatGPT, Anthropic Claude, Google Gemini, DeepSeek, and
+              Qwen models through a single subscription.
             </p>
           </div>
           <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
@@ -198,9 +204,10 @@ export default function MarketingClientPage() {
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Get GPT-4, Claude, Gemini, and more through one seamless
-                    interface. As an AI API alternative, Snowgoose simplifies
-                    your workflow instantly.
+                    Get LLM and chatbot access to GPT-4.1, o3 Pro, Claude 4,
+                    Gemini 2.5 Pro, and more through one seamless interface. As
+                    an AI API alternative, Snowgoose simplifies your workflow
+                    instantly.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
                     No more juggling multiple subscriptions.
@@ -506,7 +513,7 @@ export default function MarketingClientPage() {
                 <p className="text-gray-300">
                   No expensive monthly accounts from multiple vendors, no
                   surprise bills, no API key management. Just a simple,
-                  consolidated AI platform with credits that last a full year.
+                  consolidated AI platform.
                 </p>
               </div>
             </div>
@@ -549,9 +556,9 @@ export default function MarketingClientPage() {
                 className="mt-3 text-base leading-7 text-gray-300"
               >
                 <p itemProp="text">
-                  Snowgoose provides access to OpenAI GPT-4 and o3, Anthropic
-                  Claude Opus, Google Gemini, DeepSeek, and Qwen models through
-                  one unified platform.
+                  Snowgoose provides access to large language models (LLMs) like
+                  OpenAI GPT-4 and o3, Anthropic Claude Opus, Google Gemini,
+                  DeepSeek, and Qwen models through one unified platform.
                 </p>
               </div>
             </div>
@@ -574,9 +581,12 @@ export default function MarketingClientPage() {
                 className="mt-3 text-base leading-7 text-gray-300"
               >
                 <p itemProp="text">
-                  Yes, instead of paying $20/month each to OpenAI and Anthropic,
-                  you can access all models starting at just $10/month with
-                  Snowgoose credits that roll over.
+                  Yes, instead of paying $20/month or more each to OpenAI,
+                  Anthropic, and Google, you can access all models starting at
+                  just $10/month. Unused credits roll over. Check out our{" "}
+                  <a href="/blog/snowgoose-credits-now-rollover">
+                    blog post about it.
+                  </a>
                 </p>
               </div>
             </div>
@@ -665,12 +675,12 @@ export default function MarketingClientPage() {
               <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                 Start using AI the smart way.
                 <br />
-                Credits that actually last.
+                Unify your LLMs today.
               </h2>
               <p className="mt-6 text-lg leading-8 text-gray-300">
                 Join others who&apos;ve simplified their AI workflow with
                 Snowgoose. Try our free demo to experience the difference, or
-                jump right in with credits that roll over for a full year.
+                jump right in with an affordable subscription.
               </p>
               <div className="mt-10 flex items-center justify-center gap-x-6 lg:justify-start">
                 <Link

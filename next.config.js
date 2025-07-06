@@ -24,6 +24,21 @@ module.exports = withAxiom({
     },
     // externalDir: true,
   },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "www.snowgoose.app",
+          },
+        ],
+        destination: "https://snowgoose.app/:path*",
+        permanent: true, // This sets the status code to 301
+      },
+    ];
+  },
   async headers() {
     return [
       {

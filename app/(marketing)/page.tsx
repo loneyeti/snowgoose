@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import MarketingClientPage from "./_components/marketing-client-page"; // Import the new client component
 
 export const metadata: Metadata = {
-  title: "Snowgoose - All Leading AI Models, One Subscriptions",
+  title: "Snowgoose | Unified AI Platform for GPT-4, Claude & More",
   description:
     "Access OpenAI GPT 4.1, o3, Anthropic Claude 4, Google Gemini 2.5 Pro, Deepseek, and more AI models through one subscription. Try the free demo.",
   alternates: {
