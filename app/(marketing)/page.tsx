@@ -4,16 +4,18 @@ import type { Metadata } from "next";
 import MarketingClientPage from "./_components/marketing-client-page"; // Import the new client component
 
 export const metadata: Metadata = {
-  title:
-    "Snowgoose - All AI Models, One Subscriptions (GPT-4.1, Claude 4, Gemini 2.5 Pro)",
+  title: "Snowgoose - All Leading AI Models, One Subscriptions",
   description:
-    "Access OpenAI GPT o3, Anthropic Claude 4, Google Gemini 2.5 Pro, and more AI models through one simple subscription. Credits roll over for 1 year. Try the free demo.",
+    "Access OpenAI GPT 4.1, o3, Anthropic Claude 4, Google Gemini 2.5 Pro, and more AI models through one subscription. Try the free demo.",
+  alternates: {
+    canonical: "https://snowgoose.app",
+  },
   openGraph: {
     title:
       "Snowgoose | All AI Models, One Subscription (GPT-4.1, Claude 4, Gemini)",
     description:
-      "Stop juggling AI subscriptions and get access to all leading AI models with credits that last a year.",
-    url: "https://snowgoose.app", // Replace with your actual domain
+      "Stop juggling multiple AI subscriptions and get access to all leading AI models.",
+    url: "https://snowgoose.app",
     siteName: "Snowgoose",
     images: [
       {
@@ -31,8 +33,8 @@ export const metadata: Metadata = {
       "Snowgoose | All AI Models, One Subscription (GPT-4.1, Claude 4, Gemini)",
     description:
       "Stop juggling AI subscriptions. Access GPT-4.1, Claude 4, Gemini, and more with one account.",
-    creator: "@snowgooseai", // Add your Twitter handle
-    images: ["https://snowgoose.app/og.png"], // Use the same OG image
+    creator: "@snowgooseai",
+    images: ["https://snowgoose.app/og.png"],
   },
 };
 
