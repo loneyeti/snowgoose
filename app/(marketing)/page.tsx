@@ -6,7 +6,7 @@ import MarketingClientPage from "./_components/marketing-client-page"; // Import
 export const metadata: Metadata = {
   title: "Snowgoose - All Leading AI Models, One Subscriptions",
   description:
-    "Access OpenAI GPT 4.1, o3, Anthropic Claude 4, Google Gemini 2.5 Pro, and more AI models through one subscription. Try the free demo.",
+    "Access OpenAI GPT 4.1, o3, Anthropic Claude 4, Google Gemini 2.5 Pro, Deepseek, and more AI models through one subscription. Try the free demo.",
   alternates: {
     canonical: "https://snowgoose.app",
   },
