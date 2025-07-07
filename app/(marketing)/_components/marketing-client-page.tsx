@@ -119,9 +119,9 @@ export default function MarketingClientPage() {
             One Subscription.
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-300 sm:text-xl max-w-3xl mx-auto">
-            Access LLMs like GPT-4.1, o3 Pro, Claude Opus 4, Gemini 2.5 Pro, and
-            more from OpenAI, Anthropic, Google, and DeepSeek. Stop juggling
-            accounts and enjoy a unified AI chatbot interface.
+            Access AI Chat LLMs like GPT-4.1, o3 Pro, Claude Opus 4, Gemini 2.5
+            Pro, and more from OpenAI, Anthropic, Google, and DeepSeek. Stop
+            juggling accounts and enjoy a unified AI chatbot interface.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
             <Link
@@ -204,13 +204,14 @@ export default function MarketingClientPage() {
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Get LLM and chatbot access to GPT-4.1, o3 Pro, Claude 4,
+                    Get LLM and ai chat access to GPT-4.1, o3 Pro, Claude 4,
                     Gemini 2.5 Pro, and more through one seamless interface. As
                     an AI API alternative, Snowgoose simplifies your workflow
                     instantly.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
-                    No more juggling multiple subscriptions.
+                    Your ChatGPT alternative. No more juggling multiple
+                    subscriptions.
                   </p>
                 </dd>
               </div>
@@ -226,9 +227,10 @@ export default function MarketingClientPage() {
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Pre-built AI personas for coding, writing, tax advice, and
-                    custom workflows. Streamline your AI interactions with
-                    consistent context and specialized prompts.
+                    Pre-built AI chatbot personas for coding, writing, tax
+                    advice, and custom workflows. Streamline your AI
+                    interactions with consistent context and specialized
+                    prompts.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
                     Save time with consistent context.
@@ -252,7 +254,7 @@ export default function MarketingClientPage() {
                     own images for analysis with any supporting model.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
-                    Unlock true multimodal workflows
+                    Unlock true multimodal AI workflows
                   </p>
                 </dd>
               </div>
@@ -269,7 +271,7 @@ export default function MarketingClientPage() {
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
                     Ground your responses in the latest information. Empower
-                    your AI with real-time access to the web for
+                    your AI chats with real-time access to the web for
                     up-to-the-minute research and data.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
@@ -289,7 +291,7 @@ export default function MarketingClientPage() {
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Get responses in Markdown, JSON, HTML, or CSV. Perfect
+                    Get AI responses in Markdown, JSON, HTML, or CSV. Perfect
                     integration for developers and writers.
                   </p>
                   <p className="mt-4 text-sm text-gray-500">
@@ -309,8 +311,9 @@ export default function MarketingClientPage() {
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Fully transparent and community-driven. Inspect the code,
-                    contribute, or self-host if you prefer.
+                    True chat AI that is open sources is rare. Fully transparent
+                    and community-driven. Inspect the code, contribute, or
+                    self-host if you prefer.
                   </p>
                   <p className="mt-4">
                     <a
