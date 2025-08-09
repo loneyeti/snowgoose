@@ -119,7 +119,7 @@ export default function MarketingClientPage() {
             One Subscription.
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-300 sm:text-xl max-w-3xl mx-auto">
-            Access AI Chat LLMs like GPT-4.1, o3 Pro, Claude Opus 4, Gemini 2.5
+            Access AI Chat LLMs like GPT 5, o3 Pro, Claude Opus 4, Gemini 2.5
             Pro, and more from OpenAI, Anthropic, Google, and DeepSeek. Stop
             juggling accounts and enjoy a unified AI chatbot interface.
           </p>
@@ -204,7 +204,7 @@ export default function MarketingClientPage() {
                 </dt>
                 <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-300">
                   <p className="flex-auto">
-                    Get LLM and ai chat access to GPT-4.1, o3 Pro, Claude 4,
+                    Get LLM and ai chat access to GPT 5, o3 Pro, Claude 4,
                     Gemini 2.5 Pro, and more through one seamless interface. As
                     an AI API alternative, Snowgoose simplifies your workflow
                     instantly.

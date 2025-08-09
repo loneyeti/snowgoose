@@ -18,7 +18,7 @@ const creditPacks = [
     description: "Great for topping up your balance.",
     features: [
       "600 credits valid for 1 year",
-      "~1,500 GPT-4o prompts",
+      "~1,500 GPT 5 prompts",
       "No monthly commitment",
     ],
     cta: "Buy Credits",
@@ -33,7 +33,7 @@ const creditPacks = [
     description: "Best value for a one-time purchase.",
     features: [
       "2,000 credits valid for 1 year",
-      "~5,000 GPT-4o prompts",
+      "~5,000 GPT 5 prompts",
       "Save vs. smaller packs",
     ],
     cta: "Buy Credits",

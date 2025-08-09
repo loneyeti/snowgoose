@@ -4,15 +4,15 @@ import type { Metadata } from "next";
 import MarketingClientPage from "./_components/marketing-client-page"; // Import the new client component
 
 export const metadata: Metadata = {
-  title: "Snowgoose | Unified AI Platform for GPT-4, Claude & More",
+  title: "Snowgoose | Unified AI Platform for ChatGPT, Claude & More",
   description:
-    "Access OpenAI GPT 4.1, o3, Anthropic Claude 4, Google Gemini 2.5 Pro, Deepseek, and more AI models through one subscription. Try the free demo.",
+    "Access OpenAI GPT 5, o3, Anthropic Claude 4, Google Gemini 2.5 Pro, Deepseek, and more AI models through one subscription. Try the free demo.",
   alternates: {
     canonical: "https://snowgoose.app",
   },
   openGraph: {
     title:
-      "Snowgoose | All AI Models, One Subscription (GPT-4.1, Claude 4, Gemini)",
+      "Snowgoose | All AI Models, One Subscription (GPT 5, Claude 4, Gemini)",
     description:
       "Stop juggling multiple AI subscriptions and get access to all leading AI models.",
     url: "https://snowgoose.app",
@@ -30,9 +30,9 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title:
-      "Snowgoose | All AI Models, One Subscription (GPT-4.1, Claude 4, Gemini)",
+      "Snowgoose | All AI Models, One Subscription (GPT 5, Claude 4, Gemini)",
     description:
-      "Stop juggling AI subscriptions. Access GPT-4.1, Claude 4, Gemini, and more with one account.",
+      "Stop juggling AI subscriptions. Access GPT 5, Claude 4, Gemini, and more with one account.",
     creator: "@snowgooseai",
     images: ["https://snowgoose.app/og.png"],
   },
@@ -45,7 +45,7 @@ export default function MarketingPage() {
     "@type": "WebApplication",
     name: "Snowgoose",
     description:
-      "Access top AI models like GPT-4.1, Claude 4, and Gemini through a single, unified platform with credits that roll over for a full year.",
+      "Access top AI models like GPT 5, Claude 4, and Gemini through a single, unified platform with credits that roll over for a full year.",
     url: "https://snowgoose.app/",
     browserRequirements:
       "Requires a modern web browser with JavaScript enabled.",

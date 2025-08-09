@@ -17,7 +17,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Snowgoose | Features that Simplify and Empower Your AI Workflow",
   description:
-    "Explore Snowgoose features: Unified access to GPT-4.1 & Claude 3.7, intelligent personas, flexible outputs (JSON, Markdown), vision support, image generation, and simple UI.",
+    "Explore Snowgoose features: Unified access to GPT 5 & Claude 3.7, intelligent personas, flexible outputs (JSON, Markdown), vision support, image generation, and simple UI.",
 };
 
 export default function FeaturesPage() {
@@ -42,8 +42,8 @@ export default function FeaturesPage() {
             clean interface. Forget juggling multiple accounts and
             subscriptions. With one pool of flexible credits, you have the
             freedom to choose the perfect model for any task—from coding with
-            GPT 4.1 or Gemini 2.5 Pro to advanced reasoning with Claude Opus 4
-            or o3 Pro. The power is yours.
+            GPT 5 or Gemini 2.5 Pro to advanced reasoning with Claude Opus 4 or
+            o3 Pro. The power is yours.
           </p>
           <ul className="list-disc list-inside text-lg text-gray-300 space-y-1">
             <li>

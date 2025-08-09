@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Snowgoose Pricing | AI Access with Credits That Never Expire",
   description:
-    "Flexible pricing for unified AI access. Monthly plans from $10 with rollover credits or one-time credit packages. Access GPT-4, Claude, Gemini and more.",
+    "Flexible pricing for unified AI access. Monthly plans from $10 with rollover credits or one-time credit packages. Access GPT 5, Claude, Gemini and more.",
 };
 
 export default function PricingPage() {
@@ -20,7 +20,7 @@ export default function PricingPage() {
       features: [
         "800 monthly credits that roll over",
         "Credits valid for 1 year",
-        "~2,000 GPT-4o prompts per month",
+        "~2,000 GPT 5 prompts per month",
         "Access to all AI models",
         "Web search & image generation",
         "All output formats",
@@ -40,7 +40,7 @@ export default function PricingPage() {
       features: [
         "1,900 monthly credits that roll over",
         "Credits valid for 1 year",
-        "~4,750 GPT-4o prompts per month",
+        "~4,750 GPT 5 prompts per month",
         "Everything in Basic, plus:",
         "2.4x more credits for the same per-credit cost",
         "Priority support",
@@ -62,7 +62,7 @@ export default function PricingPage() {
       description: "Top up when you need extra credits.",
       features: [
         "600 credits valid for 1 year",
-        "~1,500 GPT-4o prompts",
+        "~1,500 GPT 5 prompts",
         "Perfect for project bursts",
         "No monthly commitment",
       ],
@@ -77,7 +77,7 @@ export default function PricingPage() {
       description: "Best value for occasional heavy users.",
       features: [
         "2,000 credits valid for 1 year",
-        "~5,000 GPT-4o prompts",
+        "~5,000 GPT 5 prompts",
         "Great for teams or projects",
         "No monthly commitment",
       ],
@@ -264,7 +264,7 @@ export default function PricingPage() {
             <div>
               <p className="font-semibold text-white mb-2">With 800 credits:</p>
               <ul className="space-y-1 text-sm">
-                <li>• ~2,000 GPT-4o prompts</li>
+                <li>• ~2,000 GPT 5 prompts</li>
                 <li>• ~200 Claude Opus thinking prompts</li>
                 <li>• ~30 AI-generated images</li>
                 <li>• Mix and match as needed</li>
@@ -275,7 +275,7 @@ export default function PricingPage() {
                 With 1,900 credits:
               </p>
               <ul className="space-y-1 text-sm">
-                <li>• ~4,750 GPT-4o prompts</li>
+                <li>• ~4,750 GPT 5 prompts</li>
                 <li>• ~475 Claude Opus thinking prompts</li>
                 <li>• ~75 AI-generated images</li>
                 <li>• Perfect for power users</li>
