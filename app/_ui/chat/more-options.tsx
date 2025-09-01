@@ -636,45 +636,38 @@ export default function MoreOptions({
       )}
 
       {/* --- Token Sliders (Existing) --- */}
-      {showTokenSliders &&
-        !showImageOptions && ( // Hide sliders if image options are shown
-          <div className="space-y-3">
-            {/* Dark mode: Adjust label text and icon */}
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-              <MaterialSymbol icon="psychology" size={18} />
-              <div className="flex justify-between items-center w-full">
-                <label className="text-sm font-medium" htmlFor="thinkingPreset">
-                  Thinking Level
-                </label>
-                {/* Dark mode: Adjust badge colors */}
-                <span className="text-xs font-medium px-2 py-0.5 bg-slate-100 dark:bg-slate-600 rounded-full text-slate-600 dark:text-slate-200">
-                  {selectedPreset}
-                </span>
-              </div>
+      {showTokenSliders && (
+        <div className="space-y-3">
+          {/* Dark mode: Adjust label text and icon */}
+          <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+            <MaterialSymbol icon="psychology" size={18} />
+            <div className="flex justify-between items-center w-full">
+              <label className="text-sm font-medium" htmlFor="thinkingPreset">
+                Thinking Level
+              </label>
+              {/* Dark mode: Adjust badge colors */}
+              <span className="text-xs font-medium px-2 py-0.5 bg-slate-100 dark:bg-slate-600 rounded-full text-slate-600 dark:text-slate-200">
+                {selectedPreset}
+              </span>
             </div>
-            {/* Dark mode: Adjust range slider track and thumb */}
-            <input
-              type="range"
-              name="thinkingPreset"
-              className="w-full h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-blue-500 dark:accent-blue-400"
-              min="0"
-              max={thinkingPresets.length - 1}
-              value={thinkingPresets.findIndex(
-                (p) => p.name === selectedPreset
-              )}
-              onChange={(e) => {
-                const preset = thinkingPresets[parseInt(e.target.value)];
-                onPresetChange(preset);
-              }}
-            />
-            <input type="hidden" name="maxTokens" value={maxTokens || ""} />
-            <input
-              type="hidden"
-              name="budgetTokens"
-              value={budgetTokens || ""}
-            />
           </div>
-        )}
+          {/* Dark mode: Adjust range slider track and thumb */}
+          <input
+            type="range"
+            name="thinkingPreset"
+            className="w-full h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-blue-500 dark:accent-blue-400"
+            min="0"
+            max={thinkingPresets.length - 1}
+            value={thinkingPresets.findIndex((p) => p.name === selectedPreset)}
+            onChange={(e) => {
+              const preset = thinkingPresets[parseInt(e.target.value)];
+              onPresetChange(preset);
+            }}
+          />
+          <input type="hidden" name="maxTokens" value={maxTokens || ""} />
+          <input type="hidden" name="budgetTokens" value={budgetTokens || ""} />
+        </div>
+      )}
     </div>
   );
 }
