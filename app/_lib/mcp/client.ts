@@ -50,13 +50,6 @@ export class MCPClient {
         name: config.name,
         version: config.version,
       },
-      {
-        capabilities: {
-          prompts: config.capabilities?.prompts ?? {},
-          resources: config.capabilities?.resources ?? {},
-          tools: config.capabilities?.tools ?? {},
-        },
-      }
     );
   }
 
