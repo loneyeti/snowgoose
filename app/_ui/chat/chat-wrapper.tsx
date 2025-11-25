@@ -441,6 +441,11 @@ export default function ChatWrapper({
                       if (lastBlock && lastBlock.type === "thinking") {
                         // If so, append the new thinking text to it.
                         lastBlock.thinking += parsedChunk.thinking;
+                        if (parsedChunk.signature) {
+                          // Initialize signature if it doesn't exist (legacy/migration safety)
+                          if (!lastBlock.signature) lastBlock.signature = "";
+                          lastBlock.signature += parsedChunk.signature;
+                        }
                       } else {
                         // Otherwise, this is the first thinking chunk, so push it as a new block.
                         newContent.push(parsedChunk);
