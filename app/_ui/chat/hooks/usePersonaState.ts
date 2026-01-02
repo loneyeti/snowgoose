@@ -1,5 +1,5 @@
 import { Persona } from "@prisma/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface UsePersonaStateProps {
   personas: Persona[];
@@ -25,8 +25,18 @@ export function usePersonaState({
         : "")
   );
 
+  // Fix: Sync internal state when initialPersonaId changes
+  useEffect(() => {
+    if (initialPersonaId !== undefined) {
+      console.log(
+        `[usePersonaState] Syncing initialPersonaId to: ${initialPersonaId}`
+      );
+      setSelectedPersona(initialPersonaId.toString());
+    }
+  }, [initialPersonaId]);
+
   const updateSelectedPersona = (personaId: string) => {
-    console.log(`[usePersonaState] Updating selected persona to: ${personaId}`); // Added for debugging
+    console.log(`[usePersonaState] Updating selected persona to: ${personaId}`);
     setSelectedPersona(personaId);
   };
 

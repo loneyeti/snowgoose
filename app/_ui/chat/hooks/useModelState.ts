@@ -29,6 +29,14 @@ export function useModelState({
     initialModelId?.toString() ??
       (models.length > 0 ? models[0].id.toString() : "")
   );
+
+  // Fix: Sync internal state when initialModelId changes (e.g. loading history)
+  useEffect(() => {
+    if (initialModelId !== undefined) {
+      setSelectedModel(initialModelId.toString());
+    }
+  }, [initialModelId]);
+
   const [selectedModelVendor, setSelectedModelVendor] = useState<string>("");
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [showMCPTools, setShowMCPTools] = useState(false);
@@ -40,10 +48,8 @@ export function useModelState({
   useEffect(() => {
     if (selectedModel !== "") {
       const model = models.find((model) => model.id === Number(selectedModel));
-
       if (model) {
         const vendor = apiVendors.find((v) => v.id === model.apiVendorId);
-
         setSelectedModelVendor(vendor?.name || "");
         setShowMCPTools(vendor?.name === "anthropic");
         setShowFileUpload(!!model.isVision);

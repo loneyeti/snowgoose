@@ -40,9 +40,34 @@ export function useThinkingState({
     initialBudgetTokens
   );
 
+  // Fix: Sync internal state when initial values change
+  useEffect(() => {
+    if (initialMaxTokens !== null) {
+      setMaxTokens(initialMaxTokens);
+    }
+    if (initialBudgetTokens !== null) {
+      setBudgetTokens(initialBudgetTokens);
+    }
+
+    if (initialMaxTokens !== null) {
+      const matched = DEFAULT_THINKING_PRESETS.find(
+        (p) =>
+          p.maxTokens === initialMaxTokens &&
+          p.budgetTokens === initialBudgetTokens
+      );
+      if (matched) {
+        setSelectedPreset(matched.name);
+      } else {
+        setSelectedPreset("Custom");
+      }
+    } else if (initialPreset) {
+      setSelectedPreset(initialPreset);
+    }
+  }, [initialMaxTokens, initialBudgetTokens, initialPreset]);
+
+  // Reset to defaults if sliders are hidden (model changed to non-thinking)
   useEffect(() => {
     if (!showTokenSliders) {
-      // Reset to default values when thinking mode is disabled
       const defaultPreset = DEFAULT_THINKING_PRESETS[0];
       setSelectedPreset(defaultPreset.name);
       setMaxTokens(null);
