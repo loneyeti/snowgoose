@@ -33,6 +33,12 @@ export function initializeAIVendors() {
       apiKey: process.env.OPENROUTER_API_KEY,
     });
   }
+
+  if (process.env.GROK_API_KEY) {
+    AIVendorFactory.setVendorConfig("grok", {
+      apiKey: process.env.GROK_API_KEY,
+    });
+  }
 }
 
 initializeAIVendors();
