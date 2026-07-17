@@ -150,6 +150,7 @@ export default function ChatWrapper({
     selectedPreset,
     maxTokens,
     budgetTokens,
+    effort,
     updatePreset,
     thinkingPresets,
   } = useThinkingState({
@@ -291,6 +292,7 @@ export default function ChatWrapper({
       prompt: prompt,
       maxTokens: maxTokens,
       budgetTokens: budgetTokens,
+      effort: effort,
       systemPrompt:
         (personas.find((p) => p.id === parseInt(selectedPersona))?.prompt ||
           "") +
