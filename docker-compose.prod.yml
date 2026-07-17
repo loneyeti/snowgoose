@@ -26,6 +26,7 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - GROK_API_KEY=${GROK_API_KEY}
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
       # Add any other production-specific environment variables
