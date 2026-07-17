@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form"; // Keep useForm from react-hook-form
 import { useFormState } from "react-dom"; // Import useFormState from react-dom for actions
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { ContactFormSchema, FormState } from "../../_lib/form-schemas";
 import { sendContactEmailAction } from "../../_lib/server_actions/contact.actions";
 import { useEffect } from "react";
@@ -10,7 +11,7 @@ import { toast } from "sonner";
 import { SubmitButton } from "../settings/buttons"; // Assuming a reusable SubmitButton exists
 
 // Define the shape of the form data based on the Zod schema
-type FormData = Zod.infer<typeof ContactFormSchema>;
+type FormData = z.infer<typeof ContactFormSchema>;
 
 export default function ContactForm({
   userEmail,
