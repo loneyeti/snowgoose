@@ -69,6 +69,8 @@ export interface LocalChat extends Chat {
   openaiImageEditOptions?: OpenAIImageEditOptions;
   useWebSearch?: boolean;
   useImageGeneration?: boolean;
+  verbosity?: "low" | "medium" | "high";
+  reasoningMode?: "standard" | "pro";
 }
 
 export interface Persona {

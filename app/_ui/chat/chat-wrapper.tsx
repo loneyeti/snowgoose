@@ -82,6 +82,15 @@ export default function ChatWrapper({
   const [useImageGeneration, setUseImageGeneration] = useState(false);
   const toggleWebSearch = () => setUseWebSearch((prev) => !prev);
   const toggleImageGeneration = () => setUseImageGeneration((prev) => !prev);
+  // OpenAI reasoning-model-only options (gpt-5+ verbosity, gpt-5.6 pro mode)
+  const [verbosity, setVerbosity] = useState<"low" | "medium" | "high">(
+    "medium"
+  );
+  const [reasoningMode, setReasoningMode] = useState<"standard" | "pro">(
+    "standard"
+  );
+  const toggleReasoningMode = () =>
+    setReasoningMode((prev) => (prev === "pro" ? "standard" : "pro"));
   const [currentCreditBalance, setCurrentCreditBalance] =
     useState(creditBalance);
   const [currentChat, setCurrentChat] = useState<LocalChat | undefined>();
@@ -115,6 +124,7 @@ export default function ChatWrapper({
     showTokenSliders,
     showWebSearchToggle,
     showImageGenerationToggle,
+    showOpenAIReasoningOptions,
     updateSelectedModel,
   } = useModelState({
     models,
@@ -124,6 +134,16 @@ export default function ChatWrapper({
 
   const shouldShowImageOptions =
     showImageGenerationToggle && useImageGeneration;
+
+  // Reset verbosity/pro-mode to defaults if the selected model changed to
+  // one that isn't an OpenAI reasoning model (options would otherwise be
+  // silently stale on the next request).
+  useEffect(() => {
+    if (!showOpenAIReasoningOptions) {
+      setVerbosity("medium");
+      setReasoningMode("standard");
+    }
+  }, [showOpenAIReasoningOptions]);
 
   function getModelName(): string {
     const model = models.find((model) => model.id === parseInt(selectedModel));
@@ -303,6 +323,8 @@ export default function ChatWrapper({
       imageData: base64ImageData,
       useImageGeneration,
       useWebSearch,
+      verbosity: showOpenAIReasoningOptions ? verbosity : undefined,
+      reasoningMode: showOpenAIReasoningOptions ? reasoningMode : undefined,
       previousResponseId: previousResponseId,
       model: models.find((m) => m.id === parseInt(selectedModel))?.name || "",
       imageURL: imageURL,
@@ -510,6 +532,8 @@ export default function ChatWrapper({
     setPreviousResponseId(undefined);
     setUseWebSearch(false);
     setUseImageGeneration(false);
+    setVerbosity("medium");
+    setReasoningMode("standard");
   };
 
   function populateHistory(history: ConversationHistory) {
@@ -519,6 +543,8 @@ export default function ChatWrapper({
     setCurrentChat(chat);
     setUseWebSearch(chat.useWebSearch ?? false);
     setUseImageGeneration(chat.useImageGeneration ?? false);
+    setVerbosity(chat.verbosity ?? "medium");
+    setReasoningMode(chat.reasoningMode ?? "standard");
     toggleHistory();
   }
 
@@ -711,6 +737,13 @@ export default function ChatWrapper({
                             showImageGeneration={showImageGenerationToggle}
                             useImageGeneration={useImageGeneration}
                             onImageGenerationChange={toggleImageGeneration}
+                            showOpenAIReasoningOptions={
+                              showOpenAIReasoningOptions
+                            }
+                            verbosity={verbosity}
+                            onVerbosityChange={setVerbosity}
+                            reasoningMode={reasoningMode}
+                            onReasoningModeChange={toggleReasoningMode}
                           />
                         </div>
                         <div className="border-t border-slate-200 dark:border-slate-700 pt-3">
@@ -800,6 +833,13 @@ export default function ChatWrapper({
                             showImageGeneration={showImageGenerationToggle}
                             useImageGeneration={useImageGeneration}
                             onImageGenerationChange={toggleImageGeneration}
+                            showOpenAIReasoningOptions={
+                              showOpenAIReasoningOptions
+                            }
+                            verbosity={verbosity}
+                            onVerbosityChange={setVerbosity}
+                            reasoningMode={reasoningMode}
+                            onReasoningModeChange={toggleReasoningMode}
                           />
                         </div>
                       </Popover.Panel>

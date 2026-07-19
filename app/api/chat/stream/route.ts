@@ -113,6 +113,8 @@ export async function POST(req: NextRequest) {
       thinkingMode: (chat.budgetTokens ?? 0) > 0 && model.isThinking,
       budgetTokens: chat.budgetTokens ?? undefined,
       effort: chat.effort ?? undefined,
+      verbosity: chat.verbosity ?? undefined,
+      reasoningMode: chat.reasoningMode ?? undefined,
       tools: tools.length > 0 ? tools : undefined,
       previousResponseId: chat.previousResponseId,
       useImageGeneration: chat.useImageGeneration, // <-- ADD THIS LINE

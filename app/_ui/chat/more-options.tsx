@@ -14,6 +14,9 @@ const imageSizes: ImageSize[] = ["auto", "1024x1024", "1024x1536", "1536x1024"];
 const imageQualities: ImageQuality[] = ["auto", "low", "medium", "high"];
 const imageBackgrounds: ImageBackground[] = ["auto", "opaque", "transparent"];
 
+type Verbosity = "low" | "medium" | "high";
+const verbosityLevels: Verbosity[] = ["low", "medium", "high"];
+
 interface ThinkingPreset {
   name: string;
   maxTokens: number;
@@ -52,6 +55,12 @@ interface MoreOptionsProps {
   showImageGeneration: boolean;
   useImageGeneration: boolean;
   onImageGenerationChange: () => void;
+  // OpenAI reasoning-model-only options (gpt-5+ verbosity, gpt-5.6 pro mode)
+  showOpenAIReasoningOptions: boolean;
+  verbosity: "low" | "medium" | "high";
+  onVerbosityChange: (value: "low" | "medium" | "high") => void;
+  reasoningMode: "standard" | "pro";
+  onReasoningModeChange: () => void;
 }
 
 export default function MoreOptions({
@@ -85,6 +94,11 @@ export default function MoreOptions({
   showImageGeneration,
   useImageGeneration,
   onImageGenerationChange,
+  showOpenAIReasoningOptions,
+  verbosity,
+  onVerbosityChange,
+  reasoningMode,
+  onReasoningModeChange,
 }: MoreOptionsProps) {
   // --- Existing State ---
   // Removed internal selectedOutputFormat state - rely on currentOutputFormat prop
@@ -634,6 +648,94 @@ export default function MoreOptions({
             />
           </button>
         </div>
+      )}
+
+      {/* --- OpenAI Reasoning Options (Verbosity + Pro Mode) --- */}
+      {showOpenAIReasoningOptions && (
+        <>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+              <MaterialSymbol icon="notes" size={18} />
+              <label className="text-sm font-medium">Verbosity</label>
+            </div>
+            <Popover className="relative w-full">
+              {({ open, close }) => (
+                <>
+                  <Popover.Button
+                    className={`w-full flex items-center justify-between gap-2 px-3 py-2 bg-white dark:bg-slate-700 rounded-md border border-slate-200 dark:border-slate-600 shadow-sm hover:border-slate-300 dark:hover:border-slate-500 transition-colors ${open ? "border-blue-300 dark:border-blue-500 ring-1 ring-blue-200 dark:ring-blue-600" : ""} ${disableSelection ? "opacity-75 cursor-not-allowed" : "cursor-pointer"}`}
+                    disabled={disableSelection}
+                  >
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-100">
+                      {verbosity}
+                    </span>
+                    <MaterialSymbol
+                      icon={open ? "expand_less" : "expand_more"}
+                      size={18}
+                      className="text-slate-500 dark:text-slate-400"
+                    />
+                  </Popover.Button>
+                  <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-200"
+                    enterFrom="opacity-0 translate-y-1"
+                    enterTo="opacity-100 translate-y-0"
+                    leave="transition ease-in duration-150"
+                    leaveFrom="opacity-100 translate-y-0"
+                    leaveTo="opacity-0 translate-y-1"
+                  >
+                    <Popover.Panel className="absolute left-0 z-10 mt-2 w-full origin-top-left rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10 focus:outline-none">
+                      <div className="p-2">
+                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 mb-1">
+                          Select Verbosity
+                        </div>
+                        <div className="max-h-60 overflow-y-auto">
+                          {verbosityLevels.map((level) =>
+                            renderPopoverItem(
+                              level,
+                              verbosity,
+                              level,
+                              (newValue) => onVerbosityChange(newValue),
+                              close
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </Popover.Panel>
+                  </Transition>
+                </>
+              )}
+            </Popover>
+          </div>
+
+          <div className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+            <label
+              htmlFor="reasoning-mode-toggle"
+              className="text-sm font-medium text-slate-700 dark:text-slate-300"
+            >
+              Pro Reasoning
+            </label>
+            <button
+              type="button"
+              id="reasoning-mode-toggle"
+              className={`${
+                reasoningMode === "pro"
+                  ? "bg-indigo-600"
+                  : "bg-gray-200 dark:bg-gray-600"
+              } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`}
+              role="switch"
+              aria-checked={reasoningMode === "pro"}
+              onClick={onReasoningModeChange}
+              disabled={disableSelection}
+            >
+              <span
+                aria-hidden="true"
+                className={`${
+                  reasoningMode === "pro" ? "translate-x-5" : "translate-x-0"
+                } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+              />
+            </button>
+          </div>
+        </>
       )}
 
       {/* --- Token Sliders (Existing) --- */}

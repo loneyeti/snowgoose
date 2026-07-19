@@ -10,6 +10,7 @@ interface ModelState {
   showTokenSliders: boolean;
   showWebSearchToggle: boolean;
   showImageGenerationToggle: boolean;
+  showOpenAIReasoningOptions: boolean;
 }
 
 interface UseModelStateProps {
@@ -44,6 +45,8 @@ export function useModelState({
   const [showWebSearchToggle, setShowWebSearchToggle] = useState(false);
   const [showImageGenerationToggle, setShowImageGenerationToggle] =
     useState(false);
+  const [showOpenAIReasoningOptions, setShowOpenAIReasoningOptions] =
+    useState(false);
 
   useEffect(() => {
     if (selectedModel !== "") {
@@ -56,6 +59,9 @@ export function useModelState({
         setShowTokenSliders(!!model.isThinking);
         setShowWebSearchToggle(model.isWebSearch ?? false);
         setShowImageGenerationToggle(model.isImageGeneration);
+        setShowOpenAIReasoningOptions(
+          vendor?.name === "openai" && !!model.isThinking
+        );
       }
     }
   }, [selectedModel, models, apiVendors]);
@@ -72,6 +78,7 @@ export function useModelState({
     showTokenSliders,
     showWebSearchToggle,
     showImageGenerationToggle,
+    showOpenAIReasoningOptions,
     updateSelectedModel,
   };
 }
