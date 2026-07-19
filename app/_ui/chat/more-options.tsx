@@ -18,6 +18,7 @@ interface ThinkingPreset {
   name: string;
   maxTokens: number;
   budgetTokens: number | null;
+  effort?: "low" | "medium" | "high" | "xhigh" | "max";
 }
 
 interface MoreOptionsProps {

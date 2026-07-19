@@ -112,6 +112,7 @@ export async function POST(req: NextRequest) {
       maxTokens: chat.maxTokens ?? undefined,
       thinkingMode: (chat.budgetTokens ?? 0) > 0 && model.isThinking,
       budgetTokens: chat.budgetTokens ?? undefined,
+      effort: chat.effort ?? undefined,
       tools: tools.length > 0 ? tools : undefined,
       previousResponseId: chat.previousResponseId,
       useImageGeneration: chat.useImageGeneration, // <-- ADD THIS LINE
