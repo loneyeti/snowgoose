@@ -54,6 +54,7 @@ model Model {
   paidOnly             Boolean        @default(false) @map("paid_only")
   apiVendor            APIVendor?     @relation(fields: [apiVendorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   userSettings         UserSettings[]
+  globalSettings       GlobalSettings[]
 
   @@map("model")
 }
@@ -97,6 +98,14 @@ model UserSettings {
   user                     User   @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@map("user_settings")
+}
+
+model GlobalSettings {
+  id             Int    @id @default(autoincrement())
+  defaultModelId Int?   @map("default_model_id")
+  defaultModel   Model? @relation(fields: [defaultModelId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("global_settings")
 }
 
 model User {

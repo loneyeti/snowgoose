@@ -17,17 +17,28 @@ interface UseModelStateProps {
   models: Model[];
   apiVendors: APIVendor[];
   initialModelId?: number;
+  systemDefaultModelId?: number | null;
 }
 
 export function useModelState({
   models,
   apiVendors,
   initialModelId,
+  systemDefaultModelId,
 }: UseModelStateProps): ModelState & {
   updateSelectedModel: (modelId: string) => void;
 } {
+  // Resolution order: history's model, then the admin-configured system
+  // default (if it still exists), then the first model in the list.
+  const systemDefaultModel =
+    systemDefaultModelId != null &&
+    models.some((model) => model.id === systemDefaultModelId)
+      ? systemDefaultModelId
+      : undefined;
+
   const [selectedModel, setSelectedModel] = useState<string>(
     initialModelId?.toString() ??
+      systemDefaultModel?.toString() ??
       (models.length > 0 ? models[0].id.toString() : "")
   );
 

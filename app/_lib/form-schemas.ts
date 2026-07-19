@@ -124,6 +124,10 @@ export const upsertSubscriptionPlanSchema = z.object({
     .positive("Usage limit must be a positive number."),
 });
 
+export const UpdateGlobalSettingsSchema = z.object({
+  defaultModelId: z.coerce.number().nullable(),
+});
+
 export const ContactFormSchema = z.object({
   topic: z.enum(["Issue", "Feedback", "General Inquiry"], {
     required_error: "Please select a topic.",

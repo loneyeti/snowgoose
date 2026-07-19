@@ -6,6 +6,7 @@ import {
   getUserPersonas,
 } from "../_lib/server_actions/persona.actions";
 import { getModels } from "../_lib/server_actions/model.actions";
+import { getSystemDefaultModelId } from "../_lib/server_actions/global-settings.actions";
 import { getOutputFormats } from "../_lib/server_actions/output-format.actions";
 import { getMcpTools } from "../_lib/server_actions/mcp-tool.actions";
 import { getApiVendors } from "../_lib/server_actions/api_vendor.actions";
@@ -42,6 +43,7 @@ export default async function Home() {
     outputFormats,
     mcpTools,
     apiVendors,
+    systemDefaultModelId,
   ] = await Promise.all([
     getUserPersonas(user),
     getGlobalPersonas(),
@@ -49,6 +51,7 @@ export default async function Home() {
     getOutputFormats(),
     getMcpTools(),
     getApiVendors(), // Fetches vendors separately (though included in models)
+    getSystemDefaultModelId(), // Admin-configured default model for new chats
   ]);
 
   // Explicitly type the fetched models
@@ -73,6 +76,7 @@ export default async function Home() {
           apiVendors={apiVendors} // Keep passing original vendors if needed elsewhere
           user={user}
           creditBalance={user.creditBalance ?? 0.0}
+          systemDefaultModelId={systemDefaultModelId}
         />
       </div>
     </main>

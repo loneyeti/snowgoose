@@ -70,6 +70,7 @@ export default function ChatWrapper({
   apiVendors,
   user,
   creditBalance,
+  systemDefaultModelId,
 }: ChatWrapperProps) {
   const log = useLogger().with({ userId: user.id });
   const [isStreamComplete, setIsStreamComplete] = useState(false);
@@ -130,6 +131,7 @@ export default function ChatWrapper({
     models,
     apiVendors,
     initialModelId: currentChat?.modelId,
+    systemDefaultModelId,
   });
 
   const shouldShowImageOptions =
@@ -611,7 +613,9 @@ export default function ChatWrapper({
           type="hidden"
           name="model"
           value={
-            selectedModel || (models.length > 0 ? models[0].id.toString() : "")
+            selectedModel ||
+            systemDefaultModelId?.toString() ||
+            (models.length > 0 ? models[0].id.toString() : "")
           }
         />
         <input

@@ -106,6 +106,14 @@ export default async function SettingsNav() {
                 />
                 Subscription Limits
               </MenuListItem>
+              <MenuListItem url="/chat/settings/admin/default-model">
+                <MaterialSymbol
+                  icon="star"
+                  size={18}
+                  className="mr-2 align-middle"
+                />
+                Default Model
+              </MenuListItem>
             </ul>
           </li>
         )}

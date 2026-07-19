@@ -186,6 +186,7 @@ export type ChatWrapperProps = {
   apiVendors: APIVendor[];
   user: User;
   creditBalance: number;
+  systemDefaultModelId: number | null;
 };
 /*
 export interface APIResonse {
