@@ -90,13 +90,32 @@ export async function POST(req: NextRequest) {
     initializeAIVendors();
     const adapter = AIVendorFactory.getAdapter(apiVendor.name, modelConfig);
 
-    const messages: Message[] = chat.responseHistory.map((chatResponse) => ({
-      role: chatResponse.role,
-      content: chatResponse.content,
-    }));
+    const generateOpenAIImage =
+      chat.useImageGeneration &&
+      model.isImageGeneration &&
+      apiVendor.name === "openai";
+    const lastMessageIndex = chat.responseHistory.length - 1;
+    const messages: Message[] = chat.responseHistory.map(
+      (chatResponse, index) => ({
+        role: chatResponse.role,
+        // The adapter scans all messages for an image edit reference. An old
+        // reference must not turn a later image request into an earlier edit.
+        content: Array.isArray(chatResponse.content)
+          ? chatResponse.content.filter(
+              (block) =>
+                block.type !== "image_generation_call" ||
+                (generateOpenAIImage && index === lastMessageIndex)
+            )
+          : chatResponse.content,
+      })
+    );
 
     const tools: AIRequestOptions["tools"] = [];
-    if (chat.useImageGeneration && model.isImageGeneration) {
+    if (
+      chat.useImageGeneration &&
+      model.isImageGeneration &&
+      !generateOpenAIImage
+    ) {
       log.info("Image generation enabled, adding tool to request.");
       tools.push({ type: "image_generation", partial_images: 1 });
     }
@@ -116,8 +135,11 @@ export async function POST(req: NextRequest) {
       verbosity: chat.verbosity ?? undefined,
       reasoningMode: chat.reasoningMode ?? undefined,
       tools: tools.length > 0 ? tools : undefined,
+      openaiImageGenerationOptions: generateOpenAIImage
+        ? { ...chat.openaiImageGenerationOptions, partialImages: 1 }
+        : undefined,
       previousResponseId: chat.previousResponseId,
-      useImageGeneration: chat.useImageGeneration, // <-- ADD THIS LINE
+      useImageGeneration: chat.useImageGeneration,
     };
 
     // --- UNIFIED STREAMING PATH FOR ALL RESPONSES ---
@@ -169,8 +191,13 @@ export async function POST(req: NextRequest) {
               }
             }
 
-            // CHECK 2: If it's a fuzzy image chunk, track it for final upload.
-            if (chunk.type === "image_data" && chunk.id) {
+            // Partial previews are for display only. Store the completed image.
+            if (
+              chunk.type === "image_data" &&
+              chunk.id &&
+              (chunk.isPartial === false ||
+                (apiVendor.name !== "openai" && chunk.isPartial === undefined))
+            ) {
               finalImagesToUpload.set(chunk.id, {
                 base64Data: chunk.base64Data,
                 mimeType: chunk.mimeType,

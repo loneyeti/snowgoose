@@ -12,6 +12,7 @@ import {
   ChatResponse,
   ChatUserSession,
   ChatWrapperProps,
+  OpenAIImageGenerationOptions,
 } from "@/app/_lib/model";
 import UtilityIconRow from "./utility-icon-row";
 import { getHistory } from "../../_lib/server_actions/history.actions";
@@ -81,6 +82,12 @@ export default function ChatWrapper({
     useState<ChatResponse | null>(null);
   const [useWebSearch, setUseWebSearch] = useState(false);
   const [useImageGeneration, setUseImageGeneration] = useState(false);
+  const [imageSize, setImageSize] =
+    useState<NonNullable<OpenAIImageGenerationOptions["size"]>>("auto");
+  const [imageQuality, setImageQuality] =
+    useState<NonNullable<OpenAIImageGenerationOptions["quality"]>>("auto");
+  const [imageBackground, setImageBackground] =
+    useState<NonNullable<OpenAIImageGenerationOptions["background"]>>("auto");
   const toggleWebSearch = () => setUseWebSearch((prev) => !prev);
   const toggleImageGeneration = () => setUseImageGeneration((prev) => !prev);
   // OpenAI reasoning-model-only options (gpt-5+ verbosity, gpt-5.6 pro mode)
@@ -267,7 +274,10 @@ export default function ChatWrapper({
 
     const prompt = formData.get("prompt") as string;
     const imageFile = formData.get("image") as File | null;
-    const imageToEditId = lastAssistantImage.generationId;
+    const imageToEditId =
+      !imageFile?.size && useImageGeneration
+        ? lastAssistantImage.generationId
+        : null;
 
     let visionUrlForDisplay: string | null = null;
     let base64ImageData: string | undefined = undefined;
@@ -324,6 +334,14 @@ export default function ChatWrapper({
       visionUrl: null,
       imageData: base64ImageData,
       useImageGeneration,
+      openaiImageGenerationOptions:
+        useImageGeneration && showImageGenerationToggle
+          ? {
+              size: imageSize,
+              quality: imageQuality,
+              background: imageBackground,
+            }
+          : undefined,
       useWebSearch,
       verbosity: showOpenAIReasoningOptions ? verbosity : undefined,
       reasoningMode: showOpenAIReasoningOptions ? reasoningMode : undefined,
@@ -516,6 +534,20 @@ export default function ChatWrapper({
         content: deduplicateImageBlocks(streamingResponse.content),
       };
       const finalHistory = [...responseHistory, cleanedStreamingResponse];
+      const generatedImage = [...cleanedStreamingResponse.content]
+        .reverse()
+        .find(
+          (block): block is ImageBlock =>
+            block.type === "image" && !!block.generationId
+        );
+      setLastAssistantImage(
+        generatedImage
+          ? {
+              url: generatedImage.url,
+              generationId: generatedImage.generationId ?? null,
+            }
+          : { url: null, generationId: null }
+      );
       setResponseHistory(finalHistory);
       setCurrentChat((prev) => ({
         ...(prev as LocalChat),
@@ -534,6 +566,9 @@ export default function ChatWrapper({
     setPreviousResponseId(undefined);
     setUseWebSearch(false);
     setUseImageGeneration(false);
+    setImageSize("auto");
+    setImageQuality("auto");
+    setImageBackground("auto");
     setVerbosity("medium");
     setReasoningMode("standard");
   };
@@ -545,6 +580,9 @@ export default function ChatWrapper({
     setCurrentChat(chat);
     setUseWebSearch(chat.useWebSearch ?? false);
     setUseImageGeneration(chat.useImageGeneration ?? false);
+    setImageSize(chat.openaiImageGenerationOptions?.size ?? "auto");
+    setImageQuality(chat.openaiImageGenerationOptions?.quality ?? "auto");
+    setImageBackground(chat.openaiImageGenerationOptions?.background ?? "auto");
     setVerbosity(chat.verbosity ?? "medium");
     setReasoningMode(chat.reasoningMode ?? "standard");
     toggleHistory();
@@ -735,6 +773,12 @@ export default function ChatWrapper({
                             onOutputFormatChange={outputFormatChange}
                             onMCPToolChange={mcpToolChange}
                             showImageOptions={shouldShowImageOptions}
+                            currentSize={imageSize}
+                            currentQuality={imageQuality}
+                            currentBackground={imageBackground}
+                            onSizeChange={setImageSize}
+                            onQualityChange={setImageQuality}
+                            onBackgroundChange={setImageBackground}
                             showWebSearch={showWebSearchToggle}
                             useWebSearch={useWebSearch}
                             onWebSearchChange={toggleWebSearch}
@@ -831,6 +875,12 @@ export default function ChatWrapper({
                             onOutputFormatChange={outputFormatChange}
                             onMCPToolChange={mcpToolChange}
                             showImageOptions={shouldShowImageOptions}
+                            currentSize={imageSize}
+                            currentQuality={imageQuality}
+                            currentBackground={imageBackground}
+                            onSizeChange={setImageSize}
+                            onQualityChange={setImageQuality}
+                            onBackgroundChange={setImageBackground}
                             showWebSearch={showWebSearchToggle}
                             useWebSearch={useWebSearch}
                             onWebSearchChange={toggleWebSearch}
