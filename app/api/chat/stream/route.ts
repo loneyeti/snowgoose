@@ -90,10 +90,15 @@ export async function POST(req: NextRequest) {
     initializeAIVendors();
     const adapter = AIVendorFactory.getAdapter(apiVendor.name, modelConfig);
 
+    // GPT Image models are image tools in the Responses API, not top-level
+    // response models. Selecting one should generate an image without requiring
+    // the separate image-generation toggle used by general chat models.
+    const dedicatedOpenAIImageModel =
+      apiVendor.name === "openai" && /^gpt-image-/.test(model.apiName);
     const generateOpenAIImage =
-      chat.useImageGeneration &&
-      model.isImageGeneration &&
-      apiVendor.name === "openai";
+      apiVendor.name === "openai" &&
+      (dedicatedOpenAIImageModel ||
+        (chat.useImageGeneration && model.isImageGeneration));
     const lastMessageIndex = chat.responseHistory.length - 1;
     const messages: Message[] = chat.responseHistory.map(
       (chatResponse, index) => ({
@@ -125,7 +130,7 @@ export async function POST(req: NextRequest) {
     }
 
     const options: AIRequestOptions = {
-      model: model.apiName,
+      model: dedicatedOpenAIImageModel ? "gpt-6-sol" : model.apiName,
       messages: messages,
       systemPrompt: chat.systemPrompt ?? undefined,
       maxTokens: chat.maxTokens ?? undefined,
@@ -136,15 +141,20 @@ export async function POST(req: NextRequest) {
       reasoningMode: chat.reasoningMode ?? undefined,
       tools: tools.length > 0 ? tools : undefined,
       openaiImageGenerationOptions: generateOpenAIImage
-        ? { ...chat.openaiImageGenerationOptions, partialImages: 1 }
+        ? {
+            ...chat.openaiImageGenerationOptions,
+            ...(dedicatedOpenAIImageModel && { model: model.apiName }),
+            partialImages: 1,
+          }
         : undefined,
       previousResponseId: chat.previousResponseId,
-      useImageGeneration: chat.useImageGeneration,
+      useImageGeneration: generateOpenAIImage || chat.useImageGeneration,
     };
 
     // --- UNIFIED STREAMING PATH FOR ALL RESPONSES ---
     log.info("Handling all requests via the streaming path.", {
-      model: model.apiName,
+      model: options.model,
+      imageModel: options.openaiImageGenerationOptions?.model,
     });
     if (!adapter.streamResponse) {
       throw new Error("This adapter does not support streaming.");
