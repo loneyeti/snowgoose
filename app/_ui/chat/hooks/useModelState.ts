@@ -39,7 +39,7 @@ export function useModelState({
   const [selectedModel, setSelectedModel] = useState<string>(
     initialModelId?.toString() ??
       systemDefaultModel?.toString() ??
-      (models.length > 0 ? models[0].id.toString() : "")
+      (models.length > 0 ? models[0].id.toString() : ""),
   );
 
   // Fix: Sync internal state when initialModelId changes (e.g. loading history)
@@ -71,12 +71,15 @@ export function useModelState({
         setShowMCPTools(vendor?.name === "anthropic");
         setShowFileUpload(!!model.isVision || dedicatedGrokImageModel);
         setShowTokenSliders(!!model.isThinking);
-        setShowWebSearchToggle(model.isWebSearch ?? false);
+        setShowWebSearchToggle(
+          !!model.isWebSearch &&
+            (vendor?.name === "openai" || vendor?.name === "anthropic"),
+        );
         setShowImageGenerationToggle(
-          model.isImageGeneration && !dedicatedGrokImageModel
+          model.isImageGeneration && !dedicatedGrokImageModel,
         );
         setShowOpenAIReasoningOptions(
-          vendor?.name === "openai" && !!model.isThinking
+          vendor?.name === "openai" && !!model.isThinking,
         );
       }
     }

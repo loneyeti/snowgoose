@@ -323,6 +323,42 @@ async function main() {
     },
   });
 
+  // The legacy Claude models above are retired on the Claude API. Offer web
+  // research through a current model without changing other admin-added rows.
+  const sonnet46 = await prisma.model.findFirst({
+    where: {
+      apiName: "claude-sonnet-4-6",
+      apiVendorId: anthropicVendor.id,
+    },
+  });
+  if (sonnet46) {
+    await prisma.model.update({
+      where: { id: sonnet46.id },
+      data: {
+        isWebSearch: true,
+        webSearchCost: sonnet46.webSearchCost ?? 0.01,
+      },
+    });
+  } else {
+    const { _max } = await prisma.model.aggregate({ _max: { id: true } });
+    await prisma.model.create({
+      data: {
+        id: (_max.id ?? 0) + 1,
+        apiName: "claude-sonnet-4-6",
+        name: "Claude Sonnet 4.6",
+        isVision: true,
+        isImageGeneration: false,
+        isWebSearch: true,
+        isThinking: true,
+        apiVendorId: anthropicVendor.id,
+        inputTokenCost: 0.000003,
+        outputTokenCost: 0.000015,
+        webSearchCost: 0.01,
+        paidOnly: false,
+      },
+    });
+  }
+
   // Keep an admin's existing model settings if Imagine was added manually.
   const imagineModel = await prisma.model.findFirst({
     where: {
@@ -371,7 +407,7 @@ async function main() {
       },
     });
     console.log(
-      "Found existing Free Tier subscription plan, ensured values are correct."
+      "Found existing Free Tier subscription plan, ensured values are correct.",
     );
   }
 }

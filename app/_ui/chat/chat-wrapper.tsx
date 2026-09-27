@@ -30,6 +30,7 @@ import { useMCPToolState } from "./hooks/useMCPToolState";
 import { useLogger } from "next-axiom";
 import { toast } from "sonner";
 import { ImageBlock, ContentBlock } from "@/app/_lib/model";
+import { mergeStreamContent } from "./merge-stream-content";
 
 function deduplicateImageBlocks(content: ContentBlock[]): ContentBlock[] {
   const imageMap = new Map<string, ContentBlock>();
@@ -92,10 +93,10 @@ export default function ChatWrapper({
   const toggleImageGeneration = () => setUseImageGeneration((prev) => !prev);
   // OpenAI reasoning-model-only options (gpt-5+ verbosity, gpt-5.6 pro mode)
   const [verbosity, setVerbosity] = useState<"low" | "medium" | "high">(
-    "medium"
+    "medium",
   );
   const [reasoningMode, setReasoningMode] = useState<"standard" | "pro">(
-    "standard"
+    "standard",
   );
   const toggleReasoningMode = () =>
     setReasoningMode((prev) => (prev === "pro" ? "standard" : "pro"));
@@ -223,7 +224,7 @@ export default function ChatWrapper({
           Array.isArray(lastMessage.content)
         ) {
           const imageBlock = lastMessage.content.find(
-            (block): block is ImageBlock => block.type === "image"
+            (block): block is ImageBlock => block.type === "image",
           );
           if (imageBlock) {
             lastImageUrl = imageBlock.url;
@@ -364,7 +365,7 @@ export default function ChatWrapper({
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.publicMessage || `Error: ${response.statusText}`
+          errorData.publicMessage || `Error: ${response.statusText}`,
         );
       }
 
@@ -396,9 +397,7 @@ export default function ChatWrapper({
             setStreamingResponse((prevResponse) => {
               if (!prevResponse) return { role: "assistant", content: [] };
 
-              const newContent: ContentBlock[] = JSON.parse(
-                JSON.stringify(prevResponse.content)
-              );
+              let newContent = prevResponse.content;
 
               for (const part of parts) {
                 if (part.trim() === "") continue;
@@ -410,92 +409,18 @@ export default function ChatWrapper({
                     continue;
                   }
 
-                  const lastBlock =
-                    newContent.length > 0
-                      ? newContent[newContent.length - 1]
-                      : null;
-
-                  switch (parsedChunk.type) {
-                    case "meta":
-                      console.log(
-                        "Received MetaBlock with responseId:",
-                        parsedChunk.responseId
-                      );
-                      setPreviousResponseId(parsedChunk.responseId);
-                      continue;
-                    case "text":
-                      if (lastBlock && lastBlock.type === "text") {
-                        lastBlock.text += parsedChunk.text;
-                      } else {
-                        newContent.push(parsedChunk);
-                      }
-                      break;
-                    case "thinking":
-                      if (lastBlock && lastBlock.type === "thinking") {
-                        lastBlock.thinking += parsedChunk.thinking;
-                        if (parsedChunk.signature) {
-                          if (!lastBlock.signature) lastBlock.signature = "";
-                          lastBlock.signature += parsedChunk.signature;
-                        }
-                      } else {
-                        newContent.push(parsedChunk);
-                      }
-                      break;
-                    case "image_data": {
-                      console.log("Received PARTIAL image_data block:", {
-                        id: parsedChunk.id,
-                        hasData: !!parsedChunk.base64Data,
-                        dataLength: parsedChunk.base64Data?.length,
-                      });
-                      const id = parsedChunk.id;
-                      if (id) {
-                        const indexToReplace = newContent.findIndex(
-                          (b) => b.type === "image_data" && b.id === id
-                        );
-                        if (indexToReplace !== -1) {
-                          newContent[indexToReplace] = parsedChunk;
-                        } else {
-                          newContent.push(parsedChunk);
-                        }
-                      } else {
-                        const lastImageDataIndex = newContent
-                          .map((b) => b.type)
-                          .lastIndexOf("image_data");
-                        if (lastImageDataIndex !== -1) {
-                          newContent[lastImageDataIndex] = parsedChunk;
-                        } else {
-                          newContent.push(parsedChunk);
-                        }
-                      }
-                      break;
-                    }
-                    case "image": {
-                      console.log("Received FINAL image block:", {
-                        generationId: parsedChunk.generationId,
-                        url: parsedChunk.url,
-                      });
-                      const generationId = parsedChunk.generationId;
-                      if (generationId) {
-                        const indexToReplace = newContent.findIndex(
-                          (b) =>
-                            b.type === "image_data" && b.id === generationId
-                        );
-                        if (indexToReplace !== -1) {
-                          newContent[indexToReplace] = parsedChunk;
-                        } else {
-                          newContent.push(parsedChunk);
-                        }
-                      } else {
-                        newContent.push(parsedChunk);
-                      }
-                      break;
-                    }
-                    default:
-                      newContent.push(parsedChunk);
-                      break;
+                  if (parsedChunk.type === "meta") {
+                    setPreviousResponseId(parsedChunk.responseId);
+                    continue;
                   }
+                  newContent = mergeStreamContent(
+                    newContent,
+                    parsedChunk as ContentBlock,
+                  );
                 } catch (e) {
-                  log.warn(`Could not parse stream chunk: ${part}, ${e}`);
+                  log.warn("Could not parse stream chunk", {
+                    error: String(e),
+                  });
                 }
               }
               return prevResponse
@@ -538,7 +463,7 @@ export default function ChatWrapper({
         .reverse()
         .find(
           (block): block is ImageBlock =>
-            block.type === "image" && !!block.generationId
+            block.type === "image" && !!block.generationId,
         );
       setLastAssistantImage(
         generatedImage
@@ -546,7 +471,7 @@ export default function ChatWrapper({
               url: generatedImage.url,
               generationId: generatedImage.generationId ?? null,
             }
-          : { url: null, generationId: null }
+          : { url: null, generationId: null },
       );
       setResponseHistory(finalHistory);
       setCurrentChat((prev) => ({

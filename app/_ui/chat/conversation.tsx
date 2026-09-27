@@ -1,9 +1,35 @@
 import { useState } from "react"; // Import useState
-import { ChatResponse } from "../../_lib/model";
+import { ChatResponse, ContentBlock } from "../../_lib/model";
 import { SpinnerSize, Spinner } from "../spinner";
 import MarkdownComponent from "../markdown-parser";
 import CopyButton from "../copy-button"; // Import the CopyButton
 import { isContentBlockArray } from "../../_lib/utils";
+import ResearchSteps, { ResearchBlock } from "./research-steps";
+import SourcesList from "./sources-list";
+
+function isResearchBlock(block: ContentBlock): block is ResearchBlock {
+  return (
+    block.type === "server_tool_use" ||
+    block.type === "web_search_tool_result" ||
+    block.type === "web_fetch_tool_result"
+  );
+}
+
+function groupResearchBlocks(
+  blocks: ContentBlock[],
+): (ContentBlock | ResearchBlock[])[] {
+  const grouped: (ContentBlock | ResearchBlock[])[] = [];
+  for (const block of blocks) {
+    if (isResearchBlock(block)) {
+      const previous = grouped[grouped.length - 1];
+      if (Array.isArray(previous)) previous.push(block);
+      else grouped.push([block]);
+    } else {
+      grouped.push(block);
+    }
+  }
+  return grouped;
+}
 
 interface ConversationProps {
   chats: ChatResponse[];
@@ -89,7 +115,11 @@ export default function Conversation({
               >
                 {isContentBlockArray(chat.content) ? (
                   // Render blocks individually with markdown
-                  chat.content.map((block, blockIndex) => {
+                  groupResearchBlocks(chat.content).map((entry, blockIndex) => {
+                    if (Array.isArray(entry)) {
+                      return <ResearchSteps key={blockIndex} blocks={entry} />;
+                    }
+                    const block = entry;
                     switch (block.type) {
                       case "thinking":
                         // Use the new ThinkingBlock component
@@ -124,7 +154,7 @@ export default function Conversation({
                                   const response = await fetch(block.url);
                                   if (!response.ok) {
                                     throw new Error(
-                                      `HTTP error! status: ${response.status}`
+                                      `HTTP error! status: ${response.status}`,
                                     );
                                   }
                                   const blob = await response.blob();
@@ -136,7 +166,7 @@ export default function Conversation({
                                   try {
                                     const urlPath = new URL(block.url).pathname;
                                     const lastSegment = urlPath.substring(
-                                      urlPath.lastIndexOf("/") + 1
+                                      urlPath.lastIndexOf("/") + 1,
                                     );
                                     if (lastSegment) {
                                       filename = lastSegment;
@@ -144,14 +174,14 @@ export default function Conversation({
                                   } catch (e) {
                                     // Fallback for invalid URLs or environments without URL constructor
                                     const basicFilename = block.url.substring(
-                                      block.url.lastIndexOf("/") + 1
+                                      block.url.lastIndexOf("/") + 1,
                                     );
                                     const queryIndex =
                                       basicFilename.indexOf("?");
                                     if (queryIndex !== -1) {
                                       filename = basicFilename.substring(
                                         0,
-                                        queryIndex
+                                        queryIndex,
                                       );
                                     } else if (basicFilename) {
                                       filename = basicFilename;
@@ -166,7 +196,7 @@ export default function Conversation({
                                   console.error("Download failed:", error);
                                   // Optionally, show an error message to the user
                                   alert(
-                                    "Failed to download image. Please try again or right-click the image to save."
+                                    "Failed to download image. Please try again or right-click the image to save.",
                                   );
                                 }
                               }}
@@ -210,6 +240,7 @@ export default function Conversation({
                           </div>
                         );
                       case "text":
+                        if (!block.text) return null;
                         return (
                           // Wrap in relative container for button positioning
                           <div key={blockIndex} className="relative group">
@@ -252,6 +283,10 @@ export default function Conversation({
                     />
                   </div>
                 )}
+                {chat.role === "assistant" &&
+                  isContentBlockArray(chat.content) && (
+                    <SourcesList blocks={chat.content} />
+                  )}
               </div>
             ))
           ) : (

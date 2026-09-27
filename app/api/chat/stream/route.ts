@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
           type: "error",
           publicMessage: "Insufficient credits for this request.",
         }),
-        { status: 402 }
+        { status: 402 },
       );
     }
 
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     if (chat.imageData) {
       const mimeType = chat.imageData.substring(5, chat.imageData.indexOf(";"));
       const base64Data = chat.imageData.substring(
-        chat.imageData.indexOf(",") + 1
+        chat.imageData.indexOf(",") + 1,
       );
       const finalVisionUrl = await uploadBase64Image(base64Data, mimeType);
 
@@ -49,12 +49,12 @@ export async function POST(req: NextRequest) {
       const lastMessage = chat.responseHistory[chat.responseHistory.length - 1];
       if (lastMessage && Array.isArray(lastMessage.content)) {
         const imageBlockIndex = lastMessage.content.findIndex(
-          (block): block is ImageBlock => block.type === "image"
+          (block): block is ImageBlock => block.type === "image",
         );
         if (imageBlockIndex !== -1) {
           const imageBlock = lastMessage.content[imageBlockIndex] as ImageBlock;
           log.info(
-            `Replacing blob URL ${imageBlock.url} with public URL ${finalVisionUrl}`
+            `Replacing blob URL ${imageBlock.url} with public URL ${finalVisionUrl}`,
           );
           lastMessage.content[imageBlockIndex] = {
             ...imageBlock,
@@ -115,10 +115,10 @@ export async function POST(req: NextRequest) {
           ? chatResponse.content.filter(
               (block) =>
                 block.type !== "image_generation_call" ||
-                (generateOpenAIImage && index === lastMessageIndex)
+                (generateOpenAIImage && index === lastMessageIndex),
             )
           : chatResponse.content,
-      })
+      }),
     );
 
     const tools: AIRequestOptions["tools"] = [];
@@ -131,9 +131,12 @@ export async function POST(req: NextRequest) {
       log.info("Image generation enabled, adding tool to request.");
       tools.push({ type: "image_generation", partial_images: 1 });
     }
-    if (chat.useWebSearch) {
-      log.info("Web search enabled, adding tool to request.");
-      tools.push({ type: "web_search_preview" });
+    const useWebSearch =
+      chat.useWebSearch &&
+      model.isWebSearch &&
+      (apiVendor.name === "openai" || apiVendor.name === "anthropic");
+    if (useWebSearch) {
+      log.info("Web search enabled for request.");
     }
 
     const options: AIRequestOptions = {
@@ -147,6 +150,9 @@ export async function POST(req: NextRequest) {
       verbosity: chat.verbosity ?? undefined,
       reasoningMode: chat.reasoningMode ?? undefined,
       tools: tools.length > 0 ? tools : undefined,
+      webSearch: useWebSearch
+        ? { fetch: apiVendor.name === "anthropic" }
+        : undefined,
       openaiImageGenerationOptions: generateOpenAIImage
         ? {
             ...chat.openaiImageGenerationOptions,
@@ -167,9 +173,12 @@ export async function POST(req: NextRequest) {
       throw new Error("This adapter does not support streaming.");
     }
 
-    console.log(
-      `Starting stream with these options: ${JSON.stringify(options)}`
-    );
+    log.info("Starting vendor stream.", {
+      vendor: apiVendor.name,
+      model: options.model,
+      messageCount: messages.length,
+      webSearchEnabled: !!options.webSearch,
+    });
 
     // --- START: NEW, CORRECTED CODE ---
     const stream = adapter.streamResponse(options);
@@ -231,7 +240,7 @@ export async function POST(req: NextRequest) {
             count: finalImagesToUpload.size,
           });
           for (const [id, { base64Data, mimeType }] of Array.from(
-            finalImagesToUpload.entries()
+            finalImagesToUpload.entries(),
           )) {
             try {
               const imageUrl = await uploadBase64Image(base64Data, mimeType);
@@ -244,7 +253,7 @@ export async function POST(req: NextRequest) {
               controller.enqueue(new TextEncoder().encode(chunkString));
               log.info(
                 "Successfully uploaded and enqueued final image block.",
-                { generationId: id }
+                { generationId: id },
               );
             } catch (e) {
               log.error("Failed to upload final streamed image data", {
@@ -298,7 +307,7 @@ export async function POST(req: NextRequest) {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   }
 }

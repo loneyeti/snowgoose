@@ -10,6 +10,7 @@ import { getUserID } from "../auth";
 import { getModelAdaptorOptions } from "./model.actions";
 import { initializeAIVendors } from "../db/repositories/chat.repository";
 import { Logger } from "next-axiom";
+import { getVisibleText } from "../utils";
 
 // Helper function to generate chat title
 async function _generateChatTitle(userId: number, chat: Chat): Promise<string> {
@@ -24,17 +25,17 @@ async function _generateChatTitle(userId: number, chat: Chat): Promise<string> {
 
     if (userSettings?.summaryModelPreferenceId) {
       summaryModel = await modelRepository.findById(
-        userSettings.summaryModelPreferenceId
+        userSettings.summaryModelPreferenceId,
       );
       log.debug(
-        `Using preferred summary model: ${summaryModel?.name} for user ${userId}`
+        `Using preferred summary model: ${summaryModel?.name} for user ${userId}`,
       );
     }
 
     // If no preferred model or fetch failed, use a default one
     if (!summaryModel) {
       log.debug(
-        `No preferred summary model found or fetch failed for user ${userId}, using default.`
+        `No preferred summary model found or fetch failed for user ${userId}, using default.`,
       );
       summaryModel = await modelRepository.findByApiName("gpt-4o"); // Consider making default configurable
       if (!summaryModel) {
@@ -50,7 +51,17 @@ async function _generateChatTitle(userId: number, chat: Chat): Promise<string> {
 
     // Create a system prompt for title generation
     const systemPrompt =
-      "You are an expert at taking in OpenAI API JSON chat requests and coming up with a brief, concise, descriptive one-sentence title for the chat history. Focus on the main topic or question. Do not include quotes or formatting.";
+      "Create a brief, descriptive one-sentence title for this conversation. Focus on the main topic or question. Do not include quotes or formatting.";
+    // Research results contain large raw vendor payloads needed for follow-up
+    // turns. Keep those in saved history, but send only visible text for titles.
+    const titleContext = chat.responseHistory
+      .map((response) => {
+        const text = getVisibleText(response).trim();
+        return text ? `${response.role}: ${text}` : "";
+      })
+      .filter(Boolean)
+      .join("\n")
+      .slice(0, 12000);
 
     // Generate a title using the AI vendor
     const titleResponse = await adapter.generateResponse({
@@ -65,7 +76,7 @@ async function _generateChatTitle(userId: number, chat: Chat): Promise<string> {
           content: [
             {
               type: "text",
-              text: `Generate a short, one-sentence title for this chat history: ${JSON.stringify(chat)}`,
+              text: `Generate a short, one-sentence title for this conversation:\n${titleContext || chat.prompt}`,
             },
           ],
         },
@@ -78,7 +89,7 @@ async function _generateChatTitle(userId: number, chat: Chat): Promise<string> {
     let title = "Untitled Chat"; // Default title
     if (Array.isArray(titleResponse.content)) {
       const textBlock = titleResponse.content.find(
-        (block): block is TextBlock => block.type === "text"
+        (block): block is TextBlock => block.type === "text",
       );
       if (textBlock) {
         title = textBlock.text.trim();
