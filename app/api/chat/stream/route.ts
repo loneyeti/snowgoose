@@ -76,10 +76,16 @@ export async function POST(req: NextRequest) {
       throw new Error(`API Vendor not found for ID: ${model.apiVendorId}`);
     }
 
+    // Imagine models use xAI's image endpoints directly. They do not need the
+    // chat image-generation toggle or an image tool request.
+    const dedicatedGrokImageModel =
+      apiVendor.name === "grok" &&
+      /^grok-imagine-image(?:-|$)/.test(model.apiName);
+
     const modelConfig: ModelConfig = {
       apiName: model.apiName,
       isVision: model.isVision,
-      isImageGeneration: model.isImageGeneration,
+      isImageGeneration: model.isImageGeneration || dedicatedGrokImageModel,
       isWebSearch: model.isWebSearch ?? undefined,
       isThinking: model.isThinking,
       inputTokenCost: model.inputTokenCost ?? undefined,
@@ -119,7 +125,8 @@ export async function POST(req: NextRequest) {
     if (
       chat.useImageGeneration &&
       model.isImageGeneration &&
-      !generateOpenAIImage
+      !generateOpenAIImage &&
+      !dedicatedGrokImageModel
     ) {
       log.info("Image generation enabled, adding tool to request.");
       tools.push({ type: "image_generation", partial_images: 1 });

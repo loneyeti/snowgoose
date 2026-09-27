@@ -41,6 +41,19 @@ async function main() {
     create: { name: "openrouter" },
   });
 
+  // Existing installations may already have Grok under a different ID.
+  let grokVendor = await prisma.aPIVendor.findFirst({
+    where: { name: "grok" },
+  });
+  if (!grokVendor) {
+    // The vendors above use explicit IDs, which do not advance Postgres's ID
+    // sequence. Pick an unused ID for installations with other vendors too.
+    const { _max } = await prisma.aPIVendor.aggregate({ _max: { id: true } });
+    grokVendor = await prisma.aPIVendor.create({
+      data: { id: (_max.id ?? 0) + 1, name: "grok" },
+    });
+  }
+
   // Persona
   await prisma.persona.upsert({
     where: { id: 1 },
@@ -309,6 +322,30 @@ async function main() {
       paidOnly: false,
     },
   });
+
+  // Keep an admin's existing model settings if Imagine was added manually.
+  const imagineModel = await prisma.model.findFirst({
+    where: {
+      apiName: "grok-imagine-image-2.0",
+      apiVendorId: grokVendor.id,
+    },
+  });
+  if (!imagineModel) {
+    const { _max } = await prisma.model.aggregate({ _max: { id: true } });
+    await prisma.model.create({
+      data: {
+        id: (_max.id ?? 0) + 1,
+        apiName: "grok-imagine-image-2.0",
+        name: "Grok Imagine Image 2.0",
+        isVision: true,
+        isImageGeneration: true,
+        isWebSearch: false,
+        isThinking: false,
+        apiVendorId: grokVendor.id,
+        paidOnly: false,
+      },
+    });
+  }
 
   // Subscription Plans
   const freeTierPlan = await prisma.subscriptionPlan.findFirst({

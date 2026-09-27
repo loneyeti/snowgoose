@@ -64,12 +64,17 @@ export function useModelState({
       const model = models.find((model) => model.id === Number(selectedModel));
       if (model) {
         const vendor = apiVendors.find((v) => v.id === model.apiVendorId);
+        const dedicatedGrokImageModel =
+          vendor?.name === "grok" &&
+          /^grok-imagine-image(?:-|$)/.test(model.apiName);
         setSelectedModelVendor(vendor?.name || "");
         setShowMCPTools(vendor?.name === "anthropic");
-        setShowFileUpload(!!model.isVision);
+        setShowFileUpload(!!model.isVision || dedicatedGrokImageModel);
         setShowTokenSliders(!!model.isThinking);
         setShowWebSearchToggle(model.isWebSearch ?? false);
-        setShowImageGenerationToggle(model.isImageGeneration);
+        setShowImageGenerationToggle(
+          model.isImageGeneration && !dedicatedGrokImageModel
+        );
         setShowOpenAIReasoningOptions(
           vendor?.name === "openai" && !!model.isThinking
         );
